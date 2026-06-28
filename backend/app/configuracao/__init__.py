@@ -10,9 +10,23 @@ class Configuracao(BaseSettings):
     jwt_refresh_ttl_days: int = 14
     storage_backend: str = "filesystem"
     storage_root: str = "./storage_local"
-    gemini_api_key: str = ""
-    groq_api_key: str = ""
     cors_origins: str = "http://localhost:5173,http://localhost:8080"
+
+    # ───────── Provedores de IA (modelos NUNCA fixos em código) ─────────
+    gemini_api_key: str = ""
+    gemini_model: str = "gemini-2.5-flash"
+
+    groq_api_key: str = ""
+    groq_model: str = "llama-3.3-70b-versatile"
+
+    openrouter_api_key: str = ""
+    openrouter_model: str = "deepseek/deepseek-chat-v3"
+
+    huggingface_api_key: str = ""
+    hf_model: str = "black-forest-labs/FLUX.1-schnell"
+
+    fal_key: str = ""
+    fal_model: str = "flux/schnell"
 
     @property
     def cors_origins_list(self) -> list[str]:
