@@ -108,9 +108,12 @@ export type Projeto = { id: string; nome: string; slug: string; eh_raiz: boolean
 export type DocumentoConhecimento = {
   id: string;
   tipo: string;
+  nome?: string;
   versao: number;
   data_upload: string | null;
+  atualizado_em?: string | null;
   caminho: string;
+  tamanho?: number | null;
 };
 export type Asset = {
   id: string;
@@ -170,8 +173,14 @@ export const api = {
     const fd = new FormData();
     fd.append("tipo", tipo);
     fd.append("arquivo", arquivo);
-    return apiRequest<{ id: string }>("/v1/conhecimento", { formData: fd });
+    return apiRequest<DocumentoConhecimento>("/v1/conhecimento", { formData: fd });
   },
+  lerConhecimento: (id: string) =>
+    apiRequest<{ id: string; conteudo: string; tamanho: number }>(
+      `/v1/conhecimento/${id}/conteudo`,
+    ),
+  removerConhecimento: (id: string) =>
+    apiRequest<null>(`/v1/conhecimento/${id}`, { method: "DELETE" }),
   listarAssets: () => apiRequest<Asset[]>("/v1/assets"),
   uploadAsset: (categoria: string, arquivo: File) => {
     const fd = new FormData();
