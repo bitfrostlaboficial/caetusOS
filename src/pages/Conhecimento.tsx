@@ -681,7 +681,7 @@ function ViewerDocumento({
           {carregando ? (
             <div className="text-sm text-muted-foreground">Lendo…</div>
           ) : node.nome.endsWith(".md") ? (
-            <article className="prose prose-invert prose-sm max-w-none prose-headings:font-display prose-pre:bg-muted/60 prose-code:font-mono">
+            <article className="markdown-body max-w-none text-sm leading-relaxed [&_h1]:mb-3 [&_h1]:mt-4 [&_h1]:font-display [&_h1]:text-xl [&_h2]:mb-2 [&_h2]:mt-4 [&_h2]:font-display [&_h2]:text-lg [&_h3]:mb-2 [&_h3]:mt-3 [&_h3]:font-display [&_h3]:text-base [&_p]:my-2 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:my-0.5 [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-xs [&_pre]:my-3 [&_pre]:overflow-auto [&_pre]:rounded [&_pre]:bg-muted/60 [&_pre]:p-3 [&_pre]:text-xs [&_a]:text-primary [&_a]:underline [&_blockquote]:border-l-2 [&_blockquote]:border-border [&_blockquote]:pl-3 [&_blockquote]:text-muted-foreground">
               <ReactMarkdown>{conteudo ?? ""}</ReactMarkdown>
             </article>
           ) : (
