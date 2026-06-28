@@ -10,6 +10,8 @@ import Conhecimento from "./pages/Conhecimento";
 import Historico from "./pages/Historico";
 import InfraestruturaIA from "./pages/InfraestruturaIA";
 import InfraestruturaIAHistorico from "./pages/InfraestruturaIAHistorico";
+import InfraestruturaIAExecucoes from "./pages/InfraestruturaIAExecucoes";
+import InfraestruturaIABenchmark from "./pages/InfraestruturaIABenchmark";
 import NotFound from "./pages/NotFound";
 
 function RequireAuth({ children }: { children: JSX.Element }) {
@@ -35,6 +37,8 @@ export default function App() {
         <Route path="historico" element={<Historico />} />
         <Route path="infraestrutura/ia" element={<InfraestruturaIA />} />
         <Route path="infraestrutura/ia/historico" element={<InfraestruturaIAHistorico />} />
+        <Route path="infraestrutura/execucoes" element={<InfraestruturaIAExecucoes />} />
+        <Route path="infraestrutura/benchmark" element={<InfraestruturaIABenchmark />} />
       </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>

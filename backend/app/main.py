@@ -21,6 +21,8 @@ from app.configuracao import config
 
 # Registra modelos do SQLAlchemy (efeito colateral) — necessário para Alembic.
 import app.dominio.modelos.ia_health  # noqa: F401
+import app.dominio.modelos.ia_execucao  # noqa: F401
+
 # Importa o registro de habilidades para registrar o ExecutorSkill (efeito colateral intencional).
 import app.habilidades.registro  # noqa: F401
 from app.ia.health import scheduler as ia_scheduler
