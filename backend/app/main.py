@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.v1 import assets, auth, comandos, conhecimento, empresas, historico, identidade, memoria, projetos
+from app.api.v1 import assets, auth, comandos, conhecimento, empresas, historico, ia, identidade, memoria, projetos
 from app.configuracao import config
 
 # Importa o registro de habilidades para registrar o ExecutorSkill (efeito colateral intencional).
@@ -33,5 +33,6 @@ for router in [
     assets.router,
     comandos.router,
     historico.router,
+    ia.router,
 ]:
     app.include_router(router, prefix="/v1")
