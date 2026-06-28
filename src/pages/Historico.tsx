@@ -1,22 +1,25 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { api } from "@/lib/api";
+import { useEffect, useState } from "react";
+import { api, type Execucao } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-export const Route = createFileRoute("/app/historico")({
-  component: HistoricoPage,
-});
+export default function Historico() {
+  const [lista, setLista] = useState<Execucao[] | null>(null);
 
-function HistoricoPage() {
-  const lista = useQuery({ queryKey: ["historico"], queryFn: () => api.historico(30) });
+  useEffect(() => {
+    api
+      .historico(30)
+      .then(setLista)
+      .catch(() => setLista([]));
+  }, []);
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Histórico</h1>
         <p className="text-sm text-muted-foreground">
-          Últimas execuções de comandos. Cada linha registra a habilidade, o template de prompt e métricas — auditoria completa.
+          Últimas execuções de comandos. Cada linha registra a habilidade, o template de prompt e
+          métricas — auditoria completa.
         </p>
       </div>
 
@@ -25,13 +28,13 @@ function HistoricoPage() {
           <CardTitle>Execuções recentes</CardTitle>
         </CardHeader>
         <CardContent>
-          {!lista.data || lista.data.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              {lista.isLoading ? "Carregando..." : "Nenhuma execução registrada ainda."}
-            </p>
+          {!lista ? (
+            <p className="text-sm text-muted-foreground">Carregando...</p>
+          ) : lista.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nenhuma execução registrada ainda.</p>
           ) : (
             <ul className="divide-y">
-              {lista.data.map((e) => (
+              {lista.map((e) => (
                 <li key={e.id} className="space-y-1 py-3 text-sm">
                   <div className="flex flex-wrap items-center gap-2">
                     <Badge variant={e.status === "SUCESSO" ? "default" : "destructive"}>
