@@ -7,7 +7,7 @@ from app.configuracao import config
 # Importa o registro de habilidades para registrar o ExecutorSkill (efeito colateral intencional).
 import app.habilidades.registro  # noqa: F401
 
-app = FastAPI(title="Empresa IA — API", version="0.1.0")
+app = FastAPI(title="caetusOS — API", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,

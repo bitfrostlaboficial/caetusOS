@@ -38,10 +38,14 @@ export default function Login() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md border-border/60 bg-card/60 backdrop-blur-md">
         <CardHeader>
-          <CardTitle>Empresa IA</CardTitle>
-          <CardDescription>Seu Funcionário Digital — versão MVP</CardDescription>
+          <CardTitle className="font-display text-2xl">
+            caetus<span className="text-primary">OS</span>
+          </CardTitle>
+          <CardDescription className="font-mono text-xs uppercase tracking-[0.16em]">
+            sistema operacional · funcionários digitais
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs value={aba} onValueChange={setAba}>

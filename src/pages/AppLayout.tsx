@@ -1,5 +1,6 @@
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Brand } from "@/components/Brand";
 import { auth } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
@@ -13,18 +14,19 @@ export default function AppLayout() {
 
   const itemClass = ({ isActive }: { isActive: boolean }) =>
     cn(
-      "text-muted-foreground hover:text-foreground",
-      isActive && "text-foreground font-medium",
+      "relative font-mono text-xs uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground",
+      isActive && "text-primary",
     );
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <header className="border-b">
+    <div className="relative min-h-screen text-foreground">
+      <div className="pointer-events-none fixed inset-0 bg-grid-faint opacity-30" />
+      <header className="relative border-b border-border/60 bg-background/60 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <Link to="/app" className="text-lg font-semibold tracking-tight">
-            Empresa IA
+          <Link to="/app">
+            <Brand />
           </Link>
-          <nav className="flex items-center gap-4 text-sm">
+          <nav className="flex items-center gap-6">
             <NavLink to="/app" end className={itemClass}>
               Painel
             </NavLink>
@@ -40,7 +42,7 @@ export default function AppLayout() {
           </nav>
         </div>
       </header>
-      <main className="mx-auto max-w-6xl px-6 py-8">
+      <main className="relative mx-auto max-w-6xl px-6 py-8">
         <Outlet />
       </main>
     </div>
