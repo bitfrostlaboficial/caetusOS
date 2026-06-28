@@ -1,7 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { useState } from "react";
-import { api, type ResultadoExecucao } from "@/lib/api";
+import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { api, type Empresa, type DocumentoConhecimento, type ResultadoExecucao } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,54 +8,60 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-/**
- * Painel principal: executa a única habilidade do MVP — `conteudo.criar_post`.
- * Fluxo de validação da Sprint 0: Login → (Conhecimento) → Executar → Ver resultado.
- */
-export const Route = createFileRoute("/app/")({
-  component: PainelPage,
-});
-
-function PainelPage() {
-  const empresa = useQuery({ queryKey: ["empresa"], queryFn: api.empresaAtual });
-  const conhecimento = useQuery({ queryKey: ["conhecimento"], queryFn: api.listarConhecimento });
-
+export default function Dashboard() {
+  const [empresa, setEmpresa] = useState<Empresa | null>(null);
+  const [conhecimento, setConhecimento] = useState<DocumentoConhecimento[]>([]);
   const [tema, setTema] = useState("");
   const [canal, setCanal] = useState("linkedin");
   const [objetivo, setObjetivo] = useState("");
   const [resultado, setResultado] = useState<ResultadoExecucao | null>(null);
+  const [executando, setExecutando] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
 
-  const executar = useMutation({
-    mutationFn: () =>
-      api.executarComando("conteudo.criar_post", {
+  useEffect(() => {
+    api.empresaAtual().then(setEmpresa).catch(() => undefined);
+    api.listarConhecimento().then(setConhecimento).catch(() => undefined);
+  }, []);
+
+  async function executar(e: React.FormEvent) {
+    e.preventDefault();
+    setErro(null);
+    setExecutando(true);
+    try {
+      const r = await api.executarComando("conteudo.criar_post", {
         tema,
         canal,
         objetivo: objetivo || undefined,
-      }),
-    onSuccess: (r) => setResultado(r),
-  });
-
-  const docsCount = conhecimento.data?.length ?? 0;
+      });
+      setResultado(r);
+    } catch (err) {
+      setErro(err instanceof Error ? err.message : "Falha inesperada");
+    } finally {
+      setExecutando(false);
+    }
+  }
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">
-          {empresa.data?.nome ?? "Carregando..."}
+          {empresa?.nome ?? "Carregando..."}
         </h1>
         <p className="text-sm text-muted-foreground">
           Funcionário Digital pronto para gerar conteúdo a partir do conhecimento da sua empresa.
         </p>
       </div>
 
-      {docsCount === 0 && (
+      {conhecimento.length === 0 && (
         <Card className="border-dashed">
           <CardContent className="flex items-center justify-between py-4">
             <p className="text-sm text-muted-foreground">
               Nenhum documento de conhecimento ainda. O resultado fica melhor com contexto.
             </p>
             <Link to="/app/conhecimento">
-              <Button variant="outline" size="sm">Adicionar conhecimento</Button>
+              <Button variant="outline" size="sm">
+                Adicionar conhecimento
+              </Button>
             </Link>
           </CardContent>
         </Card>
@@ -66,16 +71,12 @@ function PainelPage() {
         <Card>
           <CardHeader>
             <CardTitle>Criar post</CardTitle>
-            <CardDescription>Habilidade: <code className="text-xs">conteudo.criar_post</code></CardDescription>
+            <CardDescription>
+              Habilidade: <code className="text-xs">conteudo.criar_post</code>
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <form
-              className="space-y-4"
-              onSubmit={(e) => {
-                e.preventDefault();
-                executar.mutate();
-              }}
-            >
+            <form className="space-y-4" onSubmit={executar}>
               <div className="space-y-2">
                 <Label htmlFor="tema">Tema</Label>
                 <Input
@@ -110,12 +111,10 @@ function PainelPage() {
                   rows={3}
                 />
               </div>
-              <Button type="submit" disabled={executar.isPending}>
-                {executar.isPending ? "Gerando..." : "Executar"}
+              <Button type="submit" disabled={executando}>
+                {executando ? "Gerando..." : "Executar"}
               </Button>
-              {executar.isError && (
-                <p className="text-sm text-destructive">{(executar.error as Error).message}</p>
-              )}
+              {erro && <p className="text-sm text-destructive">{erro}</p>}
             </form>
           </CardContent>
         </Card>
@@ -172,7 +171,9 @@ function ResultadoView({ resultado }: { resultado: ResultadoExecucao }) {
       {dados.hashtags && dados.hashtags.length > 0 && (
         <div className="flex flex-wrap gap-1">
           {dados.hashtags.map((h) => (
-            <Badge key={h} variant="secondary">{h}</Badge>
+            <Badge key={h} variant="secondary">
+              {h}
+            </Badge>
           ))}
         </div>
       )}

@@ -1,4 +1,4 @@
-import { createFileRoute, redirect, useRouter, Link } from "@tanstack/react-router";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { api, auth, ApiError } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -7,17 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-export const Route = createFileRoute("/login")({
-  beforeLoad: () => {
-    if (typeof window !== "undefined" && auth.isAuthenticated()) {
-      throw redirect({ to: "/app" });
-    }
-  },
-  component: LoginPage,
-});
+export default function Login() {
+  if (auth.isAuthenticated()) return <Navigate to="/app" replace />;
 
-function LoginPage() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const [aba, setAba] = useState("login");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
@@ -35,7 +28,7 @@ function LoginPage() {
           ? await api.login(email, senha)
           : await api.registrar(nomeEmpresa, email, senha);
       auth.setTokens(resp.access_token, resp.refresh_token);
-      router.navigate({ to: "/app" });
+      navigate("/app");
     } catch (e) {
       setErro(e instanceof ApiError ? e.message : "Falha inesperada");
     } finally {
@@ -98,7 +91,9 @@ function LoginPage() {
             </form>
           </Tabs>
           <p className="mt-6 text-center text-xs text-muted-foreground">
-            <Link to="/" className="hover:underline">← Voltar</Link>
+            <Link to="/" className="hover:underline">
+              ← Voltar
+            </Link>
           </p>
         </CardContent>
       </Card>

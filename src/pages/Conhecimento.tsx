@@ -1,37 +1,50 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRef, useState } from "react";
-import { api } from "@/lib/api";
+import { useEffect, useRef, useState } from "react";
+import { api, type DocumentoConhecimento } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 
-export const Route = createFileRoute("/app/conhecimento")({
-  component: ConhecimentoPage,
-});
-
-function ConhecimentoPage() {
-  const qc = useQueryClient();
+export default function Conhecimento() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [tipo, setTipo] = useState("geral");
+  const [lista, setLista] = useState<DocumentoConhecimento[] | null>(null);
+  const [enviando, setEnviando] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
 
-  const lista = useQuery({ queryKey: ["conhecimento"], queryFn: api.listarConhecimento });
+  async function recarregar() {
+    try {
+      setLista(await api.listarConhecimento());
+    } catch {
+      setLista([]);
+    }
+  }
 
-  const upload = useMutation({
-    mutationFn: (file: File) => api.uploadConhecimento(tipo, file),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["conhecimento"] });
+  useEffect(() => {
+    recarregar();
+  }, []);
+
+  async function onArquivo(file: File) {
+    setErro(null);
+    setEnviando(true);
+    try {
+      await api.uploadConhecimento(tipo, file);
       if (inputRef.current) inputRef.current.value = "";
-    },
-  });
+      await recarregar();
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : "Falha no upload");
+    } finally {
+      setEnviando(false);
+    }
+  }
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Conhecimento</h1>
         <p className="text-sm text-muted-foreground">
-          Documentos Markdown sobre sua empresa, produto e clientes. Usados como contexto pelo Funcionário Digital.
+          Documentos Markdown sobre sua empresa, produto e clientes. Usados como contexto pelo
+          Funcionário Digital.
         </p>
       </div>
 
@@ -65,17 +78,13 @@ function ConhecimentoPage() {
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm file:mr-3 file:rounded file:border-0 file:bg-secondary file:px-2 file:py-1 file:text-xs"
                 onChange={(e) => {
                   const f = e.target.files?.[0];
-                  if (f) upload.mutate(f);
+                  if (f) onArquivo(f);
                 }}
               />
             </div>
-            <Button disabled={upload.isPending}>
-              {upload.isPending ? "Enviando..." : "Selecionar"}
-            </Button>
+            <Button disabled={enviando}>{enviando ? "Enviando..." : "Selecionar"}</Button>
           </div>
-          {upload.isError && (
-            <p className="text-sm text-destructive">{(upload.error as Error).message}</p>
-          )}
+          {erro && <p className="text-sm text-destructive">{erro}</p>}
         </CardContent>
       </Card>
 
@@ -83,19 +92,21 @@ function ConhecimentoPage() {
         <CardHeader>
           <CardTitle>Documentos</CardTitle>
           <CardDescription>
-            {lista.data ? `${lista.data.length} documento(s)` : "Carregando..."}
+            {lista ? `${lista.length} documento(s)` : "Carregando..."}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {!lista.data || lista.data.length === 0 ? (
+          {!lista || lista.length === 0 ? (
             <p className="text-sm text-muted-foreground">Nenhum documento ainda.</p>
           ) : (
             <ul className="divide-y">
-              {lista.data.map((d) => (
+              {lista.map((d) => (
                 <li key={d.id} className="flex items-center justify-between py-3 text-sm">
                   <div className="flex items-center gap-3">
                     <Badge variant="outline">{d.tipo}</Badge>
-                    <span className="font-mono text-xs text-muted-foreground">{d.caminho.split("/").pop()}</span>
+                    <span className="font-mono text-xs text-muted-foreground">
+                      {d.caminho.split("/").pop()}
+                    </span>
                   </div>
                   <span className="text-xs text-muted-foreground">v{d.versao}</span>
                 </li>
