@@ -36,6 +36,9 @@ export default function AppLayout() {
             <NavLink to="/app/historico" className={itemClass}>
               Histórico
             </NavLink>
+            <NavLink to="/app/infraestrutura/ia" className={itemClass}>
+              Infraestrutura
+            </NavLink>
             <Button variant="outline" size="sm" onClick={sair}>
               Sair
             </Button>
