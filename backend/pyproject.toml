@@ -19,7 +19,9 @@ dependencies = [
     "google-genai>=0.3",
     "groq>=0.13",
     "python-slugify>=8.0",
-    "pydantic[email]"
+    "pydantic[email]",
+    "apscheduler>=3.10",
+    "tzdata>=2024.1"
 ]
 
 [tool.ruff]

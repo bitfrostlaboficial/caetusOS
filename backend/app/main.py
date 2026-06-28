@@ -1,13 +1,49 @@
+from contextlib import asynccontextmanager
+import logging
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.v1 import assets, auth, comandos, conhecimento, empresas, historico, ia, identidade, memoria, projetos
+from app.api.v1 import (
+    assets,
+    auth,
+    comandos,
+    conhecimento,
+    empresas,
+    historico,
+    ia,
+    identidade,
+    infraestrutura,
+    memoria,
+    projetos,
+)
 from app.configuracao import config
 
+# Registra modelos do SQLAlchemy (efeito colateral) — necessário para Alembic.
+import app.dominio.modelos.ia_health  # noqa: F401
 # Importa o registro de habilidades para registrar o ExecutorSkill (efeito colateral intencional).
 import app.habilidades.registro  # noqa: F401
+from app.ia.health import scheduler as ia_scheduler
 
-app = FastAPI(title="caetusOS — API", version="0.1.0")
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s — %(message)s",
+)
+log = logging.getLogger("caetusos")
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    if config.ia_health_scheduler_enabled:
+        try:
+            ia_scheduler.iniciar()
+        except Exception:  # noqa: BLE001
+            log.exception("Falha ao iniciar scheduler de IA — seguindo sem ele.")
+    yield
+    ia_scheduler.parar()
+
+
+app = FastAPI(title="caetusOS — API", version="0.2.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -20,7 +56,7 @@ app.add_middleware(
 
 @app.get("/saude")
 def saude() -> dict:
-    return {"ok": True, "version": "0.1.0", "schema_version": 1}
+    return {"ok": True, "version": "0.2.0", "schema_version": 1}
 
 
 for router in [
@@ -34,5 +70,6 @@ for router in [
     comandos.router,
     historico.router,
     ia.router,
+    infraestrutura.router,
 ]:
     app.include_router(router, prefix="/v1")
