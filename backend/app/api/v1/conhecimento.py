@@ -1,25 +1,44 @@
-from fastapi import APIRouter, Depends, File, Form, UploadFile
+import uuid
+
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from app.api.deps import obter_db, usuario_atual
+from app.dominio.modelos.documento_conhecimento import DocumentoConhecimento
 from app.dominio.modelos.usuario import Usuario
+from app.infraestrutura.armazenamento.filesystem import obter_storage
 from app.servicos.conhecimento_servico import ConhecimentoServico
 
 router = APIRouter(prefix="/conhecimento", tags=["conhecimento"])
 
 
+def _serializar(d: DocumentoConhecimento) -> dict:
+    nome = d.caminho_storage.split("/")[-1]
+    # remove o prefixo de hash usado em ConhecimentoServico.adicionar
+    if "-" in nome:
+        nome = nome.split("-", 1)[1]
+    tamanho = None
+    try:
+        storage = obter_storage()
+        if storage.existe(d.caminho_storage):
+            tamanho = len(storage.ler(d.caminho_storage))
+    except Exception:
+        tamanho = None
+    return {
+        "id": str(d.id),
+        "tipo": d.tipo,
+        "nome": nome,
+        "versao": d.versao,
+        "data_upload": d.data_upload.isoformat() if d.data_upload else None,
+        "atualizado_em": d.atualizado_em.isoformat() if d.atualizado_em else None,
+        "caminho": d.caminho_storage,
+        "tamanho": tamanho,
+    }
+
+
 @router.get("")
 def listar(usuario: Usuario = Depends(usuario_atual), sessao: Session = Depends(obter_db)):
-    return [
-        {
-            "id": str(d.id),
-            "tipo": d.tipo,
-            "versao": d.versao,
-            "data_upload": d.data_upload.isoformat() if d.data_upload else None,
-            "caminho": d.caminho_storage,
-        }
-        for d in ConhecimentoServico(sessao).listar(usuario.empresa_id)
-    ]
+    return [_serializar(d) for d in ConhecimentoServico(sessao).listar(usuario.empresa_id)]
 
 
 @router.post("")
@@ -36,4 +55,34 @@ async def upload(
         nome_arquivo=arquivo.filename or "documento.md",
         conteudo=conteudo,
     )
-    return {"id": str(doc.id), "tipo": doc.tipo, "versao": doc.versao}
+    return _serializar(doc)
+
+
+@router.get("/{documento_id}/conteudo")
+def conteudo(
+    documento_id: uuid.UUID,
+    usuario: Usuario = Depends(usuario_atual),
+    sessao: Session = Depends(obter_db),
+):
+    doc = sessao.get(DocumentoConhecimento, documento_id)
+    if not doc or doc.empresa_id != usuario.empresa_id:
+        raise HTTPException(status_code=404, detail="documento não encontrado")
+    try:
+        bruto = obter_storage().ler(doc.caminho_storage)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="arquivo ausente no storage")
+    try:
+        texto = bruto.decode("utf-8")
+    except UnicodeDecodeError:
+        texto = bruto.decode("utf-8", errors="replace")
+    return {"id": str(doc.id), "conteudo": texto, "tamanho": len(bruto)}
+
+
+@router.delete("/{documento_id}", status_code=204)
+def remover(
+    documento_id: uuid.UUID,
+    usuario: Usuario = Depends(usuario_atual),
+    sessao: Session = Depends(obter_db),
+):
+    ConhecimentoServico(sessao).remover(usuario.empresa_id, documento_id)
+    return None
