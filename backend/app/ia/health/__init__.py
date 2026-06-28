@@ -1,8 +1,13 @@
-"""Módulo de health-check dos provedores de IA.
+"""Módulo de monitoramento dos provedores de IA.
 
-Fase 1: apenas execução on-demand (sem scheduler nem persistência).
-Fase 2: APScheduler + tabela `ia_provider_health` + histórico.
+Fase 1: execução on-demand via `checar_um` / `checar_todos`.
+Fase 2: execução paralela + persistência + histórico + scheduler diário.
 """
-from app.ia.health.service import checar_todos, checar_um
+from app.ia.health.service import (
+    checar_todos,
+    checar_um,
+    executar_e_persistir,
+    ultima_verificacao,
+)
 
-__all__ = ["checar_todos", "checar_um"]
+__all__ = ["checar_todos", "checar_um", "executar_e_persistir", "ultima_verificacao"]
