@@ -124,7 +124,7 @@ def metricas_globais(sessao: Session) -> dict[str, Any]:
             func.count(IAExecucao.id).label("chamadas"),
             func.coalesce(func.avg(IAExecucao.duracao_ms), 0).label("media_ms"),
             func.sum(
-                func.cast(IAExecucao.status != "sucesso", func.Integer())
+                case((IAExecucao.status != "sucesso", 1), else_=0)
             ).label("erros"),
         )
         .where(IAExecucao.created_at >= desde_24h)
@@ -165,7 +165,7 @@ def ranking_provedores(sessao: Session) -> list[dict[str, Any]]:
             func.coalesce(func.sum(IAExecucao.total_tokens), 0).label("tokens"),
             func.coalesce(func.sum(IAExecucao.custo_estimado), 0).label("custo"),
             func.sum(
-                func.cast(IAExecucao.status == "sucesso", func.Integer())
+                case((IAExecucao.status == "sucesso", 1), else_=0)
             ).label("sucessos"),
         ).group_by(IAExecucao.provider)
     ).all()
@@ -192,7 +192,7 @@ def metricas_por_modelo(sessao: Session) -> list[dict[str, Any]]:
             IAExecucao.modelo,
             func.count(IAExecucao.id).label("execucoes"),
             func.coalesce(func.avg(IAExecucao.duracao_ms), 0).label("media_ms"),
-            func.sum(func.cast(IAExecucao.status != "sucesso", func.Integer())).label("falhas"),
+            func.sum(case((IAExecucao.status != "sucesso", 1), else_=0)).label("falhas"),
             func.coalesce(func.sum(IAExecucao.total_tokens), 0).label("tokens"),
             func.coalesce(func.sum(IAExecucao.custo_estimado), 0).label("custo"),
             func.max(IAExecucao.created_at).label("ultima"),
