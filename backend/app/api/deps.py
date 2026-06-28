@@ -12,7 +12,20 @@ from app.infraestrutura.seguranca import jwt as jwt_helper
 
 
 def obter_db() -> Session:
-    yield from obter_sessao()
+    """Sessão por request: commit no sucesso, rollback em exceção."""
+    from app.infraestrutura.banco.sessao import SessionLocal
+
+    sessao = SessionLocal()
+    try:
+        yield sessao
+        if sessao.in_transaction():
+            sessao.commit()
+    except Exception:
+        if sessao.in_transaction():
+            sessao.rollback()
+        raise
+    finally:
+        sessao.close()
 
 
 def usuario_atual(
