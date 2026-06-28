@@ -5,7 +5,7 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-from sqlalchemy import and_, func, select
+from sqlalchemy import Integer, and_, case, cast, func, select
 from sqlalchemy.orm import Session
 
 from app.dominio.modelos.ia_execucao import IAExecucao, IAExecucaoEvento
