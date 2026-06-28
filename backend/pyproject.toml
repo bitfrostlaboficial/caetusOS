@@ -1,0 +1,26 @@
+[project]
+name = "empresa-ia-backend"
+version = "0.1.0"
+description = "Empresa IA - Backend (Sprint 0, arquitetura v6.1 congelada)"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "sqlalchemy>=2.0",
+    "psycopg[binary]>=3.2",
+    "alembic>=1.14",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+    "python-multipart>=0.0.17",
+    "argon2-cffi>=23.1",
+    "pyjwt>=2.10",
+    "jinja2>=3.1",
+    "httpx>=0.28",
+    "google-genai>=0.3",
+    "groq>=0.13",
+    "python-slugify>=8.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"

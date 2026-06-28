@@ -1,0 +1,29 @@
+# Fly.io — mesma imagem Docker, apenas configuração de infraestrutura difere (§2).
+app = "empresa-ia"
+primary_region = "gru"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  STORAGE_BACKEND = "filesystem"
+  STORAGE_ROOT = "/data/storage"
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[mounts]]
+  source = "storage"
+  destination = "/data/storage"
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 512
+
+# Variáveis sensíveis configuradas via `fly secrets set`:
+#   DATABASE_URL (Neon), JWT_SECRET, GEMINI_API_KEY, GROQ_API_KEY, CORS_ORIGINS
