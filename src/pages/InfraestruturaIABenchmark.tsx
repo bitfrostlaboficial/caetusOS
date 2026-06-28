@@ -70,7 +70,7 @@ export default function InfraestruturaIABenchmark() {
       const r = await api.infraIaBenchmark(prompt, [...selecionados], maxTokens);
       setResultado(r);
       toast.success(
-        `Benchmark concluído — ${r.resultados.filter((x) => x.sucesso).length}/${r.resultados.length} sucessos.`,
+        `Benchmark concluído — ${r.resultados.filter((x: { sucesso: boolean }) => x.sucesso).length}/${r.resultados.length} sucessos.`,
       );
     } catch (e: any) {
       toast.error(`Falha ao executar benchmark: ${e?.message ?? e}`);
