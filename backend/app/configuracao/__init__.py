@@ -28,6 +28,14 @@ class Configuracao(BaseSettings):
     fal_key: str = ""
     fal_model: str = "flux/schnell"
 
+    # ───────── Monitoramento de IA (Fase 2) ─────────
+    ia_health_hour: int = 8
+    ia_health_minute: int = 0
+    ia_health_timezone: str = "America/Sao_Paulo"
+    ia_health_scheduler_enabled: bool = True
+
+
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
