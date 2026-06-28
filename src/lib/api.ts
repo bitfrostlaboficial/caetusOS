@@ -108,9 +108,12 @@ export type Projeto = { id: string; nome: string; slug: string; eh_raiz: boolean
 export type DocumentoConhecimento = {
   id: string;
   tipo: string;
+  nome?: string;
   versao: number;
   data_upload: string | null;
+  atualizado_em?: string | null;
   caminho: string;
+  tamanho?: number | null;
 };
 export type Asset = {
   id: string;
