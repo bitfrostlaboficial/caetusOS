@@ -194,4 +194,96 @@ export const api = {
     }),
   historico: (limite = 20) =>
     apiRequest<Execucao[]>(`/v1/historico?limite=${limite}`),
+
+  // ───────── Infraestrutura — Provedores de IA (Fase 2) ─────────
+  infraIaOverview: () => apiRequest<IaOverview>("/v1/infraestrutura/ia"),
+  infraIaHistorico: (filtros: IaHistoricoFiltros = {}) => {
+    const p = new URLSearchParams();
+    if (filtros.provider) p.set("provider", filtros.provider);
+    if (filtros.status) p.set("status", filtros.status);
+    if (filtros.desde) p.set("desde", filtros.desde);
+    if (filtros.ate) p.set("ate", filtros.ate);
+    if (filtros.limite) p.set("limite", String(filtros.limite));
+    const qs = p.toString();
+    return apiRequest<IaHistoricoItem[]>(
+      `/v1/infraestrutura/ia/history${qs ? `?${qs}` : ""}`,
+    );
+  },
+  infraIaCheckAgora: () =>
+    apiRequest<IaProviderEstado[]>("/v1/infraestrutura/ia/check", { method: "POST" }),
 };
+
+// ───────── Tipos — Infraestrutura IA ─────────
+export type IaUrls = Partial<{
+  documentation_url: string;
+  dashboard_url: string;
+  api_key_url: string;
+  billing_url: string;
+  status_page: string;
+}>;
+
+export type IaProviderEstado = {
+  provider: string;
+  modelo: string | null;
+  status: string;
+  ultimo_check: string | null;
+  ultima_resposta: string | null;
+  codigo_http: number | null;
+  erro: string | null;
+  acao_recomendada: string | null;
+  billing_ok: boolean;
+  api_key_ok: boolean;
+  termos_ok: boolean;
+  modelo_disponivel: boolean;
+  latencia_ms: number | null;
+  ultima_alteracao_status: string | null;
+};
+
+export type IaProvider = {
+  nome: string;
+  configuracao: {
+    provider: string;
+    modelo: string;
+    configurado: boolean;
+    endpoint: string;
+  };
+  capabilities: Record<string, boolean>;
+  urls: IaUrls;
+  estado: IaProviderEstado | null;
+};
+
+export type IaResumo = {
+  total: number;
+  ativos: number;
+  erro: number;
+  warnings: number;
+  ultima_verificacao: string | null;
+  proxima_verificacao: string | null;
+};
+
+export type IaOverview = {
+  providers: IaProvider[];
+  resumo: IaResumo;
+};
+
+export type IaHistoricoItem = {
+  id: string;
+  provider: string;
+  modelo: string | null;
+  status_anterior: string | null;
+  status_novo: string;
+  codigo_http: number | null;
+  erro: string | null;
+  acao_recomendada: string | null;
+  latencia_ms: number | null;
+  ocorrido_em: string | null;
+};
+
+export type IaHistoricoFiltros = {
+  provider?: string;
+  status?: string;
+  desde?: string;
+  ate?: string;
+  limite?: number;
+};
+
