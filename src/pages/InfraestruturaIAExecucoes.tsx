@@ -282,7 +282,7 @@ export default function InfraestruturaIAExecucoes() {
                       <td className="px-2 py-2 font-mono">{fmtUsd(e.custo_estimado)}</td>
                       <td className="px-2 py-2">
                         <span
-                          className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-widest ${classesTom(m.tom)}`}
+                          className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-widest ${classesTom(m.tone).badge}`}
                         >
                           {e.status}
                         </span>
