@@ -85,9 +85,9 @@ export async function apiRequest<T = unknown>(path: string, opts: RequestOptions
   const text = await res.text();
   const data = text ? safeJson(text) : null;
   if (!res.ok) {
-    const message =
-      (data && typeof data === "object" && "detail" in data && String((data as any).detail)) ||
-      `HTTP ${res.status}`;
+    const detail =
+      data && typeof data === "object" && "detail" in data ? String((data as any).detail) : "";
+    const message = detail || `HTTP ${res.status}`;
     throw new ApiError(res.status, data, message);
   }
   return data as T;
