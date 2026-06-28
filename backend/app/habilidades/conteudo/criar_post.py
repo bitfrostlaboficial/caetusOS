@@ -35,7 +35,7 @@ class CriarPost(Habilidade):
         )
         provedor = resolver_provedor(self.dominio)
         inicio = time.perf_counter()
-        resposta = provedor.gerar_texto(prompt, max_tokens=1200)
+        resposta = provedor.executar(prompt, max_tokens=1200)
         latencia_ms = int((time.perf_counter() - inicio) * 1000)
         return {
             "texto": resposta.texto,
