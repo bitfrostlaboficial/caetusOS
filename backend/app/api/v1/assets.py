@@ -32,13 +32,12 @@ async def upload(
     sessao: Session = Depends(obter_db),
 ):
     conteudo = await arquivo.read()
-    with sessao.begin():
-        a = AssetServico(sessao).upload(
-            usuario.empresa_id,
-            usuario.id,
-            categoria=categoria,
-            nome_arquivo=arquivo.filename or "arquivo",
-            conteudo=conteudo,
-            mime=arquivo.content_type,
-        )
+    a = AssetServico(sessao).upload(
+        usuario.empresa_id,
+        usuario.id,
+        categoria=categoria,
+        nome_arquivo=arquivo.filename or "arquivo",
+        conteudo=conteudo,
+        mime=arquivo.content_type,
+    )
     return {"id": str(a.id), "categoria": a.categoria, "caminho": a.caminho_storage}

@@ -35,11 +35,10 @@ def salvar(
     usuario: Usuario = Depends(usuario_atual),
     sessao: Session = Depends(obter_db),
 ):
-    with sessao.begin():
-        IdentidadeServico(sessao).salvar(
-            usuario.empresa_id,
-            cores=dados.cores,
-            fontes=dados.fontes,
-            tom_de_voz=dados.tom_de_voz,
-        )
+    IdentidadeServico(sessao).salvar(
+        usuario.empresa_id,
+        cores=dados.cores,
+        fontes=dados.fontes,
+        tom_de_voz=dados.tom_de_voz,
+    )
     return {"ok": True}

@@ -30,8 +30,10 @@ async def upload(
     sessao: Session = Depends(obter_db),
 ):
     conteudo = await arquivo.read()
-    with sessao.begin():
-        doc = ConhecimentoServico(sessao).adicionar(
-            usuario.empresa_id, tipo=tipo, nome_arquivo=arquivo.filename or "documento.md", conteudo=conteudo
-        )
+    doc = ConhecimentoServico(sessao).adicionar(
+        usuario.empresa_id,
+        tipo=tipo,
+        nome_arquivo=arquivo.filename or "documento.md",
+        conteudo=conteudo,
+    )
     return {"id": str(doc.id), "tipo": doc.tipo, "versao": doc.versao}

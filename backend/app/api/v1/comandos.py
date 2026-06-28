@@ -44,9 +44,8 @@ def executar(
         projeto_id=dados.projeto_id,
     )
     try:
-        with sessao.begin():
-            executor = Executor(sessao)
-            resultado = executor.executar(comando)
+        executor = Executor(sessao)
+        resultado = executor.executar(comando)
     except SchemaVersionNaoSuportado as exc:
         raise HTTPException(status_code=400, detail=str(exc))
     except (HabilidadeNaoRegistrada, TipoComandoNaoRegistrado) as exc:

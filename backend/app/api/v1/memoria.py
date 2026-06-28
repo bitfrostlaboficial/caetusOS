@@ -31,10 +31,9 @@ def criar(
     usuario: Usuario = Depends(usuario_atual),
     sessao: Session = Depends(obter_db),
 ):
-    with sessao.begin():
-        m = MemoriaServico(sessao).criar(
-            usuario.empresa_id, tipo=dados.tipo, conteudo=dados.conteudo, peso=dados.peso
-        )
+    m = MemoriaServico(sessao).criar(
+        usuario.empresa_id, tipo=dados.tipo, conteudo=dados.conteudo, peso=dados.peso
+    )
     return {"id": str(m.id)}
 
 
@@ -44,6 +43,5 @@ def remover(
     usuario: Usuario = Depends(usuario_atual),
     sessao: Session = Depends(obter_db),
 ):
-    with sessao.begin():
-        MemoriaServico(sessao).remover(usuario.empresa_id, item_id)
+    MemoriaServico(sessao).remover(usuario.empresa_id, item_id)
     return {"ok": True}
