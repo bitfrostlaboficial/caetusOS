@@ -34,6 +34,10 @@ class Configuracao(BaseSettings):
     ia_health_timezone: str = "America/Sao_Paulo"
     ia_health_scheduler_enabled: bool = True
 
+    # ───────── Observabilidade de IA (Fase 4) ─────────
+    ia_store_prompts: bool = False  # LGPD: por padrão só SHA256 do prompt
+
+
 
 
     @property
