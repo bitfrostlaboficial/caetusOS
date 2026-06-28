@@ -315,3 +315,130 @@ export type IaHistoricoFiltros = {
   limite?: number;
 };
 
+
+// ───────── Tipos — Fase 4 (Observabilidade) ─────────
+export type IaMetrics = {
+  hoje: {
+    execucoes: number;
+    sucessos: number;
+    falhas: number;
+    tempo_medio_ms: number;
+    custo_estimado_usd: number;
+    provider_mais_utilizado: string | null;
+    modelo_mais_utilizado: string | null;
+    empresa_mais_ativa: string | null;
+  };
+  ultimas_24h: {
+    hora: string | null;
+    chamadas: number;
+    media_ms: number;
+    erros: number;
+  }[];
+};
+
+export type IaRankingItem = {
+  provider: string;
+  execucoes: number;
+  tempo_medio_ms: number;
+  tokens_total: number;
+  custo_total_usd: number;
+  sucessos: number;
+  taxa_sucesso: number;
+};
+
+export type IaRanking = {
+  providers: IaRankingItem[];
+  destaques: {
+    mais_utilizado: string | null;
+    mais_rapido: string | null;
+    mais_barato: string | null;
+    maior_sucesso: string | null;
+  };
+};
+
+export type IaModeloStat = {
+  provider: string;
+  modelo: string;
+  execucoes: number;
+  tempo_medio_ms: number;
+  falhas: number;
+  tokens_total: number;
+  custo_total_usd: number;
+  ultima_utilizacao: string | null;
+};
+
+export type IaPreco = {
+  provider: string;
+  modelo: string | null;
+  entrada_usd_milhao: number;
+  saida_usd_milhao: number;
+  tabelado: boolean;
+};
+
+export type IaExecucao = {
+  id: string;
+  empresa_id: string | null;
+  usuario_id: string | null;
+  provider: string;
+  modelo: string | null;
+  habilidade: string | null;
+  pipeline: string | null;
+  prompt_hash: string | null;
+  prompt: string | null;
+  inicio_execucao: string | null;
+  fim_execucao: string | null;
+  duracao_ms: number | null;
+  status: string;
+  erro: string | null;
+  input_tokens: number | null;
+  output_tokens: number | null;
+  total_tokens: number | null;
+  custo_estimado: number | null;
+  request_id: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string | null;
+};
+
+export type IaExecucaoEvento = {
+  id: string;
+  tipo: string;
+  mensagem: string | null;
+  payload: Record<string, unknown>;
+  ocorrido_em: string | null;
+};
+
+export type IaExecucaoDetalhe = IaExecucao & { eventos: IaExecucaoEvento[] };
+
+export type IaExecFiltros = {
+  provider?: string;
+  modelo?: string;
+  habilidade?: string;
+  status?: string;
+  desde?: string;
+  ate?: string;
+  busca?: string;
+  limite?: number;
+  offset?: number;
+};
+
+export type IaBenchmarkItem = {
+  provider: string;
+  modelo: string | null;
+  sucesso: boolean;
+  tempo_ms: number;
+  tokens_in: number | null;
+  tokens_out: number | null;
+  total_tokens: number | null;
+  custo_estimado: number;
+  resposta: string | null;
+  erro: string | null;
+};
+
+export type IaBenchmarkResposta = {
+  resultados: IaBenchmarkItem[];
+  ranking: {
+    mais_rapido: string | null;
+    mais_barato: string | null;
+    menos_tokens: string | null;
+  };
+};
