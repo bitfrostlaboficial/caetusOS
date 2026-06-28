@@ -211,6 +211,34 @@ export const api = {
   },
   infraIaCheckAgora: () =>
     apiRequest<IaProviderEstado[]>("/v1/infraestrutura/ia/check", { method: "POST" }),
+
+  // ───────── Fase 4 — Observabilidade / Execuções ─────────
+  infraIaMetrics: () => apiRequest<IaMetrics>("/v1/infraestrutura/ia/metrics"),
+  infraIaRanking: () => apiRequest<IaRanking>("/v1/infraestrutura/ia/providers/ranking"),
+  infraIaModels: () => apiRequest<IaModeloStat[]>("/v1/infraestrutura/ia/models"),
+  infraIaPricing: () => apiRequest<IaPreco[]>("/v1/infraestrutura/ia/pricing"),
+  infraIaExecucoes: (f: IaExecFiltros = {}) => {
+    const p = new URLSearchParams();
+    if (f.provider) p.set("provider", f.provider);
+    if (f.modelo) p.set("modelo", f.modelo);
+    if (f.habilidade) p.set("habilidade", f.habilidade);
+    if (f.status) p.set("status", f.status);
+    if (f.desde) p.set("desde", f.desde);
+    if (f.ate) p.set("ate", f.ate);
+    if (f.busca) p.set("busca", f.busca);
+    if (f.limite) p.set("limite", String(f.limite));
+    if (f.offset) p.set("offset", String(f.offset));
+    const qs = p.toString();
+    return apiRequest<IaExecucao[]>(
+      `/v1/infraestrutura/ia/executions${qs ? `?${qs}` : ""}`,
+    );
+  },
+  infraIaExecucao: (id: string) =>
+    apiRequest<IaExecucaoDetalhe>(`/v1/infraestrutura/ia/executions/${id}`),
+  infraIaBenchmark: (prompt: string, providers: string[], max_tokens = 512) =>
+    apiRequest<IaBenchmarkResposta>("/v1/infraestrutura/ia/benchmark", {
+      body: { prompt, providers, max_tokens },
+    }),
 };
 
 // ───────── Tipos — Infraestrutura IA ─────────
