@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+import logging
 import time
 from typing import Any
 
 from app.configuracao import config
 from app.ia.provedores.base import Capabilities, HealthStatus, Provider, RespostaIA
 from app.ia.provedores.gemini import _classificar_erro
+from app.infraestrutura.observabilidade.logger import log_evento
+
+log = logging.getLogger("caetusos.provider.groq")
 
 
 class GroqProvedor(Provider):
@@ -44,6 +48,9 @@ class GroqProvedor(Provider):
     ) -> RespostaIA:
         modelo_final = modelo or self.modelo_padrao
         if not self.api_key:
+            log_evento(log, logging.WARNING, "PROVIDER",
+                       "groq sem API key — retornando stub",
+                       provider=self.nome, modelo=modelo_final)
             return RespostaIA(
                 texto=f"[stub groq sem GROQ_API_KEY]\n\n{prompt[:400]}",
                 provedor=self.nome,
@@ -51,20 +58,38 @@ class GroqProvedor(Provider):
             )
         from groq import Groq  # type: ignore
 
+        log_evento(
+            log, logging.INFO, "PROVIDER", "enviando requisição",
+            provider=self.nome, modelo=modelo_final,
+            url="https://api.groq.com/openai/v1/chat/completions",
+            max_tokens=max_tokens, prompt_chars=len(prompt or ""),
+        )
         cliente = Groq(api_key=self.api_key)
+        inicio = time.perf_counter()
         resp = cliente.chat.completions.create(
             model=modelo_final,
             messages=[{"role": "user", "content": prompt}],
             max_tokens=max_tokens,
         )
-        texto = resp.choices[0].message.content or ""
+        latencia_ms = int((time.perf_counter() - inicio) * 1000)
+        choice0 = resp.choices[0] if resp.choices else None
+        texto = (choice0.message.content if choice0 else "") or ""
+        finish_reason = getattr(choice0, "finish_reason", None) if choice0 else None
         uso = resp.usage
+        tokens_in = getattr(uso, "prompt_tokens", 0) if uso else 0
+        tokens_out = getattr(uso, "completion_tokens", 0) if uso else 0
+        log_evento(
+            log, logging.INFO, "PROVIDER", "resposta recebida",
+            provider=self.nome, modelo=modelo_final, status_http=200,
+            latencia_ms=latencia_ms, tokens_in=tokens_in, tokens_out=tokens_out,
+            finish_reason=finish_reason, resp_chars=len(texto),
+        )
         return RespostaIA(
             texto=texto,
             provedor=self.nome,
             modelo=modelo_final,
-            tokens_in=getattr(uso, "prompt_tokens", 0) if uso else 0,
-            tokens_out=getattr(uso, "completion_tokens", 0) if uso else 0,
+            tokens_in=tokens_in,
+            tokens_out=tokens_out,
         )
 
     def gerar_texto(self, prompt: str, *, max_tokens: int = 1024) -> RespostaIA:
