@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { RelatorioExecucao } from "@/components/RelatorioExecucao";
 
 export default function Dashboard() {
   const [empresa, setEmpresa] = useState<Empresa | null>(null);
