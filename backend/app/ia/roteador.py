@@ -323,6 +323,14 @@ def executar_missao(
         )
 
     primeiro_prov, primeiro_mod, _ = candidatos[0]
+    log_evento(
+        log, logging.INFO, "ROTEADOR",
+        f"missao={nome_missao} candidatos={len(candidatos)}",
+        categoria=missao.categoria.value,
+        especializacao=missao.especializacao.value,
+        provider_escolhido=primeiro_prov, modelo=primeiro_mod,
+        modo="automatico",
+    )
     ultimo_erro: Exception | None = None
     tentativas: list[dict] = []
 
@@ -336,6 +344,11 @@ def executar_missao(
                 provider_utilizado=None, modelo_utilizado=None,
                 motivo="health_indisponivel",
                 detalhe=f"{prov}/{mod}: status={status}",
+            )
+            log_evento(
+                log, logging.WARNING, "IA FALLBACK",
+                f"pulando {prov}/{mod}",
+                motivo="health_indisponivel", status=status,
             )
             tentativas.append({"provider": prov, "modelo": mod, "resultado": "skip_health"})
             continue
@@ -365,6 +378,11 @@ def executar_missao(
                     motivo="erro_interno",
                     detalhe=f"Fallback após {idx} tentativa(s).",
                 )
+                log_evento(
+                    log, logging.WARNING, "IA FALLBACK",
+                    f"{primeiro_prov} -> {prov}",
+                    tentativas=idx + 1, modelo=mod,
+                )
             return resposta
         except Exception as exc:  # noqa: BLE001
             ultimo_erro = exc
@@ -380,9 +398,10 @@ def executar_missao(
                 motivo=motivo,  # type: ignore[arg-type]
                 detalhe=str(exc)[:300],
             )
-            log.warning(
-                "[IA ROTEADOR] missao=%s tentativa=%d %s/%s falhou: %s",
-                nome_missao, idx + 1, prov, mod, motivo,
+            log_evento(
+                log, logging.WARNING, "IA FALLBACK",
+                f"missao={nome_missao} tentativa={idx + 1} {prov}/{mod} falhou",
+                motivo=motivo,
             )
             continue
 
