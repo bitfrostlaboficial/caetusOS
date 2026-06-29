@@ -7,7 +7,7 @@ import uuid
 
 from app.executor.comando import Comando
 from app.executor.executores.base import Contexto, ExecutorEspecifico
-from app.executor.resultado import ErroExecucao, Metricas, ResultadoExecucao
+from app.executor.resultado import ErroExecucao, EventoExecucao, Metricas, ResultadoExecucao
 from app.habilidades.registro import obter as obter_habilidade
 from app.infraestrutura.observabilidade.logger import log_evento
 
