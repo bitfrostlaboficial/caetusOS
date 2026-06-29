@@ -358,3 +358,116 @@ def listar_precos(_: Usuario = Depends(usuario_atual)) -> list[dict[str, Any]]:
         })
     return out
 
+
+# ═════════ Fase 5.1 — Catálogo, Missões, Métricas, Fallbacks, Perfis ═════════
+
+from app.ia import fallback_log, metricas as _metricas_mod, perfis as _perfis
+from app.ia.catalogo import CATALOGO_PADRAO
+from app.ia.categorias import ESPECIALIZACAO_DA_CATEGORIA, CategoriaIA, EspecializacaoIA
+from app.ia.missoes import MISSOES, listar as listar_missoes
+from app.ia.roteador import _candidatos_para  # type: ignore[attr-defined]
+
+
+@router.get("/catalogo")
+def listar_catalogo(_: Usuario = Depends(usuario_atual)) -> list[dict[str, Any]]:
+    """Catálogo declarativo: cada entrada = provider+categoria+especialização+modelo+peso+custo."""
+    return [e.to_dict() for e in CATALOGO_PADRAO()]
+
+
+@router.get("/missoes")
+def listar_missoes_endpoint(_: Usuario = Depends(usuario_atual)) -> list[dict[str, Any]]:
+    """Missões + candidatos calculados ao vivo (preferencial + reserva)."""
+    saida: list[dict[str, Any]] = []
+    for m in listar_missoes():
+        cands = _candidatos_para(
+            categoria=m.categoria,
+            especializacao=m.especializacao,
+            prefere=m.prefere,
+        )
+        preferencial = cands[0] if cands else None
+        reserva = cands[1] if len(cands) > 1 else None
+        mp = _metricas_mod.metricas_de(*preferencial[:2]) if preferencial else None
+        saida.append({
+            **m.to_dict(),
+            "preferencial": (
+                {"provider": preferencial[0], "modelo": preferencial[1], **preferencial[2]}
+                if preferencial else None
+            ),
+            "reserva": (
+                {"provider": reserva[0], "modelo": reserva[1], **reserva[2]}
+                if reserva else None
+            ),
+            "metricas": mp,
+            "fallbacks_recentes": sum(
+                1 for e in fallback_log.listar(limite=200) if e.get("missao") == m.nome
+            ),
+            "override_manual": _perfis.override_manual(m.nome),
+        })
+    return saida
+
+
+@router.get("/metricas")
+def metricas_em_memoria(_: Usuario = Depends(usuario_atual)) -> list[dict[str, Any]]:
+    """Métricas in-memory por (provider, modelo)."""
+    return _metricas_mod.snapshot()
+
+
+@router.get("/fallbacks")
+def fallbacks_endpoint(
+    limite: int = Query(default=100, ge=1, le=200),
+    _: Usuario = Depends(usuario_atual),
+) -> list[dict[str, Any]]:
+    return fallback_log.listar(limite=limite)
+
+
+@router.get("/perfis")
+def perfis_endpoint(_: Usuario = Depends(usuario_atual)) -> dict[str, Any]:
+    return {
+        "disponiveis": _perfis.perfis_disponiveis(),
+        "ativo": _perfis.carregar().get("nome"),
+        "modo": _perfis.modo(),
+        "overrides_manuais": _perfis.carregar().get("overrides_manuais", {}),
+    }
+
+
+class ModoRequest(BaseModel):
+    modo: str = Field(..., pattern="^(automatico|manual)$")
+    overrides: dict[str, str] | None = None
+
+
+@router.post("/modo")
+def definir_modo_endpoint(
+    req: ModoRequest, _: Usuario = Depends(usuario_atual),
+) -> dict[str, Any]:
+    """Alterna modo Automático/Manual e (em manual) define overrides por missão.
+
+    Persistência apenas em memória nesta fase — sobreviverá até o próximo reload
+    do processo. Fase 6 introduzirá persistência no perfil YAML.
+    """
+    _perfis.definir_modo(req.modo)
+    if req.overrides is not None:
+        # valida providers
+        for missao_nome, prov in req.overrides.items():
+            if missao_nome not in MISSOES:
+                raise HTTPException(status_code=400, detail=f"missão desconhecida: {missao_nome}")
+            try:
+                roteador.obter(prov)
+            except KeyError:
+                raise HTTPException(status_code=400, detail=f"provider não registrado: {prov}")
+        _perfis.definir_overrides_manuais(req.overrides)
+    return {
+        "modo": _perfis.modo(),
+        "overrides_manuais": _perfis.carregar().get("overrides_manuais", {}),
+    }
+
+
+@router.get("/categorias")
+def categorias_endpoint(_: Usuario = Depends(usuario_atual)) -> dict[str, list[str]]:
+    """Lista enums disponíveis — útil para o frontend popular selects."""
+    return {
+        "categorias": [c.value for c in CategoriaIA],
+        "especializacoes": [e.value for e in EspecializacaoIA],
+        "mapa": {esp.value: cat.value for esp, cat in ESPECIALIZACAO_DA_CATEGORIA.items()},
+    }
+
+
