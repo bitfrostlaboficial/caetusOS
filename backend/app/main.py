@@ -53,10 +53,9 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(title="caetusOS — API", version="0.2.0", lifespan=lifespan)
 
-# Ordem: o último adicionado é o mais externo. Queremos LoggingHTTP
-# por fora do RequestID, para que cada log já tenha o request_id.
-app.add_middleware(RequestIDMiddleware)
-app.add_middleware(LoggingHTTPMiddleware, debug=config.debug)
+# Starlette: o ÚLTIMO `add_middleware` é o mais externo. Queremos
+# RequestID externo (gera o ID antes de qualquer log/CORS), LoggingHTTP
+# logo abaixo, e CORS por dentro.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=config.cors_origins_list,
@@ -65,6 +64,8 @@ app.add_middleware(
     allow_headers=["*"],
     expose_headers=["X-Request-ID"],
 )
+app.add_middleware(LoggingHTTPMiddleware, debug=config.debug)
+app.add_middleware(RequestIDMiddleware)
 
 
 @app.get("/saude")
