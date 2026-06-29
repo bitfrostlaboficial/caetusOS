@@ -124,22 +124,7 @@ export default function Dashboard() {
           <CardHeader>
             <CardTitle>Resultado</CardTitle>
             <CardDescription>
-              {resultado ? (
-                <span className="flex items-center gap-2">
-                  <Badge variant={resultado.sucesso ? "default" : "destructive"}>
-                    {resultado.sucesso ? "Sucesso" : "Erro"}
-                  </Badge>
-                  {resultado.metricas.provedor && (
-                    <span className="text-xs">
-                      {resultado.metricas.provedor} · {resultado.metricas.tokens_in ?? 0}→
-                      {resultado.metricas.tokens_out ?? 0} tokens ·{" "}
-                      {resultado.metricas.latencia_ms ?? 0}ms
-                    </span>
-                  )}
-                </span>
-              ) : (
-                "Execute uma habilidade para ver a saída"
-              )}
+              {resultado ? "Conteúdo produzido pela IA" : "Execute uma habilidade para ver a saída"}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -151,9 +136,24 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {resultado && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Relatório de Execução</CardTitle>
+            <CardDescription>
+              Tudo que aconteceu no sistema durante essa execução.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <RelatorioExecucao resultado={resultado} />
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
+
 
 function ResultadoView({ resultado }: { resultado: ResultadoExecucao }) {
   if (resultado.erro) {
