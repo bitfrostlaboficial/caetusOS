@@ -71,5 +71,25 @@ class Configuracao(BaseSettings):
     def cors_origins_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
 
+    @field_validator("jwt_secret")
+    @classmethod
+    def _validar_jwt(cls, v: str, info) -> str:
+        # Em DEV (debug=true) só avisa; em PROD impede o boot.
+        if len(v.encode("utf-8")) < 32:
+            debug = (info.data.get("debug") if info.data else False) or False
+            if debug:
+                _log.warning(
+                    "[CONFIG] JWT_SECRET tem menos de 32 bytes — INSEGURO. "
+                    "Em produção isso impede o boot. "
+                    "Gere uma chave forte com: openssl rand -hex 32"
+                )
+            else:
+                raise RuntimeError(
+                    "JWT_SECRET inseguro (<32 bytes) em ambiente de produção. "
+                    "Defina DEBUG=true para desenvolvimento ou gere uma chave "
+                    "forte: openssl rand -hex 32"
+                )
+        return v
+
 
 config = Configuracao()
