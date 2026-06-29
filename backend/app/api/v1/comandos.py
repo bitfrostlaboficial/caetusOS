@@ -80,6 +80,8 @@ def executar(
     usuario: Usuario = Depends(usuario_atual),
     sessao: Session = Depends(obter_db),
 ):
+    import time as _time
+    t0 = _time.perf_counter()
     request_id = getattr(request.state, "request_id", None)
     set_contexto(
         empresa_id=usuario.empresa_id,
@@ -104,6 +106,7 @@ def executar(
         projeto_id=dados.projeto_id,
     )
 
+    fase = "executor.executar"
     try:
         executor = Executor(sessao)
         resultado = executor.executar(comando)
@@ -114,11 +117,19 @@ def executar(
     except HTTPException:
         raise
     except Exception as exc:  # noqa: BLE001
+        duracao_ms = int((_time.perf_counter() - t0) * 1000)
         tb = traceback.format_exc()
+        tb_frames = traceback.extract_tb(exc.__traceback__)
+        origem = tb_frames[-1] if tb_frames else None
         log_evento(
-            log, logging.ERROR, "ERRO",
-            f"executor falhou para alvo={dados.alvo}",
-            tipo=type(exc).__name__, mensagem=str(exc)[:300],
+            log, logging.ERROR, "EXECUTOR",
+            f"executor levantou exceção alvo={dados.alvo}",
+            skill=dados.alvo, fase=fase,
+            tipo=type(exc).__name__, mensagem=str(exc)[:400],
+            arquivo=(origem.filename if origem else None),
+            funcao=(origem.name if origem else None),
+            linha=(origem.lineno if origem else None),
+            duracao_ms=duracao_ms,
         )
         log.error("stacktrace:\n%s", tb)
         detalhe: dict[str, Any] = {
@@ -127,9 +138,16 @@ def executar(
         }
         if config.debug:
             detalhe["stacktrace"] = tb.splitlines()[-20:]
+        log_evento(
+            log, logging.ERROR, "RESPOSTA",
+            "respondendo erro 500",
+            status=500, erro=type(exc).__name__,
+            request_id=request_id, duracao_total_ms=duracao_ms,
+        )
         raise HTTPException(status_code=500, detail=detalhe)
 
-    corpo = {
+    fase = "montar_corpo"
+    corpo: dict[str, Any] = {
         "request_id": request_id,
         "sucesso": resultado.sucesso,
         "execucao_id": str(resultado.execucao_id),
@@ -152,21 +170,46 @@ def executar(
             else None
         ),
     }
+    fase = "serializacao"
+    log_evento(log, logging.DEBUG, "SERIALIZACAO", "iniciando varredura do payload")
     corpo = _serializar_seguro(corpo)
+    log_evento(log, logging.DEBUG, "SERIALIZACAO", "varredura concluída")
+
+    duracao_ms = int((_time.perf_counter() - t0) * 1000)
 
     # Regra Fase 6: falha de negócio NUNCA retorna 200.
     if not resultado.sucesso:
+        codigo_erro = corpo.get("erro", {}).get("codigo") if corpo.get("erro") else None
         log_evento(
             log, logging.WARNING, "EXECUTOR",
             f"resultado=ERRO alvo={dados.alvo}",
-            codigo=corpo.get("erro", {}).get("codigo") if corpo.get("erro") else None,
+            skill=dados.alvo, fase="resultado",
+            provedor=resultado.metricas.provedor,
+            modelo=getattr(resultado.metricas, "modelo", None),
+            codigo=codigo_erro,
+            mensagem=(corpo.get("erro", {}).get("mensagem") if corpo.get("erro") else None),
+            duracao_ms=duracao_ms,
+        )
+        log_evento(
+            log, logging.WARNING, "RESPOSTA",
+            "respondendo 422",
+            status=422, erro=codigo_erro,
+            request_id=request_id, duracao_total_ms=duracao_ms,
         )
         raise HTTPException(status_code=422, detail=corpo)
 
     log_evento(
         log, logging.INFO, "EXECUTOR",
         f"resultado=SUCESSO alvo={dados.alvo}",
+        skill=dados.alvo, fase="resultado",
         provedor=resultado.metricas.provedor,
         latencia_ms=resultado.metricas.latencia_ms,
+        duracao_ms=duracao_ms,
+    )
+    log_evento(
+        log, logging.INFO, "RESPOSTA",
+        "respondendo 200",
+        status=200, request_id=request_id, duracao_total_ms=duracao_ms,
     )
     return corpo
+
