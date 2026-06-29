@@ -5,7 +5,10 @@ import type { JSX } from "react";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import AppLayout from "./pages/AppLayout";
-import Dashboard from "./pages/Dashboard";
+import CommandCenter from "./pages/CommandCenter";
+import Missoes from "./pages/Missoes";
+import MissaoCriarPost from "./pages/MissaoCriarPost";
+import MissaoEmBreve from "./pages/MissaoEmBreve";
 import Conhecimento from "./pages/Conhecimento";
 import Historico from "./pages/Historico";
 import InfraestruturaIA from "./pages/InfraestruturaIA";
@@ -33,7 +36,10 @@ export default function App() {
           </RequireAuth>
         }
       >
-        <Route index element={<Dashboard />} />
+        <Route index element={<CommandCenter />} />
+        <Route path="missoes" element={<Missoes />} />
+        <Route path="missoes/criar-post" element={<MissaoCriarPost />} />
+        <Route path="missoes/:slug" element={<MissaoEmBreve />} />
         <Route path="conhecimento" element={<Conhecimento />} />
         <Route path="historico" element={<Historico />} />
         <Route path="infraestrutura/ia" element={<InfraestruturaIA />} />
