@@ -1,4 +1,9 @@
+import logging
+
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+_log = logging.getLogger("caetusos.config")
 
 
 class Configuracao(BaseSettings):
@@ -8,6 +13,12 @@ class Configuracao(BaseSettings):
     jwt_secret: str = "dev-secret"
     jwt_access_ttl_min: int = 30
     jwt_refresh_ttl_days: int = 14
+
+    # ───────── Observabilidade (Fase 6) ─────────
+    debug: bool = False
+    log_level: str = "INFO"
+    log_json: bool = False
+    log_color: bool = True
     storage_backend: str = "filesystem"
     storage_root: str = "./storage_local"
     cors_origins: str = "http://localhost:5173,http://localhost:8080"
@@ -59,6 +70,26 @@ class Configuracao(BaseSettings):
     @property
     def cors_origins_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+
+    @field_validator("jwt_secret")
+    @classmethod
+    def _validar_jwt(cls, v: str, info) -> str:
+        # Em DEV (debug=true) só avisa; em PROD impede o boot.
+        if len(v.encode("utf-8")) < 32:
+            debug = (info.data.get("debug") if info.data else False) or False
+            if debug:
+                _log.warning(
+                    "[CONFIG] JWT_SECRET tem menos de 32 bytes — INSEGURO. "
+                    "Em produção isso impede o boot. "
+                    "Gere uma chave forte com: openssl rand -hex 32"
+                )
+            else:
+                raise RuntimeError(
+                    "JWT_SECRET inseguro (<32 bytes) em ambiente de produção. "
+                    "Defina DEBUG=true para desenvolvimento ou gere uma chave "
+                    "forte: openssl rand -hex 32"
+                )
+        return v
 
 
 config = Configuracao()

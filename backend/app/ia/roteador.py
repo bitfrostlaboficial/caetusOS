@@ -26,8 +26,9 @@ from app.ia.provedores.groq import GroqProvedor
 from app.ia.provedores.huggingface import HuggingFaceProvedor
 from app.ia.provedores.openrouter import OpenRouterProvedor
 from app.ia.telemetria import gravador
+from app.infraestrutura.observabilidade.logger import log_evento
 
-log = logging.getLogger(__name__)
+log = logging.getLogger("caetusos.roteador")
 
 # ───────── Registro global ─────────
 _REGISTRO: dict[str, Provider] = {}
@@ -103,6 +104,13 @@ def executar(
     gravador.evento(exec_id, "PROVIDER_SELECIONADO", f"provider={provider}")
     gravador.evento(exec_id, "REQUISICAO_ENVIADA")
 
+    log_evento(
+        log, logging.INFO, "IA",
+        f"chamando {provider}",
+        modelo=modelo_final, prompt_chars=len(prompt or ""),
+        habilidade=habilidade, pipeline=pipeline,
+    )
+
     inicio = time.perf_counter()
     try:
         resposta = prov.executar(prompt, modelo=modelo, max_tokens=max_tokens, **kwargs)
@@ -117,6 +125,13 @@ def executar(
         # Métricas in-memory (Fase 5.1)
         from app.ia import metricas as _metricas
         _metricas.registrar_sucesso(provider, resposta.modelo or modelo_final or "", latencia_ms)
+        log_evento(
+            log, logging.INFO, "IA",
+            f"resposta de {provider} OK",
+            modelo=resposta.modelo or modelo_final,
+            tokens_in=resposta.tokens_in, tokens_out=resposta.tokens_out,
+            latencia_ms=latencia_ms, custo=resposta.custo,
+        )
         return resposta
     except Exception as exc:
         latencia_ms = int((time.perf_counter() - inicio) * 1000)
@@ -128,6 +143,12 @@ def executar(
             provider, modelo_final or "", latencia_ms=latencia_ms,
             timeout="timeout" in msg or "timed out" in msg,
             rate_limit="429" in msg or "rate" in msg,
+        )
+        log_evento(
+            log, logging.ERROR, "IA",
+            f"falha em {provider}",
+            modelo=modelo_final, latencia_ms=latencia_ms,
+            tipo=type(exc).__name__, mensagem=str(exc)[:200],
         )
         raise
 
@@ -302,6 +323,14 @@ def executar_missao(
         )
 
     primeiro_prov, primeiro_mod, _ = candidatos[0]
+    log_evento(
+        log, logging.INFO, "ROTEADOR",
+        f"missao={nome_missao} candidatos={len(candidatos)}",
+        categoria=missao.categoria.value,
+        especializacao=missao.especializacao.value,
+        provider_escolhido=primeiro_prov, modelo=primeiro_mod,
+        modo="automatico",
+    )
     ultimo_erro: Exception | None = None
     tentativas: list[dict] = []
 
@@ -315,6 +344,11 @@ def executar_missao(
                 provider_utilizado=None, modelo_utilizado=None,
                 motivo="health_indisponivel",
                 detalhe=f"{prov}/{mod}: status={status}",
+            )
+            log_evento(
+                log, logging.WARNING, "IA FALLBACK",
+                f"pulando {prov}/{mod}",
+                motivo="health_indisponivel", status=status,
             )
             tentativas.append({"provider": prov, "modelo": mod, "resultado": "skip_health"})
             continue
@@ -344,6 +378,11 @@ def executar_missao(
                     motivo="erro_interno",
                     detalhe=f"Fallback após {idx} tentativa(s).",
                 )
+                log_evento(
+                    log, logging.WARNING, "IA FALLBACK",
+                    f"{primeiro_prov} -> {prov}",
+                    tentativas=idx + 1, modelo=mod,
+                )
             return resposta
         except Exception as exc:  # noqa: BLE001
             ultimo_erro = exc
@@ -359,9 +398,10 @@ def executar_missao(
                 motivo=motivo,  # type: ignore[arg-type]
                 detalhe=str(exc)[:300],
             )
-            log.warning(
-                "[IA ROTEADOR] missao=%s tentativa=%d %s/%s falhou: %s",
-                nome_missao, idx + 1, prov, mod, motivo,
+            log_evento(
+                log, logging.WARNING, "IA FALLBACK",
+                f"missao={nome_missao} tentativa={idx + 1} {prov}/{mod} falhou",
+                motivo=motivo,
             )
             continue
 

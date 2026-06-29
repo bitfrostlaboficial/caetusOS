@@ -18,6 +18,11 @@ from app.api.v1 import (
     projetos,
 )
 from app.configuracao import config
+from app.infraestrutura.observabilidade.logger import configurar_logging
+from app.infraestrutura.observabilidade.middleware import (
+    LoggingHTTPMiddleware,
+    RequestIDMiddleware,
+)
 
 # Registra modelos do SQLAlchemy (efeito colateral) — necessário para Alembic.
 import app.dominio.modelos.ia_health  # noqa: F401
@@ -27,9 +32,10 @@ import app.dominio.modelos.ia_execucao  # noqa: F401
 import app.habilidades.registro  # noqa: F401
 from app.ia.health import scheduler as ia_scheduler
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(levelname)s %(name)s — %(message)s",
+configurar_logging(
+    nivel=config.log_level,
+    json_format=config.log_json,
+    cor=config.log_color,
 )
 log = logging.getLogger("caetusos")
 
@@ -47,13 +53,19 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(title="caetusOS — API", version="0.2.0", lifespan=lifespan)
 
+# Starlette: o ÚLTIMO `add_middleware` é o mais externo. Queremos
+# RequestID externo (gera o ID antes de qualquer log/CORS), LoggingHTTP
+# logo abaixo, e CORS por dentro.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=config.cors_origins_list,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["X-Request-ID"],
 )
+app.add_middleware(LoggingHTTPMiddleware, debug=config.debug)
+app.add_middleware(RequestIDMiddleware)
 
 
 @app.get("/saude")
