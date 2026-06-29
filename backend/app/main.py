@@ -42,6 +42,8 @@ log = logging.getLogger("caetusos")
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    # Validações estritas só na inicialização da API (não em Alembic/scripts).
+    config.validar_para_api()
     if config.ia_health_scheduler_enabled:
         try:
             ia_scheduler.iniciar()
