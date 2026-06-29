@@ -45,6 +45,9 @@ export default function AppLayout() {
             <NavLink to="/app/infraestrutura/benchmark" className={itemClass}>
               Benchmark
             </NavLink>
+            <NavLink to="/app/infraestrutura/missoes" className={itemClass}>
+              Missões
+            </NavLink>
             <Button variant="outline" size="sm" onClick={sair}>
               Sair
             </Button>
