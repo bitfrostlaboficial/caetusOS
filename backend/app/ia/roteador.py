@@ -26,8 +26,9 @@ from app.ia.provedores.groq import GroqProvedor
 from app.ia.provedores.huggingface import HuggingFaceProvedor
 from app.ia.provedores.openrouter import OpenRouterProvedor
 from app.ia.telemetria import gravador
+from app.infraestrutura.observabilidade.logger import log_evento
 
-log = logging.getLogger(__name__)
+log = logging.getLogger("caetusos.roteador")
 
 # ───────── Registro global ─────────
 _REGISTRO: dict[str, Provider] = {}
