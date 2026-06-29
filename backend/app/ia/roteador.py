@@ -104,6 +104,13 @@ def executar(
     gravador.evento(exec_id, "PROVIDER_SELECIONADO", f"provider={provider}")
     gravador.evento(exec_id, "REQUISICAO_ENVIADA")
 
+    log_evento(
+        log, logging.INFO, "IA",
+        f"chamando {provider}",
+        modelo=modelo_final, prompt_chars=len(prompt or ""),
+        habilidade=habilidade, pipeline=pipeline,
+    )
+
     inicio = time.perf_counter()
     try:
         resposta = prov.executar(prompt, modelo=modelo, max_tokens=max_tokens, **kwargs)
@@ -118,6 +125,13 @@ def executar(
         # Métricas in-memory (Fase 5.1)
         from app.ia import metricas as _metricas
         _metricas.registrar_sucesso(provider, resposta.modelo or modelo_final or "", latencia_ms)
+        log_evento(
+            log, logging.INFO, "IA",
+            f"resposta de {provider} OK",
+            modelo=resposta.modelo or modelo_final,
+            tokens_in=resposta.tokens_in, tokens_out=resposta.tokens_out,
+            latencia_ms=latencia_ms, custo=resposta.custo,
+        )
         return resposta
     except Exception as exc:
         latencia_ms = int((time.perf_counter() - inicio) * 1000)
@@ -129,6 +143,12 @@ def executar(
             provider, modelo_final or "", latencia_ms=latencia_ms,
             timeout="timeout" in msg or "timed out" in msg,
             rate_limit="429" in msg or "rate" in msg,
+        )
+        log_evento(
+            log, logging.ERROR, "IA",
+            f"falha em {provider}",
+            modelo=modelo_final, latencia_ms=latencia_ms,
+            tipo=type(exc).__name__, mensagem=str(exc)[:200],
         )
         raise
 
