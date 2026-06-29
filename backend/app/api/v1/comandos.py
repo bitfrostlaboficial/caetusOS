@@ -159,17 +159,29 @@ def executar(
         ],
         "metricas": {
             "provedor": resultado.metricas.provedor,
+            "modelo": getattr(resultado.metricas, "modelo", None),
             "tokens_in": resultado.metricas.tokens_in,
             "tokens_out": resultado.metricas.tokens_out,
             "custo": resultado.metricas.custo,
             "latencia_ms": resultado.metricas.latencia_ms,
         },
+        "eventos": [
+            {
+                "tipo": ev.tipo,
+                "titulo": ev.titulo,
+                "nivel": ev.nivel,
+                "detalhes": ev.detalhes,
+                "ocorrido_em": ev.ocorrido_em.isoformat() if ev.ocorrido_em else None,
+            }
+            for ev in (resultado.eventos or [])
+        ],
         "erro": (
             {"codigo": resultado.erro.codigo, "mensagem": resultado.erro.mensagem}
             if resultado.erro
             else None
         ),
     }
+
     fase = "serializacao"
     log_evento(log, logging.DEBUG, "SERIALIZACAO", "iniciando varredura do payload")
     corpo = _serializar_seguro(corpo)

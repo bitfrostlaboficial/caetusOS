@@ -141,6 +141,13 @@ export type Execucao = {
   erro: string | null;
   criado_em: string | null;
 };
+export type EventoExecucao = {
+  tipo: string;
+  titulo: string;
+  nivel: "info" | "sucesso" | "aviso" | "erro";
+  detalhes: Record<string, unknown>;
+  ocorrido_em: string | null;
+};
 export type ResultadoExecucao = {
   sucesso: boolean;
   execucao_id: string;
@@ -149,13 +156,16 @@ export type ResultadoExecucao = {
   arquivos: { id: string; categoria: string; caminho: string }[];
   metricas: {
     provedor: string | null;
+    modelo: string | null;
     tokens_in: number | null;
     tokens_out: number | null;
     custo: number | null;
     latencia_ms: number | null;
   };
+  eventos: EventoExecucao[];
   erro: { codigo: string; mensagem: string } | null;
 };
+
 
 export const api = {
   registrar: (nome_empresa: string, email: string, senha: string) =>
