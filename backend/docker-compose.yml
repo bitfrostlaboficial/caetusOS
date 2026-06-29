@@ -14,9 +14,10 @@ services:
     build: .
     depends_on:
       - db
+    env_file:
+      - .env
     environment:
       DATABASE_URL: postgresql+psycopg://empresa_ia:empresa_ia@db:5432/empresa_ia
-      JWT_SECRET: dev-secret-troque-em-producao
       STORAGE_BACKEND: filesystem
       STORAGE_ROOT: /data/storage
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}

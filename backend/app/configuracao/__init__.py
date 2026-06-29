@@ -1,8 +1,18 @@
 import logging
+import os
+from pathlib import Path
+from typing import NamedTuple
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 _log = logging.getLogger("caetusos.config")
+
+
+class DiagnosticoJWTSecret(NamedTuple):
+    source: str
+    length_bytes: int
+    debug: bool
+    encontrado: bool
 
 
 class Configuracao(BaseSettings):
@@ -63,12 +73,51 @@ class Configuracao(BaseSettings):
     # ───────── Observabilidade de IA (Fase 4) ─────────
     ia_store_prompts: bool = False  # LGPD: por padrão só SHA256 do prompt
 
-
-
-
     @property
     def cors_origins_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+
+    def _diagnosticar_jwt_secret(self) -> DiagnosticoJWTSecret:
+        """Diagnostica a origem do JWT_SECRET sem registrar o valor da chave."""
+        nome_env = "JWT_SECRET"
+        source = "default"
+        encontrado = False
+
+        for chave in os.environ:
+            if chave.upper() == nome_env:
+                source = "environment"
+                encontrado = True
+                break
+
+        if not encontrado:
+            dotenv_path = Path.cwd() / ".env"
+            if dotenv_path.exists():
+                for linha in dotenv_path.read_text(encoding="utf-8").splitlines():
+                    linha_limpa = linha.strip()
+                    if not linha_limpa or linha_limpa.startswith("#") or "=" not in linha_limpa:
+                        continue
+                    chave, _valor = linha_limpa.split("=", 1)
+                    if chave.strip().upper() == nome_env:
+                        source = f".env:{dotenv_path}"
+                        encontrado = True
+                        break
+
+        secret = self.jwt_secret or ""
+        return DiagnosticoJWTSecret(
+            source=source,
+            length_bytes=len(secret.encode("utf-8")),
+            debug=self.debug,
+            encontrado=encontrado,
+        )
+
+    def _logar_diagnostico_jwt_secret(self, diagnostico: DiagnosticoJWTSecret) -> None:
+        _log.info(
+            "[CONFIG]\nJWT loaded=%s\nJWT source=%s\nJWT length=%s\nDEBUG=%s",
+            str(diagnostico.encontrado).lower(),
+            diagnostico.source,
+            diagnostico.length_bytes,
+            diagnostico.debug,
+        )
 
     def validar_para_api(self) -> None:
         """Validações estritas chamadas no startup da API (lifespan).
@@ -76,10 +125,29 @@ class Configuracao(BaseSettings):
         Não roda na importação para não bloquear Alembic, testes e scripts
         administrativos. Em DEBUG=true apenas avisa; caso contrário, levanta.
         """
-        if len(self.jwt_secret.encode("utf-8")) < 32:
+        diagnostico = self._diagnosticar_jwt_secret()
+        self._logar_diagnostico_jwt_secret(diagnostico)
+
+        if not diagnostico.encontrado:
             msg = (
-                "JWT_SECRET inseguro (<32 bytes). "
-                "Gere uma chave forte com: openssl rand -hex 32"
+                "JWT_SECRET não encontrado.\n\n"
+                f"Length.............: {diagnostico.length_bytes}\n"
+                f"DEBUG..............: {str(diagnostico.debug).lower()}\n"
+                f"Source.............: {diagnostico.source}\n"
+                "Required...........: >=32 bytes"
+            )
+            if self.debug:
+                _log.warning("[CONFIG] %s (ignorado em DEBUG=true)", msg)
+            else:
+                raise RuntimeError(msg)
+
+        if diagnostico.length_bytes < 32:
+            msg = (
+                "JWT_SECRET inválido.\n\n"
+                f"Length.............: {diagnostico.length_bytes}\n"
+                f"DEBUG..............: {str(diagnostico.debug).lower()}\n"
+                f"Source.............: {diagnostico.source}\n"
+                "Required...........: >=32 bytes"
             )
             if self.debug:
                 _log.warning("[CONFIG] %s (ignorado em DEBUG=true)", msg)
