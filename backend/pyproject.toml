@@ -21,7 +21,8 @@ dependencies = [
     "python-slugify>=8.0",
     "pydantic[email]",
     "apscheduler>=3.10",
-    "tzdata>=2024.1"
+    "tzdata>=2024.1",
+    "pyyaml>=6.0"
 ]
 
 [tool.ruff]

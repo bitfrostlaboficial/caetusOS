@@ -1,0 +1,13 @@
+nome: development
+modo: automatico
+pesos:
+  groq.chat.chat_fast: 100
+  gemini.chat.chat_fast: 80
+  groq.chat.chat_reasoning: 90
+  gemini.chat.chat_reasoning: 100
+  groq.text.text_general: 100
+  gemini.vision.vision_general: 100
+  huggingface.ocr.ocr_high_accuracy: 100
+  fal.image.image_generation: 100
+  huggingface.embeddings.embeddings: 100
+overrides_manuais: {}

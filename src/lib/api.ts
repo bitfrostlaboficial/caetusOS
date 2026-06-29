@@ -239,6 +239,24 @@ export const api = {
     apiRequest<IaBenchmarkResposta>("/v1/infraestrutura/ia/benchmark", {
       body: { prompt, providers, max_tokens },
     }),
+
+  // ───────── Fase 5.1 — Catálogo, Missões, Métricas, Fallbacks, Perfis ─────────
+  infraIaCatalogo: () => apiRequest<IaCatalogoEntrada[]>("/v1/infraestrutura/ia/catalogo"),
+  infraIaMissoes: () => apiRequest<IaMissao[]>("/v1/infraestrutura/ia/missoes"),
+  infraIaMetricasMemoria: () =>
+    apiRequest<IaMetricaModelo[]>("/v1/infraestrutura/ia/metricas"),
+  infraIaFallbacks: (limite = 50) =>
+    apiRequest<IaFallback[]>(`/v1/infraestrutura/ia/fallbacks?limite=${limite}`),
+  infraIaPerfis: () => apiRequest<IaPerfisInfo>("/v1/infraestrutura/ia/perfis"),
+  infraIaDefinirModo: (modo: "automatico" | "manual", overrides?: Record<string, string>) =>
+    apiRequest<{ modo: string; overrides_manuais: Record<string, string> }>(
+      "/v1/infraestrutura/ia/modo",
+      { body: { modo, overrides } },
+    ),
+  infraIaCategorias: () =>
+    apiRequest<{ categorias: string[]; especializacoes: string[]; mapa: Record<string, string> }>(
+      "/v1/infraestrutura/ia/categorias",
+    ),
 };
 
 // ───────── Tipos — Infraestrutura IA ─────────
@@ -441,4 +459,86 @@ export type IaBenchmarkResposta = {
     mais_barato: string | null;
     menos_tokens: string | null;
   };
+};
+
+// ───────── Tipos — Fase 5.1 ─────────
+export type IaCatalogoEntrada = {
+  provider: string;
+  categoria: string;
+  especializacao: string;
+  modelo: string;
+  peso: number;
+  custo: "free" | "low" | "medium" | "high" | "unknown";
+  capabilities: Record<string, boolean>;
+};
+
+export type IaMissaoCandidato = {
+  provider: string;
+  modelo: string;
+  categoria: string;
+  especializacao: string;
+  peso_base: number;
+  peso_final: number;
+  custo: string;
+};
+
+export type IaMetricaModelo = {
+  provider: string;
+  modelo: string;
+  chamadas: number;
+  sucessos: number;
+  falhas: number;
+  timeouts: number;
+  rate_limits: number;
+  lat_min_ms: number | null;
+  lat_max_ms: number | null;
+  lat_media_ms: number;
+  taxa_sucesso: number;
+  ultimo_uso: string | null;
+  ultima_falha: string | null;
+};
+
+export type IaMissao = {
+  nome: string;
+  categoria: string;
+  especializacao: string;
+  prefere: "velocidade" | "qualidade" | "custo" | "precisao";
+  max_tokens: number | null;
+  aceita_alta_latencia: boolean;
+  descricao: string;
+  preferencial: IaMissaoCandidato | null;
+  reserva: IaMissaoCandidato | null;
+  metricas: IaMetricaModelo | null;
+  fallbacks_recentes: number;
+  override_manual: string | null;
+};
+
+export type IaFallback = {
+  id: string;
+  timestamp: string;
+  missao: string | null;
+  categoria: string | null;
+  especializacao: string | null;
+  provider_original: string;
+  modelo_original: string | null;
+  provider_utilizado: string | null;
+  modelo_utilizado: string | null;
+  motivo:
+    | "timeout"
+    | "rate_limit"
+    | "billing"
+    | "health_indisponivel"
+    | "quota_excedida"
+    | "erro_interno"
+    | "sem_modelo_configurado"
+    | "api_key_invalida"
+    | "modelo_indisponivel";
+  detalhe: string | null;
+};
+
+export type IaPerfisInfo = {
+  disponiveis: string[];
+  ativo: string;
+  modo: "automatico" | "manual";
+  overrides_manuais: Record<string, string>;
 };
