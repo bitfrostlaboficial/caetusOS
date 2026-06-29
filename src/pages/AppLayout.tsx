@@ -21,32 +21,35 @@ export default function AppLayout() {
   return (
     <div className="relative min-h-screen text-foreground">
       <div className="pointer-events-none fixed inset-0 bg-grid-faint opacity-30" />
-      <header className="relative border-b border-border/60 bg-background/60 backdrop-blur-md">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <Link to="/app">
+      <header className="relative border-b border-border/60 bg-background/70 backdrop-blur-md">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-3">
+          <Link to="/app" className="flex items-center gap-3">
             <Brand />
+            <span className="hidden border-l border-border/50 pl-3 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground md:inline">
+              Operating System for AI Employees
+            </span>
           </Link>
-          <nav className="flex items-center gap-6">
+          <nav className="flex items-center gap-5">
             <NavLink to="/app" end className={itemClass}>
               Painel
+            </NavLink>
+            <NavLink to="/app/missoes" className={itemClass}>
+              Missões
             </NavLink>
             <NavLink to="/app/conhecimento" className={itemClass}>
               Conhecimento
             </NavLink>
-            <NavLink to="/app/historico" className={itemClass}>
-              Histórico
+            <NavLink to="/app/infraestrutura/execucoes" className={itemClass}>
+              Execuções
             </NavLink>
             <NavLink to="/app/infraestrutura/ia" className={itemClass}>
               Infraestrutura
             </NavLink>
-            <NavLink to="/app/infraestrutura/execucoes" className={itemClass}>
-              Execuções
-            </NavLink>
             <NavLink to="/app/infraestrutura/benchmark" className={itemClass}>
               Benchmark
             </NavLink>
-            <NavLink to="/app/infraestrutura/missoes" className={itemClass}>
-              Missões
+            <NavLink to="/app/historico" className={itemClass}>
+              Histórico
             </NavLink>
             <Button variant="outline" size="sm" onClick={sair}>
               Sair
@@ -54,7 +57,7 @@ export default function AppLayout() {
           </nav>
         </div>
       </header>
-      <main className="relative mx-auto max-w-6xl px-6 py-8">
+      <main className="relative mx-auto max-w-7xl px-6 py-8">
         <Outlet />
       </main>
     </div>
