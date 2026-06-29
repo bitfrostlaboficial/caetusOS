@@ -55,6 +55,26 @@ class ExecutorSkill(ExecutorEspecifico):
                 provedor=provedor_usado, modelo=modelo_usado,
                 campos_saida=list(saida.keys()) if isinstance(saida, dict) else None,
             )
+            # Auto-evento: resposta de IA, se houver provedor utilizado.
+            if provedor_usado:
+                contexto.registrar_evento(
+                    "ia.resposta",
+                    f"Resposta da IA ({provedor_usado})",
+                    nivel="sucesso",
+                    provedor=provedor_usado,
+                    modelo=modelo_usado,
+                    tokens_in=metricas_dict.get("tokens_in"),
+                    tokens_out=metricas_dict.get("tokens_out"),
+                    latencia_ms=metricas_dict.get("latencia_ms"),
+                    custo=metricas_dict.get("custo"),
+                )
+            contexto.registrar_evento(
+                "skill.concluida",
+                f"Habilidade {comando.alvo} concluída",
+                nivel="sucesso",
+                duracao_ms=duracao_ms,
+            )
+
             return ResultadoExecucao(
                 sucesso=True,
                 execucao_id=execucao_id,
@@ -62,11 +82,13 @@ class ExecutorSkill(ExecutorEspecifico):
                 mensagens=[],
                 metricas=Metricas(
                     provedor=provedor_usado,
+                    modelo=modelo_usado,
                     tokens_in=metricas_dict.get("tokens_in"),
                     tokens_out=metricas_dict.get("tokens_out"),
                     custo=metricas_dict.get("custo"),
                     latencia_ms=metricas_dict.get("latencia_ms"),
                 ),
+                eventos=list(contexto.eventos),
             )
         except Exception as exc:
             duracao_ms = int((time.perf_counter() - inicio) * 1000)
@@ -90,8 +112,18 @@ class ExecutorSkill(ExecutorEspecifico):
                 comando.alvo,
                 "".join(traceback.format_exception(type(exc), exc, exc.__traceback__)),
             )
+            contexto.registrar_evento(
+                "skill.falhou",
+                f"Falha na fase '{fase}'",
+                nivel="erro",
+                tipo=type(exc).__name__,
+                mensagem=str(exc)[:300],
+                duracao_ms=duracao_ms,
+            )
             return ResultadoExecucao(
                 sucesso=False,
                 execucao_id=execucao_id,
                 erro=ErroExecucao(codigo=type(exc).__name__, mensagem=str(exc)),
+                eventos=list(contexto.eventos),
             )
+
