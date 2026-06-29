@@ -44,9 +44,9 @@ class ComandoEntrada(BaseModel):
 def _serializar_seguro(valor: Any, _caminho: str = "") -> Any:
     """Sanitiza recursivamente o payload de resposta.
 
-    Troca tipos não serializáveis (PydanticUndefined, MISSING, etc.) por None
-    e emite WARNING com o caminho do campo — assim o bug fica visível ao invés
-    de quebrar a serialização final em `Object of type Undefined ...`.
+    Fase 6.1: emite [SERIALIZACAO] com caminho + tipo + módulo de QUALQUER
+    valor não-JSON detectado, antes de cair no fallback. Assim a próxima
+    execução revela exatamente qual campo está vindo `Undefined`.
     """
     if valor is None or isinstance(valor, (bool, int, float, str)):
         return valor
@@ -57,13 +57,19 @@ def _serializar_seguro(valor: Any, _caminho: str = "") -> Any:
     if isinstance(valor, (list, tuple)):
         return [_serializar_seguro(v, f"{_caminho}[{i}]") for i, v in enumerate(valor)]
     nome = type(valor).__name__
+    modulo = type(valor).__module__
     if nome in {"PydanticUndefinedType", "UndefinedType", "_MISSING_TYPE"}:
-        log.warning(
-            "[SERIALIZACAO] campo '%s' tinha valor não serializável (%s) — convertido para None",
-            _caminho or "<root>", nome,
+        log_evento(
+            log, logging.WARNING, "SERIALIZACAO",
+            "campo não serializável detectado",
+            campo=(_caminho or "<root>"), tipo=nome, modulo=modulo,
         )
         return None
-    # fallback: representação textual segura
+    log_evento(
+        log, logging.WARNING, "SERIALIZACAO",
+        "tipo não-JSON convertido para string",
+        campo=(_caminho or "<root>"), tipo=nome, modulo=modulo,
+    )
     return str(valor)
 
 
