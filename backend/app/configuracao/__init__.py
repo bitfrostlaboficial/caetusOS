@@ -70,25 +70,22 @@ class Configuracao(BaseSettings):
     def cors_origins_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
 
-    @field_validator("jwt_secret")
-    @classmethod
-    def _validar_jwt(cls, v: str, info) -> str:
-        # Em DEV (debug=true) só avisa; em PROD impede o boot.
-        if len(v.encode("utf-8")) < 32:
-            debug = (info.data.get("debug") if info.data else False) or False
-            if debug:
-                _log.warning(
-                    "[CONFIG] JWT_SECRET tem menos de 32 bytes — INSEGURO. "
-                    "Em produção isso impede o boot. "
-                    "Gere uma chave forte com: openssl rand -hex 32"
-                )
+    def validar_para_api(self) -> None:
+        """Validações estritas chamadas no startup da API (lifespan).
+
+        Não roda na importação para não bloquear Alembic, testes e scripts
+        administrativos. Em DEBUG=true apenas avisa; caso contrário, levanta.
+        """
+        if len(self.jwt_secret.encode("utf-8")) < 32:
+            msg = (
+                "JWT_SECRET inseguro (<32 bytes). "
+                "Gere uma chave forte com: openssl rand -hex 32"
+            )
+            if self.debug:
+                _log.warning("[CONFIG] %s (ignorado em DEBUG=true)", msg)
             else:
-                raise RuntimeError(
-                    "JWT_SECRET inseguro (<32 bytes) em ambiente de produção. "
-                    "Defina DEBUG=true para desenvolvimento ou gere uma chave "
-                    "forte: openssl rand -hex 32"
-                )
-        return v
+                raise RuntimeError(msg)
 
 
 config = Configuracao()
+
