@@ -1,0 +1,45 @@
+nome: production
+modo: automatico
+
+# Pesos: maior vence. Chave = "<provider>.<categoria>.<especializacao>".
+# Ajuste aqui sem mexer em código.
+pesos:
+  # Chat
+  groq.chat.chat_fast: 100
+  gemini.chat.chat_fast: 70
+  openrouter.chat.chat_fast: 50
+
+  gemini.chat.chat_reasoning: 100
+  openrouter.chat.chat_reasoning: 80
+  groq.chat.chat_reasoning: 60
+
+  gemini.chat.chat_long_context: 100
+  openrouter.chat.chat_long_context: 70
+
+  # Texto genérico
+  groq.text.text_general: 100
+  gemini.text.text_general: 80
+  openrouter.text.text_general: 60
+
+  # Visão
+  gemini.vision.vision_general: 100
+  openrouter.vision.vision_general: 60
+
+  # OCR
+  gemini.ocr.ocr_basic: 90
+  huggingface.ocr.ocr_high_accuracy: 100
+  gemini.ocr.ocr_high_accuracy: 70
+
+  # Imagem
+  fal.image.image_generation: 100
+  huggingface.image.image_generation: 70
+
+  huggingface.image.background_removal: 100
+
+  # Áudio
+  fal.audio.transcription: 100
+
+  # Embeddings
+  huggingface.embeddings.embeddings: 100
+
+overrides_manuais: {}
