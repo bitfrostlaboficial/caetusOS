@@ -1,4 +1,9 @@
+import logging
+
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+_log = logging.getLogger("caetusos.config")
 
 
 class Configuracao(BaseSettings):
@@ -8,6 +13,12 @@ class Configuracao(BaseSettings):
     jwt_secret: str = "dev-secret"
     jwt_access_ttl_min: int = 30
     jwt_refresh_ttl_days: int = 14
+
+    # ───────── Observabilidade (Fase 6) ─────────
+    debug: bool = False
+    log_level: str = "INFO"
+    log_json: bool = False
+    log_color: bool = True
     storage_backend: str = "filesystem"
     storage_root: str = "./storage_local"
     cors_origins: str = "http://localhost:5173,http://localhost:8080"
