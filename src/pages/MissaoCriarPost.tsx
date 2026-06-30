@@ -49,6 +49,9 @@ export default function MissaoCriarPost() {
     e.preventDefault();
     setErro(null);
     setExecutando(true);
+    const toastId = toast.loading("Executando missão...", {
+      description: "A IA está processando sua solicitação.",
+    });
     try {
       const r = await api.executarComando("conteudo.criar_post", {
         tema,
@@ -56,8 +59,27 @@ export default function MissaoCriarPost() {
         objetivo: objetivo || undefined,
       });
       setResultado(r);
+      const fallbacks = (r.eventos ?? []).filter((ev) => ev.tipo === "ia.fallback").length;
+      if (!r.sucesso) {
+        toast.error("Falha durante a execução", {
+          id: toastId,
+          description: r.erro?.mensagem ?? "Verifique os detalhes abaixo.",
+        });
+      } else if (fallbacks > 0) {
+        toast.warning("Missão concluída com fallback automático", {
+          id: toastId,
+          description: "Provider alternativo utilizado.",
+        });
+      } else {
+        toast.success("Missão concluída", {
+          id: toastId,
+          description: "Resultado disponível abaixo.",
+        });
+      }
     } catch (err) {
-      setErro(err instanceof Error ? err.message : "Falha inesperada");
+      const msg = err instanceof Error ? err.message : "Falha inesperada";
+      setErro(msg);
+      toast.error("Falha durante a execução", { id: toastId, description: msg });
     } finally {
       setExecutando(false);
     }
