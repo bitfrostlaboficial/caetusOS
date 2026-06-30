@@ -62,6 +62,7 @@ export default function CommandCenter() {
   const [historico, setHistorico] = useState<Execucao[] | null>(null);
   const [busca, setBusca] = useState("");
   const [focado, setFocado] = useState(false);
+  const [agora, setAgora] = useState(() => new Date());
 
   useEffect(() => {
     api.empresaAtual().then(setEmpresa).catch(() => undefined);
@@ -69,6 +70,28 @@ export default function CommandCenter() {
     api.infraIaOverview().then(setOverview).catch(() => setOverview(null));
     api.historico(8).then(setHistorico).catch(() => setHistorico([]));
   }, []);
+
+  useEffect(() => {
+    const id = setInterval(() => setAgora(new Date()), 30_000);
+    return () => clearInterval(id);
+  }, []);
+
+  const dataEspecial = useMemo(() => dataEspecialDeHoje(agora), [agora]);
+  const proxima = useMemo(() => proximaDataEspecial(agora), [agora]);
+  const dataFormatada = useMemo(
+    () =>
+      agora.toLocaleDateString("pt-BR", {
+        weekday: "long",
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      }),
+    [agora],
+  );
+  const horaFormatada = useMemo(
+    () => agora.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+    [agora],
+  );
 
   const missoesFiltradas = useMemo(() => {
     const q = busca.trim().toLowerCase();
