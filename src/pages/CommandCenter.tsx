@@ -3,15 +3,19 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   Activity,
   ArrowRight,
+  CalendarDays,
   CircuitBoard,
   Clock,
   Cpu,
   Layers,
   Plus,
+  SendHorizonal,
   Sparkles,
   Wifi,
   Zap,
 } from "lucide-react";
+
+import { dataEspecialDeHoje, proximaDataEspecial } from "@/lib/datas-brasileiras";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
