@@ -12,7 +12,7 @@ createRoot(container).render(
   <StrictMode>
     <BrowserRouter>
       <App />
-      <Toaster richColors closeButton position="bottom-right" theme="dark" />
+      <Toaster richColors closeButton position="top-right" theme="dark" />
     </BrowserRouter>
   </StrictMode>,
 );
