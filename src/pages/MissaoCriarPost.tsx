@@ -131,120 +131,105 @@ export default function MissaoCriarPost() {
         </Card>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_1.1fr]">
-        {/* Formulário */}
-        <Card className="border-border/60 bg-card/60">
-          <CardHeader>
-            <CardTitle className="font-display text-base">Briefing</CardTitle>
-            <CardDescription>Preencha os campos abaixo e execute.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form className="space-y-4" onSubmit={executar}>
-              <div className="space-y-2">
-                <Label htmlFor="tema">Tema</Label>
-                <Input
-                  id="tema"
-                  value={tema}
-                  onChange={(e) => setTema(e.target.value)}
-                  required
-                  minLength={3}
-                  placeholder="Lançamento da nova versão do produto"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="canal">Canal</Label>
-                <select
-                  id="canal"
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-                  value={canal}
-                  onChange={(e) => setCanal(e.target.value)}
-                >
-                  <option value="linkedin">LinkedIn</option>
-                  <option value="instagram">Instagram</option>
-                  <option value="blog">Blog</option>
-                </select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="objetivo">Objetivo (opcional)</Label>
-                <Textarea
-                  id="objetivo"
-                  value={objetivo}
-                  onChange={(e) => setObjetivo(e.target.value)}
-                  placeholder="Atrair leads qualificados para o time comercial"
-                  rows={3}
-                />
-              </div>
-              <Button type="submit" disabled={executando} className="w-full gap-2">
+      <Card className="border-border/60 bg-card/60">
+        <CardHeader>
+          <CardTitle className="font-display text-base">Briefing</CardTitle>
+          <CardDescription>Preencha os campos abaixo e execute.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form className="grid gap-4 md:grid-cols-2" onSubmit={executar}>
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="tema">Tema</Label>
+              <Input
+                id="tema"
+                value={tema}
+                onChange={(e) => setTema(e.target.value)}
+                required
+                minLength={3}
+                placeholder="Lançamento da nova versão do produto"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="canal">Canal</Label>
+              <select
+                id="canal"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                value={canal}
+                onChange={(e) => setCanal(e.target.value)}
+              >
+                <option value="linkedin">LinkedIn</option>
+                <option value="instagram">Instagram</option>
+                <option value="blog">Blog</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="objetivo">Objetivo (opcional)</Label>
+              <Textarea
+                id="objetivo"
+                value={objetivo}
+                onChange={(e) => setObjetivo(e.target.value)}
+                placeholder="Atrair leads qualificados para o time comercial"
+                rows={2}
+              />
+            </div>
+            <div className="md:col-span-2">
+              <Button type="submit" disabled={executando} className="gap-2">
                 <Sparkles className={executando ? "animate-pulse" : ""} />
                 {executando ? "Executando missão..." : "Executar missão"}
               </Button>
-              {erro && <p className="text-sm text-destructive">{erro}</p>}
-            </form>
-          </CardContent>
-        </Card>
-
-        {/* Resultado */}
-        <Card className="border-border/60 bg-card/60">
-          <CardHeader>
-            <CardTitle className="font-display text-base">Resultado</CardTitle>
-            <CardDescription>
-              {resultado ? "Conteúdo produzido pela IA" : "Aguardando execução"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {resultado ? (
-              <ResultadoView resultado={resultado} />
-            ) : (
-              <div className="flex h-48 items-center justify-center rounded-md border border-dashed border-border/60 text-xs text-muted-foreground">
-                Preencha o briefing e clique em executar.
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+              {erro && <p className="mt-2 text-sm text-destructive">{erro}</p>}
+            </div>
+          </form>
+        </CardContent>
+      </Card>
 
       {resultado && (
-        <Card className="border-border/60 bg-card/60">
-          <CardHeader>
-            <CardTitle className="font-display text-base">Relatório de execução</CardTitle>
-            <CardDescription>
-              Tudo que aconteceu no sistema durante essa execução.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <RelatorioExecucao resultado={resultado} />
-          </CardContent>
-        </Card>
+        <>
+          <Card className="border-primary/30 bg-card/60 shadow-[0_0_0_1px_hsl(var(--primary)/0.15)]">
+            <CardHeader>
+              <CardTitle className="font-display text-base">Resultado da missão</CardTitle>
+              <CardDescription>Conteúdo produzido pela IA.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResultadoMissao resultado={resultado} />
+            </CardContent>
+          </Card>
+
+          <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
+            <Card className="border-border/60 bg-card/60">
+              <CardHeader>
+                <CardTitle className="font-display text-base">Resumo da execução</CardTitle>
+                <CardDescription>O que a IA fez nesta missão.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResumoExecucao resultado={resultado} />
+              </CardContent>
+            </Card>
+            <Card className="border-border/60 bg-card/60">
+              <CardHeader>
+                <CardTitle className="font-display text-base">Linha do tempo</CardTitle>
+                <CardDescription>Etapas percorridas pelo pipeline.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <TimelineExecucao resultado={resultado} />
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card className="border-border/60 bg-card/40">
+            <CardHeader>
+              <CardTitle className="font-display text-base">Relatório técnico</CardTitle>
+              <CardDescription>
+                Detalhes brutos para diagnóstico e auditoria.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <RelatorioExecucao resultado={resultado} />
+            </CardContent>
+          </Card>
+        </>
       )}
     </div>
   );
 }
 
-function ResultadoView({ resultado }: { resultado: ResultadoExecucao }) {
-  if (resultado.erro) {
-    return (
-      <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm">
-        <p className="font-medium text-destructive">{resultado.erro.codigo}</p>
-        <p className="text-destructive/80">{resultado.erro.mensagem}</p>
-      </div>
-    );
-  }
-  const dados = resultado.dados as { titulo?: string; corpo?: string; hashtags?: string[] };
-  return (
-    <div className="space-y-3 text-sm">
-      {dados.titulo && <h3 className="text-base font-semibold">{dados.titulo}</h3>}
-      {dados.corpo && (
-        <p className="whitespace-pre-wrap leading-relaxed">{dados.corpo}</p>
-      )}
-      {dados.hashtags && dados.hashtags.length > 0 && (
-        <div className="flex flex-wrap gap-1">
-          {dados.hashtags.map((h) => (
-            <Badge key={h} variant="secondary">
-              {h}
-            </Badge>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
