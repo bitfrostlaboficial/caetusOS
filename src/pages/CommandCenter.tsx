@@ -3,15 +3,19 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   Activity,
   ArrowRight,
+  CalendarDays,
   CircuitBoard,
   Clock,
   Cpu,
   Layers,
   Plus,
+  SendHorizonal,
   Sparkles,
   Wifi,
   Zap,
 } from "lucide-react";
+
+import { dataEspecialDeHoje, proximaDataEspecial } from "@/lib/datas-brasileiras";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -58,6 +62,7 @@ export default function CommandCenter() {
   const [historico, setHistorico] = useState<Execucao[] | null>(null);
   const [busca, setBusca] = useState("");
   const [focado, setFocado] = useState(false);
+  const [agora, setAgora] = useState(() => new Date());
 
   useEffect(() => {
     api.empresaAtual().then(setEmpresa).catch(() => undefined);
@@ -65,6 +70,28 @@ export default function CommandCenter() {
     api.infraIaOverview().then(setOverview).catch(() => setOverview(null));
     api.historico(8).then(setHistorico).catch(() => setHistorico([]));
   }, []);
+
+  useEffect(() => {
+    const id = setInterval(() => setAgora(new Date()), 30_000);
+    return () => clearInterval(id);
+  }, []);
+
+  const dataEspecial = useMemo(() => dataEspecialDeHoje(agora), [agora]);
+  const proxima = useMemo(() => proximaDataEspecial(agora), [agora]);
+  const dataFormatada = useMemo(
+    () =>
+      agora.toLocaleDateString("pt-BR", {
+        weekday: "long",
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      }),
+    [agora],
+  );
+  const horaFormatada = useMemo(
+    () => agora.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+    [agora],
+  );
 
   const missoesFiltradas = useMemo(() => {
     const q = busca.trim().toLowerCase();
@@ -91,31 +118,45 @@ export default function CommandCenter() {
 
   return (
     <div className="space-y-12">
-      {/* Header de boas-vindas */}
-      <section className="flex flex-wrap items-end justify-between gap-4 border-b border-border/40 pb-6">
-        <div>
+      {/* Cabeçalho — empresa em primeiro plano */}
+      <section className="flex flex-wrap items-end justify-between gap-6 border-b border-border/40 pb-6">
+        <div className="min-w-0">
           <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-primary/80">
-            Command Center
+            Centro de Comando
           </p>
-          <h1 className="mt-2 font-display text-3xl">
-            <span className="text-foreground">caetus</span>
-            <span className="text-primary">OS</span>
-            <span className="ml-3 text-muted-foreground/70">
-              {empresa?.nome ?? "—"}
-            </span>
+          <h1 className="mt-2 truncate font-display text-4xl font-bold leading-tight md:text-5xl">
+            {empresa?.nome ?? "—"}
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Operating System for AI Employees · {new Date().toLocaleDateString("pt-BR", {
-              weekday: "long",
-              day: "2-digit",
-              month: "long",
-            })}
+          <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+            operando em{" "}
+            <span className="text-foreground/80">
+              caetus<span className="text-primary">OS</span>
+            </span>
           </p>
         </div>
-        <Badge variant="outline" className="gap-1.5 font-mono text-[10px] uppercase tracking-wider">
-          <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
-          Sistema operacional
-        </Badge>
+
+        <div className="flex flex-col items-end gap-1.5 text-right">
+          <div className="flex items-baseline gap-2">
+            <span className="font-display text-2xl tabular-nums">{horaFormatada}</span>
+            <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+              BRT
+            </span>
+          </div>
+          <p className="text-xs capitalize text-muted-foreground">{dataFormatada}</p>
+          {dataEspecial ? (
+            <Badge variant="outline" className="gap-1.5 border-primary/40 text-primary">
+              <CalendarDays className="h-3 w-3" />
+              <span className="font-mono text-[10px] uppercase tracking-wider">
+                Hoje é {dataEspecial}
+              </span>
+            </Badge>
+          ) : proxima ? (
+            <Badge variant="outline" className="gap-1.5 font-mono text-[10px] uppercase tracking-wider">
+              <CalendarDays className="h-3 w-3" />
+              {proxima.rotulo} em {proxima.emDias}d
+            </Badge>
+          ) : null}
+        </div>
       </section>
 
       {/* Hero — barra de comando */}
@@ -130,24 +171,46 @@ export default function CommandCenter() {
         <form
           onSubmit={executarBusca}
           className={cn(
-            "relative flex items-center gap-3 rounded-2xl border bg-card/70 px-5 py-4 backdrop-blur transition-all",
+            "relative flex items-start gap-3 rounded-2xl border bg-card/70 p-4 backdrop-blur transition-all md:p-5",
             focado
               ? "border-primary/50 shadow-[0_0_0_1px_oklch(0.85_0.21_135_/_0.35),0_10px_40px_-12px_oklch(0.85_0.21_135_/_0.4)]"
               : "border-border/60",
           )}
         >
-          <Sparkles className={cn("h-5 w-5 shrink-0 transition-colors", focado ? "text-primary" : "text-muted-foreground")} />
-          <input
+          <Sparkles
+            className={cn(
+              "mt-1 h-5 w-5 shrink-0 transition-colors",
+              focado ? "text-primary" : "text-muted-foreground",
+            )}
+          />
+          <textarea
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
             onFocus={() => setFocado(true)}
             onBlur={() => setFocado(false)}
-            placeholder="O que você deseja que um funcionário digital faça hoje?"
-            className="flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                executarBusca(e as unknown as FormEvent);
+              }
+            }}
+            rows={2}
+            placeholder="Descreva uma missão para um funcionário digital..."
+            className="min-h-[3.5rem] flex-1 resize-none bg-transparent text-base leading-relaxed outline-none placeholder:text-muted-foreground"
           />
-          <kbd className="hidden rounded border border-border/60 bg-background/40 px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground md:inline">
-            ⏎
-          </kbd>
+          <button
+            type="submit"
+            disabled={!busca.trim()}
+            aria-label="Executar missão"
+            className={cn(
+              "group/btn mt-0.5 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-all",
+              busca.trim()
+                ? "border-primary/50 bg-primary/15 text-primary hover:bg-primary/25 hover:shadow-[0_0_20px_-4px_oklch(0.85_0.21_135_/_0.6)]"
+                : "border-border/60 bg-muted/20 text-muted-foreground/60",
+            )}
+          >
+            <SendHorizonal className="h-4 w-4 transition-transform group-hover/btn:translate-x-0.5" />
+          </button>
         </form>
 
         <div className="mt-3 flex flex-wrap gap-2">
@@ -163,6 +226,7 @@ export default function CommandCenter() {
           ))}
         </div>
       </section>
+
 
       {/* Missões */}
       <section>

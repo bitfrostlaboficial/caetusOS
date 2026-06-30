@@ -26,7 +26,7 @@ export default function AppLayout() {
           <Link to="/app" className="flex items-center gap-3">
             <Brand />
             <span className="hidden border-l border-border/50 pl-3 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground md:inline">
-              Operating System for AI Employees
+              Sistema operacional para funcionários digitais
             </span>
           </Link>
           <nav className="flex items-center gap-5">
