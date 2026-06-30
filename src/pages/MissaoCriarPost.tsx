@@ -1,6 +1,7 @@
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { ArrowLeft, PenLine, Sparkles } from "lucide-react";
+import { toast } from "sonner";
 
 import {
   api,
@@ -18,7 +19,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { ResultadoMissao } from "@/components/ResultadoMissao";
+import { ResumoExecucao } from "@/components/ResumoExecucao";
+import { TimelineExecucao } from "@/components/TimelineExecucao";
 import { RelatorioExecucao } from "@/components/RelatorioExecucao";
 
 /**
