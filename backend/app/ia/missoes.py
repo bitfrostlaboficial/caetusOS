@@ -49,6 +49,11 @@ MISSOES: dict[str, Missao] = {
         prefere="qualidade", aceita_alta_latencia=True,
         descricao="Banner publicitário — prioriza qualidade visual, aceita maior latência.",
     ),
+    "conteudo_imagem_post": Missao(
+        "conteudo_imagem_post", CategoriaIA.IMAGE, EspecializacaoIA.IMAGE_GENERATION,
+        prefere="qualidade", aceita_alta_latencia=True,
+        descricao="Imagem para post social — recebe prompt visual estruturado.",
+    ),
     "ocr_documento": Missao(
         "ocr_documento", CategoriaIA.OCR, EspecializacaoIA.OCR_HIGH_ACCURACY,
         prefere="precisao", aceita_alta_latencia=True,

@@ -61,7 +61,7 @@ export default function MissaoCriarPost() {
   const [searchParams] = useSearchParams();
   const [conhecimento, setConhecimento] = useState<DocumentoConhecimento[]>([]);
   const [tema, setTema] = useState(searchParams.get("tema") ?? "");
-  const [canal, setCanal] = useState("linkedin");
+  const [canal, setCanal] = useState("instagram");
   const [objetivo, setObjetivo] = useState("");
   // Campo preparado para futuras missões de geração de imagem. Mantido
   // apenas no estado local — não enviado ao backend nesta fase.
@@ -85,8 +85,10 @@ export default function MissaoCriarPost() {
     try {
       const r = await api.executarComando("conteudo.criar_post", {
         tema,
-        canal,
+        rede: canal,
         objetivo: objetivo || undefined,
+        descricao_imagem: descricaoImagem || undefined,
+        publicar_automaticamente: publicacaoAutomatica,
       });
       setResultado(r);
       const fallbacks = (r.eventos ?? []).filter((ev) => ev.tipo === "ia.fallback").length;
@@ -223,8 +225,11 @@ export default function MissaoCriarPost() {
                   value={canal}
                   onChange={(e) => setCanal(e.target.value)}
                 >
-                  <option value="linkedin">LinkedIn</option>
                   <option value="instagram">Instagram</option>
+                  <option value="linkedin">LinkedIn</option>
+                  <option value="facebook">Facebook</option>
+                  <option value="x">X</option>
+                  <option value="threads">Threads</option>
                   <option value="blog">Blog</option>
                 </select>
               </div>
@@ -286,9 +291,8 @@ export default function MissaoCriarPost() {
                       Publicar automaticamente nas redes sociais conectadas
                     </Label>
                     <p className="text-xs text-muted-foreground">
-                      Caso habilitado, o conteúdo poderá ser enviado
-                      automaticamente para os canais configurados quando a
-                      funcionalidade estiver disponível.
+                      Nesta primeira etapa, a publicação automática executa
+                      apenas o pipeline do Instagram.
                     </p>
                   </div>
                   <Switch

@@ -23,4 +23,10 @@ class ContextBuilder:
             memoria=carregar_memoria(self.sessao, comando.empresa_id, comando.projeto_id),
             assets=carregar_assets(self.sessao, comando.empresa_id, comando.projeto_id),
             historico_recente=carregar_historico(self.sessao, comando.empresa_id, comando.projeto_id),
+            extras={
+                "empresa_id": comando.empresa_id,
+                "usuario_id": comando.usuario_id,
+                "projeto_id": comando.projeto_id,
+                "correlacao_id": comando.correlacao_id,
+            },
         )

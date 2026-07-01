@@ -60,6 +60,11 @@ class Configuracao(BaseSettings):
     replicate_upscale_model: str = ""
     replicate_inpaint_model: str = ""
 
+    # ───────── Publicação social ─────────
+    instagram_access_token: str = ""
+    instagram_account_id: str = ""
+    instagram_api_version: str = "v20.0"
+
     # ───────── Perfis e Modo (Fase 5.1) ─────────
     ia_profile: str = "production"
     ia_modo: str = "automatico"  # "automatico" | "manual"
