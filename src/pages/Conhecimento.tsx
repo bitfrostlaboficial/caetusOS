@@ -182,6 +182,14 @@ function IconeStatus({ status }: { status?: Status }) {
 }
 
 function obterInfoExtensao(nome: string) {
+  if (nome.endsWith(".exemplo")) {
+    return {
+      ext: "exemplo",
+      categoria: "Template do Sistema",
+      icone: FileCodeIcon,
+      cor: "text-blue-400 bg-blue-500/10",
+    };
+  }
   const ext = nome.split(".").pop()?.toLowerCase() || "";
   switch (ext) {
     case "png":
@@ -532,6 +540,7 @@ export default function Conhecimento() {
   // Verifica se o arquivo é compatível com edição integrada (.md ou .txt)
   const isEditavel = useMemo(() => {
     if (!selecionado || selecionado.kind !== "file") return false;
+    if (selecionado.nome.endsWith(".exemplo") || selecionado.doc?.is_template) return false;
     const ext = selecionado.nome.split(".").pop()?.toLowerCase() || "";
     return ["md", "txt"].includes(ext);
   }, [selecionado]);
@@ -611,7 +620,7 @@ export default function Conhecimento() {
             <span>Explorer / Pastas</span>
             <span className="font-semibold">{docs.length} arquivos</span>
           </div>
-          <ScrollArea className="flex-1">
+          <ScrollArea className="flex-1 h-0">
             <div className="p-1.5 space-y-1">
               {carregando ? (
                 <div className="px-3 py-4 text-muted-foreground font-mono text-xs animate-pulse">Carregando árvore de diretórios…</div>
@@ -641,12 +650,20 @@ export default function Conhecimento() {
         <div className="flex min-w-0 flex-col h-full overflow-hidden">
           {selecionado ? (
             editando ? (
-              <TextEditor
-                node={selecionado as any}
-                conteudoOriginal={conteudo ?? ""}
-                onSave={salvarEdicao}
-                onCancel={() => setEditando(false)}
-              />
+              (() => {
+                const docExemplo = docs.find(
+                  (d) => d.tipo === selecionado.tipo && d.nome === `${selecionado.nome}.exemplo`
+                );
+                return (
+                  <TextEditor
+                    node={selecionado as any}
+                    conteudoOriginal={conteudo ?? ""}
+                    idExemplo={docExemplo?.id}
+                    onSave={salvarEdicao}
+                    onCancel={() => setEditando(false)}
+                  />
+                );
+              })()
             ) : selecionado.kind === "folder" ? (
               <FolderReadme
                 tipo={selecionado.tipo}
@@ -692,9 +709,11 @@ export default function Conhecimento() {
                         <Button size="sm" variant="ghost" onClick={() => baixar(selecionado)} title="Baixar arquivo original" className="h-8 w-8 p-0">
                           <Download className="h-4 w-4" />
                         </Button>
-                        <Button size="sm" variant="ghost" onClick={() => excluir(selecionado)} title="Remover da base de conhecimento" className="h-8 w-8 p-0 text-destructive/80 hover:text-destructive">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        {!selecionado.nome.endsWith(".exemplo") && !selecionado.doc?.is_template && (
+                          <Button size="sm" variant="ghost" onClick={() => excluir(selecionado)} title="Remover da base de conhecimento" className="h-8 w-8 p-0 text-destructive/80 hover:text-destructive">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
                       </>
                     )}
                     <Button
@@ -874,6 +893,7 @@ function PastaItem({
       {aberta && (
         <div className="ml-4 border-l border-border/40 pl-1.5 pr-0.5 py-1 space-y-1">
           {pasta.arquivos.map((a) => {
+            const isTemplate = a.nome.endsWith(".exemplo") || a.doc?.is_template;
             const info = obterInfoExtensao(a.nome);
             const IconeExt = info.icone;
             const isFileSelected = selecionadoId === a.id;
@@ -891,22 +911,27 @@ function PastaItem({
                       a.status === "pendente" && "opacity-60",
                     )}
                   >
-                    <div className={cn("p-1 rounded mt-0.5 shrink-0", info.cor)}>
+                    <div className={cn("p-1 rounded mt-0.5 shrink-0", isTemplate ? "text-blue-400 bg-blue-500/10" : info.cor)}>
                       <IconeExt className="h-3 w-3" />
                     </div>
                     <div className="flex-1 min-w-0 space-y-0.5">
                       <div className="flex items-center justify-between gap-1.5">
                         <span className={cn(
-                          "truncate text-[11px] font-mono leading-tight",
+                          "truncate text-[11px] font-mono leading-tight flex items-center gap-1",
                           isFileSelected ? "font-semibold text-foreground" : "text-foreground/85"
                         )} title={a.nome}>
-                          {a.nome}
+                          {isTemplate && <span className="text-blue-400 shrink-0">📘</span>}
+                          <span className="truncate">{a.nome}</span>
                         </span>
                         <IconeStatus status={a.status} />
                       </div>
                       
                       <div className="flex items-center gap-1.5 text-[9px] text-muted-foreground font-mono leading-none">
-                        <span>{info.categoria}</span>
+                        {isTemplate ? (
+                          <span className="text-blue-400 font-semibold bg-blue-500/5 px-1 py-0.5 rounded text-[8px] tracking-tight shrink-0">Template do Sistema</span>
+                        ) : (
+                          <span>{info.categoria}</span>
+                        )}
                         {a.doc && (
                           <>
                             <span>•</span>
@@ -928,6 +953,8 @@ function PastaItem({
                   <ContextMenuItem onClick={() => onSelect(a)}>Abrir</ContextMenuItem>
                   <ContextMenuItem
                     onClick={() => onUpload(a.status === "pendente" ? a.nome : undefined)}
+                    disabled={isTemplate}
+                    className={cn(isTemplate && "opacity-40")}
                   >
                     {a.status === "pendente" ? "Enviar" : "Atualizar"}
                   </ContextMenuItem>
@@ -935,8 +962,8 @@ function PastaItem({
                   <ContextMenuItem disabled className="opacity-40">Mover (🔒 Sistema)</ContextMenuItem>
                   <ContextMenuItem
                     onClick={() => onExcluir(a)}
-                    disabled={a.status === "pendente"}
-                    className="text-destructive font-semibold"
+                    disabled={a.status === "pendente" || isTemplate}
+                    className={cn("text-destructive font-semibold", (a.status === "pendente" || isTemplate) && "opacity-40")}
                   >
                     Excluir
                   </ContextMenuItem>

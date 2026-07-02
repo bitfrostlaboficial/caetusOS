@@ -114,6 +114,7 @@ export type DocumentoConhecimento = {
   atualizado_em?: string | null;
   caminho: string;
   tamanho?: number | null;
+  is_template?: boolean;
 };
 export type Asset = {
   id: string;

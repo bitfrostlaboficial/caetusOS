@@ -394,4 +394,186 @@ export const TEMPLATES_SISTEMA: Record<string, Template> = {
 **Resposta:** [Insira a resposta correta aqui]
 `,
   },
+  "icp.md": {
+    nome: "Perfil de Cliente Ideal (ICP)",
+    descricao: "Métricas, faturamento, segmento e características das melhores empresas clientes.",
+    conteudo: `<!-- CAETUSOS_TEMPLATE_HEADER_START -->
+# Guia de Preenchimento: Perfil de Cliente Ideal (ICP)
+*Defina o perfil de empresa com maior probabilidade de comprar, manter-se ativa e obter sucesso com sua solução.*
+<!-- CAETUSOS_TEMPLATE_HEADER_END -->
+
+# Perfil de Cliente Ideal (ICP)
+
+## Setor e Nicho de Atuação
+<!-- CAETUSOS_EXEMPLO_START -->
+*Exemplo:* PMEs nos setores de comércio, imobiliárias, clínicas de saúde/estética, consultorias, advocacia e educação digital.
+<!-- CAETUSOS_EXEMPLO_END -->
+[Insira os setores-alvo da sua empresa]
+
+## Tamanho e Porte (Funcionários/Faturamento)
+<!-- CAETUSOS_EXEMPLO_START -->
+- **Equipe:** Entre 5 e 50 colaboradores.
+- **Faturamento Anual:** Entre R$ 500 mil e R$ 10 milhões por ano.
+- **Decisor:** Proprietário, Diretor Comercial ou Gerente de Operações.
+<!-- CAETUSOS_EXEMPLO_END -->
+- **Equipe:** [Insira faixa de colaboradores]
+- **Faturamento:** [Insira faixa de faturamento]
+
+## Maturidade Tecnológica
+<!-- CAETUSOS_EXEMPLO_START -->
+*Exemplo:* Utilizam canais digitais de venda (WhatsApp, Instagram), possuem ou buscam ativamente um CRM de vendas (ex. RD Station, HubSpot) e estão abertos à inovação para economizar custos de escala.
+<!-- CAETUSOS_EXEMPLO_END -->
+[Descreva o nível de tecnologia necessário para seu cliente]
+`,
+  },
+  "objecoes.md": {
+    nome: "Quebra de Objeções",
+    descricao: "Argumentos comerciais e respostas recomendadas para as dúvidas de vendas.",
+    conteudo: `<!-- CAETUSOS_TEMPLATE_HEADER_START -->
+# Guia de Preenchimento: Quebra de Objeções
+*Quais as barreiras que impedem o cliente de fechar uma compra? Documente os argumentos para a IA contornar essas hesitações de forma profissional.*
+<!-- CAETUSOS_TEMPLATE_HEADER_END -->
+
+# Manual de Objeções e Contornos de Vendas
+
+## Objeção 1: Está muito caro / Não tenho orçamento
+<!-- CAETUSOS_EXEMPLO_START -->
+*Como a IA deve contornar:* Focar no retorno sobre investimento (ROI). Explicar que um único funcionário digital substitui horas de trabalho de triagem manual que geravam perda de leads quentes, custando menos de R$ 17 por dia. Perguntar quanto custa perder 3 ou 4 leads que deixam de ser respondidos rapidamente.
+<!-- CAETUSOS_EXEMPLO_END -->
+[Insira como contornar esta objeção]
+
+## Objeção 2: Não tenho tempo para configurar / É muito complexo
+<!-- CAETUSOS_EXEMPLO_START -->
+*Como a IA deve contornar:* Esclarecer que nós entregamos os agentes 100% pré-treinados e prontos para rodar no nicho do cliente. O setup inicial toma menos de 10 minutos e nossa equipe de Sucesso do Cliente apoia em todo o processo se for necessário.
+<!-- CAETUSOS_EXEMPLO_END -->
+[Insira como contornar esta objeção]
+
+## Objeção 3: Medo da Inteligência Artificial errar ou soar mecânica
+<!-- CAETUSOS_EXEMPLO_START -->
+*Como a IA deve contornar:* Enfatizar que os agentes são restritos à Base de Conhecimento fornecida (fontes oficiais). Caso surja uma pergunta fora do escopo, eles são programados para transferir graciosamente para um humano e silenciar-se. Além disso, o tom de voz é amigável e personalizado.
+<!-- CAETUSOS_EXEMPLO_END -->
+[Insira como contornar esta objeção]
+`,
+  },
+  "produto_b.md": {
+    nome: "Ficha do Produto Secundário/Premium",
+    descricao: "Preços, características e benefícios do produto secundário ou alternativo.",
+    conteudo: `<!-- CAETUSOS_TEMPLATE_HEADER_START -->
+# Guia de Preenchimento: Ficha do Produto Secundário/Premium
+*Descreva seu produto alternativo ou de maior valor (Premium/Upsell) para que a IA saiba como oferecê-lo nas interações.*
+<!-- CAETUSOS_TEMPLATE_HEADER_END -->
+
+# Ficha de Produto: [Nome do Produto Premium / Secundário]
+
+## Descrição Geral
+<!-- CAETUSOS_EXEMPLO_START -->
+*Exemplo:* O caetusOS Enterprise é a nossa solução corporativa personalizada, que oferece agentes integrados diretamente a sistemas internos (ERPs legados, bancos de dados SQL, Slack ou Teams) com fluxos avançados de decisão e segurança máxima de nível militar.
+<!-- CAETUSOS_EXEMPLO_END -->
+[Insira aqui o resumo do produto premium]
+
+## Preço e Planos de Pagamento
+<!-- CAETUSOS_EXEMPLO_START -->
+- **Setup Único:** Sob consulta (mínimo de R$ 5.000,00 para mapeamento e criação dos conectores).
+- **Mensalidade:** A partir de R$ 1.997,00 por mês (contrato mínimo de 12 meses).
+<!-- CAETUSOS_EXEMPLO_END -->
+[Insira as condições comerciais]
+
+## Diferenciais da Versão Premium
+<!-- CAETUSOS_EXEMPLO_START -->
+- Conectores sob medida para APIs privadas.
+- SLA de atendimento em até 2 horas.
+- Treinamento presencial/remoto da equipe.
+<!-- CAETUSOS_EXEMPLO_END -->
+- [Diferencial 1]
+- [Diferencial 2]
+`,
+  },
+  "cargos.md": {
+    nome: "Cargos e Salários",
+    descricao: "Organograma, faixas salariais e atribuições por cargo.",
+    conteudo: `<!-- CAETUSOS_TEMPLATE_HEADER_START -->
+# Guia de Preenchimento: Cargos e Funções
+*Organize a estrutura hierárquica e as responsabilidades por departamento para a IA entender quem cuida de cada demanda.*
+<!-- CAETUSOS_TEMPLATE_HEADER_END -->
+
+# Estrutura de Cargos, Funções e Responsabilidades
+
+## Departamento de Tecnologia / Produto
+
+### Desenvolvedor de Software Júnior
+<!-- CAETUSOS_EXEMPLO_START -->
+- **Responsabilidades:** Correção de bugs simples, desenvolvimento de interfaces visuais de baixa complexidade e suporte técnico júnior.
+- **Requisitos:** Conhecimento de React, Tailwind CSS e lógica de programação básica.
+- **Faixa Salarial:** R$ 3.500,00 a R$ 5.000,00.
+<!-- CAETUSOS_EXEMPLO_END -->
+- **Responsabilidades:** [Insira responsabilidades]
+- **Requisitos:** [Insira requisitos]
+
+### Desenvolvedor de Software Pleno
+<!-- CAETUSOS_EXEMPLO_START -->
+- **Responsabilidades:** Modelagem de dados, criação de APIs de média a alta complexidade, arquitetura de microsserviços e mentoria júnior.
+- **Faixa Salarial:** R$ 6.000,00 a R$ 9.000,00.
+<!-- CAETUSOS_EXEMPLO_END -->
+- [Insira outro cargo e suas especificações]
+`,
+  },
+  "onboarding.md": {
+    nome: "Onboarding de Funcionários",
+    descricao: "Manual de boas-vindas e introdução para novos membros da equipe.",
+    conteudo: `<!-- CAETUSOS_TEMPLATE_HEADER_START -->
+# Guia de Preenchimento: Onboarding de Equipe
+*Crie um manual de integração claro para novos contratados saberem como funciona o primeiro dia, as ferramentas e a filosofia de trabalho.*
+<!-- CAETUSOS_TEMPLATE_HEADER_END -->
+
+# Manual de Integração e Boas-Vindas
+
+## Boas-vendas!
+<!-- CAETUSOS_EXEMPLO_START -->
+*Mensagem:* Ficamos extremamente felizes de ter você na caetusOS! Nossa missão é crescer lado a lado de forma transparente e prática.
+<!-- CAETUSOS_EXEMPLO_END -->
+[Insira sua mensagem de boas-vindas]
+
+## Primeiro Dia e Primeiros Passos
+<!-- CAETUSOS_EXEMPLO_START -->
+1. **Configuração de Contas:** Peça o convite de acesso para o Google Workspace, Slack e Jira para o gestor de TI.
+2. **Reunião de Alinhamento:** Café virtual com o padrinho/madrinha para conhecer a rotina da equipe.
+3. **Leitura Mandatória:** Leia os documentos "Sobre a Empresa" e "Cultura e Valores" no caetusOS.
+<!-- CAETUSOS_EXEMPLO_END -->
+[Descreva o roteiro do primeiro dia]
+
+## Nossas Ferramentas de Trabalho
+<!-- CAETUSOS_EXEMPLO_START -->
+- **Comunicação:** Slack (mensagens rápidas) e Google Meet (reuniões).
+- **Gestão de Projetos:** Jira e Confluence.
+- **Base de Conhecimento Interna:** caetusOS.
+<!-- CAETUSOS_EXEMPLO_END -->
+- [Ferramenta 1]: [Finalidade]
+- [Ferramenta 2]: [Finalidade]
+`,
+  },
+  "consultoria.md": {
+    nome: "Consultoria e Serviços",
+    descricao: "Escopo de entrega, metodologia de serviços e suporte profissional.",
+    conteudo: `<!-- CAETUSOS_TEMPLATE_HEADER_START -->
+# Guia de Preenchimento: Serviços e Consultorias
+*Utilize este espaço para detalhar o escopo, etapas de entrega e cronograma dos seus serviços de consultoria ou projetos.*
+<!-- CAETUSOS_TEMPLATE_HEADER_END -->
+
+# Ficha de Serviço: Consultoria e Projetos Personalizados
+
+## Escopo Geral da Consultoria
+<!-- CAETUSOS_EXEMPLO_START -->
+*Exemplo:* Mapeamento de gargalos e automação de processos de vendas e pós-vendas com agentes de IA. Nosso time de especialistas desenha o fluxo de atendimento ideal para a sua empresa e coloca no ar em até 30 dias.
+<!-- CAETUSOS_EXEMPLO_END -->
+[Descreva o escopo geral do serviço]
+
+## Etapas da Entrega
+<!-- CAETUSOS_EXEMPLO_START -->
+1. **Fase 1: Diagnóstico (Semana 1):** Reunião para mapeamento das dores e desenho do fluxo de conversas.
+2. **Fase 2: Construção (Semanas 2 e 3):** Desenvolvimento e refinamento dos agentes de IA e integrações.
+3. **Fase 3: Implantação e Treinamento (Semana 4):** Homologação, ativação em produção e treinamento das equipes.
+<!-- CAETUSOS_EXEMPLO_END -->
+[Descreva as etapas ou cronograma de execução]
+`,
+  },
 };

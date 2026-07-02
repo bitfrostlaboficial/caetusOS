@@ -13,10 +13,7 @@ router = APIRouter(prefix="/conhecimento", tags=["conhecimento"])
 
 
 def _serializar(d: DocumentoConhecimento) -> dict:
-    nome = d.caminho_storage.split("/")[-1]
-    # remove o prefixo de hash usado em ConhecimentoServico.adicionar
-    if "-" in nome:
-        nome = nome.split("-", 1)[1]
+    nome = d.nome
     tamanho = None
     try:
         storage = obter_storage()
@@ -33,6 +30,7 @@ def _serializar(d: DocumentoConhecimento) -> dict:
         "atualizado_em": d.atualizado_em.isoformat() if d.atualizado_em else None,
         "caminho": d.caminho_storage,
         "tamanho": tamanho,
+        "is_template": d.is_template,
     }
 
 

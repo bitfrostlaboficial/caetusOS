@@ -37,6 +37,26 @@ class ConhecimentoServico:
         self.sessao.flush()
         return doc
 
+    def inicializar_padrao(self, empresa_id: uuid.UUID) -> None:
+        from app.servicos.templates_conhecimento import TEMPLATES_CONHECIMENTO
+        for nome_base, info in TEMPLATES_CONHECIMENTO.items():
+            # 1. Cria o arquivo real (.md)
+            conteudo_real = info["conteudo_real"].encode("utf-8")
+            self.adicionar(
+                empresa_id,
+                tipo=info["tipo"],
+                nome_arquivo=nome_base,
+                conteudo=conteudo_real
+            )
+            # 2. Cria o arquivo de exemplo (.md.exemplo)
+            conteudo_exemplo = info["conteudo_exemplo"].encode("utf-8")
+            self.adicionar(
+                empresa_id,
+                tipo=info["tipo"],
+                nome_arquivo=f"{nome_base}.exemplo",
+                conteudo=conteudo_exemplo
+            )
+
     def remover(self, empresa_id: uuid.UUID, documento_id: uuid.UUID) -> None:
         doc = self.sessao.get(DocumentoConhecimento, documento_id)
         if doc and doc.empresa_id == empresa_id:

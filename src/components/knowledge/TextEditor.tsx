@@ -21,6 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { TEMPLATES_SISTEMA } from "./templates";
 import { toast } from "sonner";
+import { api } from "@/lib/api";
 
 interface TextEditorProps {
   node: {
@@ -31,6 +32,7 @@ interface TextEditorProps {
     status: string;
   };
   conteudoOriginal: string;
+  idExemplo?: string;
   onSave: (novoConteudo: string) => Promise<void>;
   onCancel: () => void;
 }
@@ -38,12 +40,14 @@ interface TextEditorProps {
 export function TextEditor({
   node,
   conteudoOriginal,
+  idExemplo,
   onSave,
   onCancel,
 }: TextEditorProps) {
   const [conteudo, setConteudo] = useState(conteudoOriginal);
   const [modoPreview, setModoPreview] = useState<"edit" | "split" | "preview">("split");
   const [isSaving, setIsSaving] = useState(false);
+  const [carregandoExemplo, setCarregandoExemplo] = useState(false);
 
   useEffect(() => {
     setConteudo(conteudoOriginal);
@@ -120,6 +124,42 @@ export function TextEditor({
     }
   };
 
+  const handleUsarExemplo = async () => {
+    if (!idExemplo) return;
+
+    // Detect if user has typed something that isn't the blank skeleton
+    const textTrimmed = conteudo.trim();
+    const originalTrimmed = conteudoOriginal.trim();
+    const isTouched = textTrimmed !== "" && 
+                      textTrimmed !== originalTrimmed && 
+                      textTrimmed !== `# ${node.nome}` &&
+                      !textTrimmed.startsWith("# Ficha de Produto:") &&
+                      !textTrimmed.startsWith("# Perfil do Cliente Ideal") &&
+                      !textTrimmed.startsWith("# Missão da Empresa") &&
+                      !textTrimmed.startsWith("# Visão da Empresa") &&
+                      !textTrimmed.startsWith("# Cultura e Valores") &&
+                      !textTrimmed.startsWith("# Diretrizes de Tom de Voz") &&
+                      !textTrimmed.startsWith("# Manual de Objeções") &&
+                      !textTrimmed.startsWith("# Sobre a Empresa");
+
+    if (isTouched) {
+      if (!confirm("Este arquivo já contém informações. Deseja substituí-las pelo conteúdo de exemplo do caetusOS?")) {
+        return;
+      }
+    }
+
+    setCarregandoExemplo(true);
+    try {
+      const r = await api.lerConhecimento(idExemplo);
+      setConteudo(r.conteudo);
+      toast.success("Conteúdo do exemplo copiado! Não se esqueça de preencher as lacunas.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro ao carregar conteúdo do exemplo");
+    } finally {
+      setCarregandoExemplo(false);
+    }
+  };
+
   const handleSalvar = async () => {
     setIsSaving(true);
     try {
@@ -184,12 +224,26 @@ export function TextEditor({
 
           <div className="h-6 w-px bg-border/60" />
 
+          {idExemplo && (
+            <Button
+              size="sm"
+              variant="default"
+              onClick={handleUsarExemplo}
+              disabled={carregandoExemplo}
+              className="h-8 font-mono text-[10px] uppercase bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg shadow-blue-500/10 hover:shadow-blue-500/20 transition-all shrink-0"
+              title="Copiar conteúdo didático do template de exemplo correspondente"
+            >
+              <Sparkles className="h-3.5 w-3.5 mr-1" />
+              Usar Exemplo
+            </Button>
+          )}
+
           {hasTemplate && (
             <Button
               size="sm"
               variant="outline"
               onClick={restaurarTemplate}
-              className="h-8 font-mono text-[10px] uppercase border-dashed text-muted-foreground hover:text-foreground"
+              className="h-8 font-mono text-[10px] uppercase border-dashed text-muted-foreground hover:text-foreground shrink-0"
               title="Restaurar para o modelo oficial do sistema"
             >
               <RotateCcw className="h-3.5 w-3.5 mr-1" />

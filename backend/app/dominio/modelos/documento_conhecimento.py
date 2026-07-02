@@ -25,3 +25,19 @@ class DocumentoConhecimento(Base):
     atualizado_em: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
+
+    @property
+    def nome(self) -> str:
+        partes = self.caminho_storage.split("/")[-1]
+        if "-" in partes:
+            return partes.split("-", 1)[1]
+        return partes
+
+    @property
+    def is_template(self) -> bool:
+        return self.nome.endswith(".exemplo")
+
+    @property
+    def is_indexable(self) -> bool:
+        return not self.is_template
+
