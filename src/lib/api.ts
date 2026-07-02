@@ -189,6 +189,14 @@ export const api = {
     apiRequest<{ id: string; conteudo: string; tamanho: number }>(
       `/v1/conhecimento/${id}/conteudo`,
     ),
+  obterConhecimentoRaw: async (id: string): Promise<Blob> => {
+    const token = auth.getAccess();
+    const headers: Record<string, string> = {};
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+    const res = await fetch(`${API_BASE}/v1/conhecimento/${id}/raw`, { headers });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.blob();
+  },
   removerConhecimento: (id: string) =>
     apiRequest<null>(`/v1/conhecimento/${id}`, { method: "DELETE" }),
   listarAssets: () => apiRequest<Asset[]>("/v1/assets"),
