@@ -18,6 +18,9 @@ import {
   Image as ImageIcon,
   FileSpreadsheet as ExcelIcon,
   Code as FileCodeIcon,
+  Lock,
+  Edit,
+  Sparkles,
 } from "lucide-react";
 
 import { api, type DocumentoConhecimento } from "@/lib/api";
@@ -42,6 +45,12 @@ import {
 import { cn } from "@/lib/utils";
 import { FilePreviewer } from "@/components/knowledge/FilePreviewer";
 import { InfoSidebar } from "@/components/knowledge/InfoSidebar";
+import { TextEditor } from "@/components/knowledge/TextEditor";
+import { FolderReadme } from "@/components/knowledge/FolderReadme";
+import { WelcomeGuide } from "@/components/knowledge/WelcomeGuide";
+import { TEMPLATES_SISTEMA } from "@/components/knowledge/templates";
+import { INFORMACOES_PASTAS } from "@/components/knowledge/folderInfo";
+import { toast } from "sonner";
 
 /**
  * Catálogo de pastas + arquivos sugeridos. Pastas sempre aparecem na árvore,
@@ -108,11 +117,11 @@ const CATALOGO: { tipo: string; rotulo: string; sugeridos: string[] }[] = [
 type Status = "ok" | "recente" | "atualizar" | "pendente";
 
 type Node = {
-  kind: "file";
-  id: string; // id real ou "sug:<tipo>:<nome>"
+  kind: "file" | "folder";
+  id: string; // id real, "sug:<tipo>:<nome>" ou "folder:<tipo>"
   tipo: string;
   nome: string;
-  status: Status;
+  status?: Status;
   doc?: DocumentoConhecimento;
 };
 
@@ -127,15 +136,6 @@ function fmtTamanho(bytes?: number | null): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
-}
-
-function fmtData(iso?: string | null): string {
-  if (!iso) return "—";
-  try {
-    return new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
-  } catch {
-    return iso;
-  }
 }
 
 function fmtDataSimplificada(iso?: string | null): string {
@@ -167,7 +167,8 @@ function statusDe(doc: DocumentoConhecimento): Status {
   return "ok";
 }
 
-function IconeStatus({ status }: { status: Status }) {
+function IconeStatus({ status }: { status?: Status }) {
+  if (!status) return null;
   switch (status) {
     case "ok":
       return <Check className="h-3 w-3 text-emerald-500 shrink-0" />;
@@ -265,6 +266,7 @@ export default function Conhecimento() {
     Object.fromEntries(CATALOGO.map((c) => [c.tipo, true])),
   );
   const [selecionado, setSelecionado] = useState<Node | null>(null);
+  const [editando, setEditando] = useState(false);
   const [conteudo, setConteudo] = useState<string | null>(null);
   const [carregandoConteudo, setCarregandoConteudo] = useState(false);
   const [uploadTipo, setUploadTipo] = useState<string | null>(null);
@@ -297,7 +299,6 @@ export default function Conhecimento() {
       arr.push(d);
       porTipo.set(d.tipo, arr);
     }
-    // garante pastas do catálogo + extras encontrados
     const tipos = new Set<string>(CATALOGO.map((c) => c.tipo));
     for (const t of porTipo.keys()) tipos.add(t);
 
@@ -366,12 +367,13 @@ export default function Conhecimento() {
   }, [docs, pastas]);
 
   async function selecionar(node: Node) {
+    setEditando(false);
     setSelecionado(node);
     setConteudo(null);
-    if (!node.doc) return;
+    if (node.kind === "folder" || !node.doc) return;
 
     const ext = node.nome.split(".").pop()?.toLowerCase() || "";
-    // Se for binário (imagem ou PDF), não tenta ler conteúdo textual de lerConhecimento
+    // Se for binário (imagem ou PDF), não tenta ler conteúdo textual
     if (["png", "jpg", "jpeg", "gif", "webp", "svg", "pdf", "docx", "xlsx", "xls", "doc"].includes(ext)) {
       return;
     }
@@ -385,6 +387,18 @@ export default function Conhecimento() {
     } finally {
       setCarregandoConteudo(false);
     }
+  }
+
+  function selecionarPasta(tipo: string) {
+    setEditando(false);
+    const info = INFORMACOES_PASTAS[tipo];
+    setSelecionado({
+      kind: "folder",
+      id: `folder:${tipo}`,
+      tipo,
+      nome: info?.rotulo ?? tipo,
+    });
+    setConteudo(null);
   }
 
   function abrirUpload(tipo: string, nomeSugerido?: string) {
@@ -416,6 +430,10 @@ export default function Conhecimento() {
   }
 
   async function excluir(node: Node) {
+    if (node.kind === "folder") {
+      alert("Esta pasta faz parte da estrutura do caetusOS e não pode ser removida.");
+      return;
+    }
     if (!node.doc) return;
     if (!confirm(`Excluir ${node.nome}?`)) return;
     try {
@@ -431,12 +449,11 @@ export default function Conhecimento() {
   }
 
   async function baixar(node: Node) {
-    if (!node.doc) return;
+    if (node.kind === "folder" || !node.doc) return;
     try {
       const ext = node.nome.split(".").pop()?.toLowerCase() || "";
       let blob: Blob;
 
-      // Se for imagem ou PDF, busca como binário bruto
       if (["png", "jpg", "jpeg", "gif", "webp", "svg", "pdf", "docx", "xlsx", "xls", "doc"].includes(ext)) {
         blob = await api.obterConhecimentoRaw(node.doc.id);
       } else {
@@ -455,12 +472,69 @@ export default function Conhecimento() {
     }
   }
 
+  // Acionado para criar um arquivo pendente a partir do modelo sugerido
+  function iniciarCriacaoDeTemplate(nomeArquivo: string, tipoPasta: string) {
+    const template = TEMPLATES_SISTEMA[nomeArquivo];
+    const conteudoInicial = template ? template.conteudo : `# ${nomeArquivo}\n\nPreencha com os dados da empresa.`;
+    
+    setSelecionado({
+      kind: "file",
+      id: `sug:${tipoPasta}:${nomeArquivo}`,
+      tipo: tipoPasta,
+      nome: nomeArquivo,
+      status: "pendente",
+    });
+    setConteudo(conteudoInicial);
+    setEditando(true);
+  }
+
+  // Callback para salvar a edição do arquivo de texto
+  async function salvarEdicao(novoConteudo: string) {
+    if (!selecionado) return;
+    setErro(null);
+    try {
+      // Pré-processamento técnico inteligente: removemos seções de template vazias que a IA não deve indexar
+      const conteudoFinal = novoConteudo
+        .replace(/<!-- CAETUSOS_TEMPLATE_HEADER_START -->[\s\S]*?<!-- CAETUSOS_TEMPLATE_HEADER_END -->/g, "")
+        .replace(/<!-- CAETUSOS_EXEMPLO_START -->[\s\S]*?<!-- CAETUSOS_EXEMPLO_END -->/g, "")
+        .trim();
+
+      const blob = new Blob([conteudoFinal], { type: "text/markdown;charset=utf-8" });
+      const arquivo = new File([blob], selecionado.nome, { type: "text/markdown" });
+      
+      const novoDoc = await api.uploadConhecimento(selecionado.tipo, arquivo);
+      await recarregar();
+
+      const nodeAtualizado: Node = {
+        kind: "file",
+        id: novoDoc.id,
+        tipo: novoDoc.tipo,
+        nome: novoDoc.nome ?? selecionado.nome,
+        status: "recente",
+        doc: novoDoc,
+      };
+
+      setSelecionado(nodeAtualizado);
+      setConteudo(conteudoFinal);
+      setEditando(false);
+    } catch (e) {
+      throw e;
+    }
+  }
+
   function onDrop(e: React.DragEvent, tipo: string) {
     e.preventDefault();
     setDragSobre(null);
     const f = e.dataTransfer.files?.[0];
     if (f) onArquivoEscolhido(f, tipo);
   }
+
+  // Verifica se o arquivo é compatível com edição integrada (.md ou .txt)
+  const isEditavel = useMemo(() => {
+    if (!selecionado || selecionado.kind !== "file") return false;
+    const ext = selecionado.nome.split(".").pop()?.toLowerCase() || "";
+    return ["md", "txt"].includes(ext);
+  }, [selecionado]);
 
   return (
     <div className="space-y-4">
@@ -479,6 +553,9 @@ export default function Conhecimento() {
           <Metric rotulo="Hoje" valor={metricas.atualizadosHoje} tom="ok" />
         </div>
       </div>
+
+      {/* Onboarding Guide */}
+      <WelcomeGuide />
 
       {erro && (
         <div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
@@ -547,6 +624,7 @@ export default function Conhecimento() {
                     onToggle={() => setAbertas((s) => ({ ...s, [p.tipo]: !s[p.tipo] }))}
                     selecionadoId={selecionado?.id ?? null}
                     onSelect={selecionar}
+                    onSelectFolder={selecionarPasta}
                     onUpload={(nome) => abrirUpload(p.tipo, nome)}
                     onExcluir={excluir}
                     onDrop={onDrop}
@@ -559,70 +637,97 @@ export default function Conhecimento() {
           </ScrollArea>
         </div>
 
-        {/* Column 2: Viewer */}
+        {/* Column 2: Viewer / Editor */}
         <div className="flex min-w-0 flex-col h-full overflow-hidden">
           {selecionado ? (
-            <div className="flex flex-col h-full overflow-hidden">
-              {/* Toolbar do Viewer */}
-              <div className="flex items-center justify-between gap-3 border-b border-border/60 px-4 py-2.5 bg-muted/5">
-                <Breadcrumb>
-                  <BreadcrumbList className="font-mono text-[11px] flex-wrap">
-                    <BreadcrumbItem className="cursor-pointer text-muted-foreground hover:text-foreground transition-colors" onClick={() => setSelecionado(null)}>
-                      Conhecimento
-                    </BreadcrumbItem>
-                    <BreadcrumbSeparator />
-                    <BreadcrumbItem className="cursor-pointer text-muted-foreground hover:text-foreground transition-colors" onClick={() => {
-                      setAbertas((s) => ({ ...s, [selecionado.tipo]: true }));
-                    }}>
-                      {CATALOGO.find((c) => c.tipo === selecionado.tipo)?.rotulo ?? selecionado.tipo}
-                    </BreadcrumbItem>
-                    <BreadcrumbSeparator />
-                    <BreadcrumbItem>
-                      <BreadcrumbPage className="font-semibold text-foreground truncate max-w-[150px] sm:max-w-xs">{selecionado.nome}</BreadcrumbPage>
-                    </BreadcrumbItem>
-                  </BreadcrumbList>
-                </Breadcrumb>
-                
-                <div className="flex items-center gap-1.5">
-                  {selecionado.doc && (
-                    <>
-                      <Button size="sm" variant="ghost" onClick={() => baixar(selecionado)} title="Baixar arquivo original" className="h-8 w-8 p-0">
-                        <Download className="h-4 w-4" />
-                      </Button>
-                      <Button size="sm" variant="ghost" onClick={() => excluir(selecionado)} title="Remover da base de conhecimento" className="h-8 w-8 p-0 text-destructive/80 hover:text-destructive">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </>
+            editando ? (
+              <TextEditor
+                node={selecionado as any}
+                conteudoOriginal={conteudo ?? ""}
+                onSave={salvarEdicao}
+                onCancel={() => setEditando(false)}
+              />
+            ) : selecionado.kind === "folder" ? (
+              <FolderReadme
+                tipo={selecionado.tipo}
+                arquivos={pastas.find((p) => p.tipo === selecionado.tipo)?.arquivos ?? []}
+                onCriarDeTemplate={(nome) => iniciarCriacaoDeTemplate(nome, selecionado.tipo)}
+                onEnviarArquivo={(nomeSugerido) => abrirUpload(selecionado.tipo, nomeSugerido)}
+              />
+            ) : (
+              <div className="flex flex-col h-full overflow-hidden">
+                {/* Toolbar do Viewer */}
+                <div className="flex items-center justify-between gap-3 border-b border-border/60 px-4 py-2.5 bg-muted/5">
+                  <Breadcrumb>
+                    <BreadcrumbList className="font-mono text-[11px] flex-wrap">
+                      <BreadcrumbItem className="cursor-pointer text-muted-foreground hover:text-foreground transition-colors" onClick={() => setSelecionado(null)}>
+                        Conhecimento
+                      </BreadcrumbItem>
+                      <BreadcrumbSeparator />
+                      <BreadcrumbItem className="cursor-pointer text-muted-foreground hover:text-foreground transition-colors" onClick={() => selecionarPasta(selecionado.tipo)}>
+                        {CATALOGO.find((c) => c.tipo === selecionado.tipo)?.rotulo ?? selecionado.tipo}
+                      </BreadcrumbItem>
+                      <BreadcrumbSeparator />
+                      <BreadcrumbItem>
+                        <BreadcrumbPage className="font-semibold text-foreground truncate max-w-[150px] sm:max-w-xs">{selecionado.nome}</BreadcrumbPage>
+                      </BreadcrumbItem>
+                    </BreadcrumbList>
+                  </Breadcrumb>
+                  
+                  <div className="flex items-center gap-1.5">
+                    {selecionado.doc && (
+                      <>
+                        {isEditavel && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setEditando(true)}
+                            title="Editar este arquivo de texto"
+                            className="h-8 px-2.5 font-mono text-[10px] uppercase text-primary hover:text-primary hover:bg-primary/5 border border-primary/20 hover:border-primary/40 bg-primary/5"
+                          >
+                            <Edit className="h-3.5 w-3.5 mr-1" />
+                            Editar
+                          </Button>
+                        )}
+                        <Button size="sm" variant="ghost" onClick={() => baixar(selecionado)} title="Baixar arquivo original" className="h-8 w-8 p-0">
+                          <Download className="h-4 w-4" />
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => excluir(selecionado)} title="Remover da base de conhecimento" className="h-8 w-8 p-0 text-destructive/80 hover:text-destructive">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setPainelInfoAberto(!painelInfoAberto)}
+                      className={cn("h-8 w-8 p-0", painelInfoAberto && "bg-muted text-primary")}
+                      title="Inspecionar metadados e ações IA"
+                    >
+                      <Info className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Corpo do Viewer */}
+                <div className="flex-1 overflow-hidden flex flex-col min-h-0 bg-background/25">
+                  {selecionado.doc ? (
+                    <FilePreviewer
+                      node={selecionado}
+                      conteudo={conteudo}
+                      carregando={carregandoConteudo}
+                      onDownload={() => baixar(selecionado)}
+                    />
+                  ) : (
+                    <ViewerPendente
+                      node={selecionado}
+                      onEnviar={() => abrirUpload(selecionado.tipo, selecionado.nome)}
+                      onCriarTemplate={() => iniciarCriacaoDeTemplate(selecionado.nome, selecionado.tipo)}
+                    />
                   )}
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setPainelInfoAberto(!painelInfoAberto)}
-                    className={cn("h-8 w-8 p-0", painelInfoAberto && "bg-muted text-primary")}
-                    title="Inspecionar metadados e ações IA"
-                  >
-                    <Info className="h-4 w-4" />
-                  </Button>
                 </div>
               </div>
-
-              {/* Corpo do Viewer */}
-              <div className="flex-1 overflow-hidden flex flex-col min-h-0 bg-background/25">
-                {selecionado.doc ? (
-                  <FilePreviewer
-                    node={selecionado}
-                    conteudo={conteudo}
-                    carregando={carregandoConteudo}
-                    onDownload={() => baixar(selecionado)}
-                  />
-                ) : (
-                  <ViewerPendente
-                    node={selecionado}
-                    onEnviar={() => abrirUpload(selecionado.tipo, selecionado.nome)}
-                  />
-                )}
-              </div>
-            </div>
+            )
           ) : (
             <div className="flex h-full flex-col items-center justify-center p-8 text-center text-sm text-muted-foreground bg-muted/5">
               <div className="max-w-md space-y-4">
@@ -630,7 +735,7 @@ export default function Conhecimento() {
                 <div className="space-y-1">
                   <h3 className="font-display font-medium text-foreground">Explorador de Conhecimento</h3>
                   <p className="text-xs text-muted-foreground max-w-xs mx-auto leading-relaxed">
-                    Selecione um arquivo ou diretório na barra esquerda para visualizar, baixar, inspecionar metadados ou aplicar ferramentas de IA.
+                    Selecione uma pasta na barra esquerda para ler sua finalidade e ver arquivos recomendados, ou clique em um arquivo para visualizar, baixar, editar ou inspecionar metadados.
                   </p>
                 </div>
               </div>
@@ -697,6 +802,7 @@ function PastaItem({
   onToggle,
   selecionadoId,
   onSelect,
+  onSelectFolder,
   onUpload,
   onExcluir,
   onDrop,
@@ -708,12 +814,15 @@ function PastaItem({
   onToggle: () => void;
   selecionadoId: string | null;
   onSelect: (n: Node) => void;
+  onSelectFolder: (tipo: string) => void;
   onUpload: (nomeSugerido?: string) => void;
   onExcluir: (n: Node) => void;
   onDrop: (e: React.DragEvent, tipo: string) => void;
   dragSobre: boolean;
   setDragSobre: (t: string | null) => void;
 }) {
+  const isSelected = selecionadoId === `folder:${pasta.tipo}`;
+
   return (
     <div
       onDragOver={(e) => {
@@ -727,37 +836,47 @@ function PastaItem({
         dragSobre && "bg-primary/5 border-primary/30",
       )}
     >
-      <button
-        onClick={onToggle}
-        className={cn(
-          "flex w-full items-center gap-2 rounded px-2 py-1.5 text-left font-mono text-xs hover:bg-muted/40 transition-colors",
-          aberta && "bg-muted/15 font-semibold text-foreground",
-        )}
-      >
-        {aberta ? (
-          <ChevronDown className="h-3.5 w-3.5 text-muted-foreground/60" />
-        ) : (
-          <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/60" />
-        )}
-        {aberta ? (
-          <FolderOpen className="h-4 w-4 text-sky-400" />
-        ) : (
-          <Folder className="h-4 w-4 text-sky-400" />
-        )}
-        <span className="ml-0.5 truncate">{pasta.rotulo}</span>
-        <Badge
-          variant="outline"
-          className="ml-auto h-4 rounded px-1.5 font-mono text-[9px] text-muted-foreground bg-muted/30 border-border/40"
+      <div className="flex items-center justify-between group">
+        <button
+          onClick={() => {
+            onToggle();
+            onSelectFolder(pasta.tipo);
+          }}
+          className={cn(
+            "flex-1 flex items-center gap-2 rounded px-2 py-1.5 text-left font-mono text-xs hover:bg-muted/40 transition-colors",
+            isSelected && "bg-primary/10 text-primary border border-primary/20",
+            !isSelected && aberta && "bg-muted/15 font-semibold text-foreground",
+          )}
         >
-          {pasta.arquivos.filter((a) => a.status !== "pendente").length}
-        </Badge>
-      </button>
+          {aberta ? (
+            <ChevronDown className="h-3.5 w-3.5 text-muted-foreground/60 shrink-0" />
+          ) : (
+            <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/60 shrink-0" />
+          )}
+          {aberta ? (
+            <FolderOpen className="h-4 w-4 text-sky-400 shrink-0" />
+          ) : (
+            <Folder className="h-4 w-4 text-sky-400 shrink-0" />
+          )}
+          <span className="ml-0.5 truncate flex-1">{pasta.rotulo}</span>
+          
+          <Lock className="h-3 w-3 text-muted-foreground/40 mr-1.5 opacity-0 group-hover:opacity-100 transition-opacity" title="Pasta do sistema protegida" />
+
+          <Badge
+            variant="outline"
+            className="h-4 rounded px-1.5 font-mono text-[9px] text-muted-foreground bg-muted/30 border-border/40 shrink-0"
+          >
+            {pasta.arquivos.filter((a) => a.status !== "pendente").length}
+          </Badge>
+        </button>
+      </div>
       
       {aberta && (
         <div className="ml-4 border-l border-border/40 pl-1.5 pr-0.5 py-1 space-y-1">
           {pasta.arquivos.map((a) => {
             const info = obterInfoExtensao(a.nome);
             const IconeExt = info.icone;
+            const isFileSelected = selecionadoId === a.id;
             
             return (
               <ContextMenu key={a.id}>
@@ -766,8 +885,8 @@ function PastaItem({
                     onClick={() => onSelect(a)}
                     className={cn(
                       "flex w-full items-start gap-2 rounded-md px-2 py-1.5 text-left hover:bg-muted/40 transition-all border border-transparent select-none",
-                      selecionadoId === a.id 
-                        ? "bg-muted/80 border-border/40 text-foreground" 
+                      isFileSelected 
+                        ? "bg-muted/80 border-border/40 text-foreground font-semibold" 
                         : "text-muted-foreground hover:text-foreground",
                       a.status === "pendente" && "opacity-60",
                     )}
@@ -779,7 +898,7 @@ function PastaItem({
                       <div className="flex items-center justify-between gap-1.5">
                         <span className={cn(
                           "truncate text-[11px] font-mono leading-tight",
-                          selecionadoId === a.id ? "font-semibold text-foreground" : "text-foreground/85"
+                          isFileSelected ? "font-semibold text-foreground" : "text-foreground/85"
                         )} title={a.nome}>
                           {a.nome}
                         </span>
@@ -812,8 +931,8 @@ function PastaItem({
                   >
                     {a.status === "pendente" ? "Enviar" : "Atualizar"}
                   </ContextMenuItem>
-                  <ContextMenuItem disabled>Renomear</ContextMenuItem>
-                  <ContextMenuItem disabled>Mover</ContextMenuItem>
+                  <ContextMenuItem disabled className="opacity-40">Renomear (🔒 Sistema)</ContextMenuItem>
+                  <ContextMenuItem disabled className="opacity-40">Mover (🔒 Sistema)</ContextMenuItem>
                   <ContextMenuItem
                     onClick={() => onExcluir(a)}
                     disabled={a.status === "pendente"}
@@ -839,20 +958,38 @@ function PastaItem({
   );
 }
 
-function ViewerPendente({ node, onEnviar }: { node: Node; onEnviar: () => void }) {
+function ViewerPendente({
+  node,
+  onEnviar,
+  onCriarTemplate,
+}: {
+  node: Node;
+  onEnviar: () => void;
+  onCriarTemplate: () => void;
+}) {
+  const hasTemplate = node.nome in TEMPLATES_SISTEMA;
+
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 py-12 text-center bg-card/5">
+    <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 py-12 text-center bg-card/5 select-none">
       <X className="h-10 w-10 text-muted-foreground/35 border border-dashed border-muted-foreground/45 rounded-full p-2" />
       <div className="space-y-1">
         <p className="font-mono text-sm text-foreground font-semibold">{node.nome}</p>
         <p className="text-xs text-muted-foreground max-w-xs leading-relaxed mx-auto">
-          Este arquivo é sugerido pelo caetusOS para a base de conhecimento institucional, mas ainda não foi enviado.
+          Este arquivo é sugerido pelo caetusOS para a base de conhecimento institucional, mas ainda não foi preenchido na sua empresa.
         </p>
       </div>
-      <Button size="sm" onClick={onEnviar} className="h-8">
-        <Upload className="h-3.5 w-3.5 mr-1.5" />
-        Enviar arquivo sugerido
-      </Button>
+      <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+        {hasTemplate && (
+          <Button size="sm" onClick={onCriarTemplate} className="h-8 font-mono text-[10px] uppercase font-bold bg-primary text-primary-foreground hover:bg-primary/90">
+            <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+            Escrever do Zero (Modelo)
+          </Button>
+        )}
+        <Button size="sm" variant="outline" onClick={onEnviar} className="h-8 font-mono text-[10px] uppercase">
+          <Upload className="h-3.5 w-3.5 mr-1.5" />
+          Enviar arquivo pronto (.md, .txt)
+        </Button>
+      </div>
     </div>
   );
 }
