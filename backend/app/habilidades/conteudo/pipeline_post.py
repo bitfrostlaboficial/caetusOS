@@ -227,36 +227,145 @@ class PersistenciaPostConhecimento:
         conteudo: ConteudoPost,
         imagem: ImagemPost,
         metadata: dict[str, Any],
+        contexto: Contexto,
     ) -> PersistenciaPost:
+        import json
+        import hashlib
+        from datetime import datetime, timezone
+
         agora = datetime.now(timezone.utc)
-        base_mes = f"conhecimento/marketing/posts/{agora:%Y}/{agora:%m}"
-        base = self._proximo_diretorio(base_mes)
-        caminho_imagem = f"{base}/imagem.{imagem.extensao}"
-        caminho_legenda = f"{base}/legenda.md"
-        caminho_prompt = f"{base}/prompt_imagem.md"
-        caminho_metadata = f"{base}/metadata.json"
+        empresa_id = contexto.extras.get("empresa_id") if contexto and contexto.extras else None
 
-        metadata = {
-            **metadata,
-            "data": agora.isoformat(),
-            "tema": entrada.tema,
-            "rede": entrada.rede,
-            "missao": "conteudo.criar_post",
-            "arquivos": {
-                "imagem": caminho_imagem,
-                "legenda": caminho_legenda,
-                "prompt_imagem": caminho_prompt,
-                "metadata": caminho_metadata,
-            },
-        }
+        if empresa_id:
+            # Hash dos conteudos para caminhos unicos padrão da plataforma
+            hash_img = hashlib.sha256(imagem.conteudo).hexdigest()
+            hash_leg = hashlib.sha256(conteudo.legenda.encode("utf-8")).hexdigest()
+            hash_prompt = hashlib.sha256(conteudo.prompt_visual_texto.encode("utf-8")).hexdigest()
 
-        self.storage.salvar(caminho_imagem, imagem.conteudo)
-        self.storage.salvar(caminho_legenda, conteudo.legenda.encode("utf-8"))
-        self.storage.salvar(caminho_prompt, conteudo.prompt_visual_texto.encode("utf-8"))
-        self.storage.salvar(
-            caminho_metadata,
-            json.dumps(metadata, ensure_ascii=False, indent=2, default=str).encode("utf-8"),
-        )
+            # Nomeação amigável e timestamped para organizar no Explorer da Base de Conhecimento
+            ts = agora.strftime("%Y%m%d_%H%M%S")
+            caminho_imagem = f"empresas/{empresa_id}/conhecimento/{hash_img}-post_{ts}_imagem.{imagem.extensao}"
+            caminho_legenda = f"empresas/{empresa_id}/conhecimento/{hash_leg}-post_{ts}_legenda.md"
+            caminho_prompt = f"empresas/{empresa_id}/conhecimento/{hash_prompt}-post_{ts}_prompt.txt"
+
+            metadata_completo = {
+                "tema": entrada.tema,
+                "rede": entrada.rede,
+                "objetivo": entrada.objetivo,
+                "data": agora.isoformat(),
+                "missao": "conteudo.criar_post",
+                "provider_texto": conteudo.provider,
+                "modelo_texto": conteudo.modelo,
+                "provider_imagem": imagem.provider,
+                "modelo_imagem": imagem.modelo,
+                "legenda": conteudo.legenda,
+                "hashtags": conteudo.hashtags,
+                "cta": conteudo.cta,
+                "prompt_utilizado": conteudo.prompt_visual_texto,
+                "prompt_visual": conteudo.prompt_visual,
+                "status_publicacao": metadata.get("publicacao", {}).get("status") if isinstance(metadata, dict) else None,
+                "detalhes_publicacao": metadata.get("publicacao", {}).get("detalhes") if isinstance(metadata, dict) else None,
+                "arquivos": {
+                    "imagem": caminho_imagem,
+                    "legenda": caminho_legenda,
+                    "prompt": caminho_prompt,
+                },
+                "metricas": metadata,
+            }
+
+            meta_bytes = json.dumps(metadata_completo, ensure_ascii=False, indent=2, default=str).encode("utf-8")
+            hash_meta = hashlib.sha256(meta_bytes).hexdigest()
+            caminho_metadata = f"empresas/{empresa_id}/conhecimento/{hash_meta}-post_{ts}_metadata.json"
+            metadata_completo["arquivos"]["metadata"] = caminho_metadata
+
+            # Salvar fisicamente no Storage
+            self.storage.salvar(caminho_imagem, imagem.conteudo)
+            self.storage.salvar(caminho_legenda, conteudo.legenda.encode("utf-8"))
+            self.storage.salvar(caminho_prompt, conteudo.prompt_visual_texto.encode("utf-8"))
+            self.storage.salvar(caminho_metadata, meta_bytes)
+
+            # Registrar os arquivos de legenda, imagem, prompt e metadados no banco de dados para a Base de Conhecimento
+            from app.infraestrutura.banco.sessao import SessionLocal
+            from app.dominio.modelos.documento_conhecimento import DocumentoConhecimento
+
+            try:
+                with SessionLocal() as db_sessao:
+                    # Registrar legenda
+                    doc_leg = DocumentoConhecimento(
+                        empresa_id=empresa_id,
+                        tipo="marketing",
+                        caminho_storage=caminho_legenda,
+                        hash=hash_leg,
+                        versao=1,
+                    )
+                    db_sessao.add(doc_leg)
+
+                    # Registrar imagem
+                    doc_img = DocumentoConhecimento(
+                        empresa_id=empresa_id,
+                        tipo="marketing",
+                        caminho_storage=caminho_imagem,
+                        hash=hash_img,
+                        versao=1,
+                    )
+                    db_sessao.add(doc_img)
+
+                    # Registrar prompt
+                    doc_prompt = DocumentoConhecimento(
+                        empresa_id=empresa_id,
+                        tipo="marketing",
+                        caminho_storage=caminho_prompt,
+                        hash=hash_prompt,
+                        versao=1,
+                    )
+                    db_sessao.add(doc_prompt)
+
+                    # Registrar metadata
+                    doc_meta = DocumentoConhecimento(
+                        empresa_id=empresa_id,
+                        tipo="marketing",
+                        caminho_storage=caminho_metadata,
+                        hash=hash_meta,
+                        versao=1,
+                    )
+                    db_sessao.add(doc_meta)
+
+                    db_sessao.commit()
+            except Exception as db_exc:
+                import logging
+                logging.getLogger("caetusos.pipeline_post").error(f"Erro ao persistir documentos no banco de dados: {db_exc}")
+
+            base = f"conhecimento/marketing/posts/{agora:%Y}/{agora:%m}/post_{ts}"
+        else:
+            base_mes = f"conhecimento/marketing/posts/{agora:%Y}/{agora:%m}"
+            base = self._proximo_diretorio(base_mes)
+            caminho_imagem = f"{base}/imagem.{imagem.extensao}"
+            caminho_legenda = f"{base}/legenda.md"
+            caminho_prompt = f"{base}/prompt_imagem.md"
+            caminho_metadata = f"{base}/metadata.json"
+
+            metadata_fallback = {
+                **metadata,
+                "data": agora.isoformat(),
+                "tema": entrada.tema,
+                "rede": entrada.rede,
+                "missao": "conteudo.criar_post",
+                "arquivos": {
+                    "imagem": caminho_imagem,
+                    "legenda": caminho_legenda,
+                    "prompt_imagem": caminho_prompt,
+                    "metadata": caminho_metadata,
+                },
+            }
+
+            self.storage.salvar(caminho_imagem, imagem.conteudo)
+            self.storage.salvar(caminho_legenda, conteudo.legenda.encode("utf-8"))
+            self.storage.salvar(caminho_prompt, conteudo.prompt_visual_texto.encode("utf-8"))
+            self.storage.salvar(
+                caminho_metadata,
+                json.dumps(metadata_fallback, ensure_ascii=False, indent=2, default=str).encode("utf-8"),
+            )
+
         return PersistenciaPost(
             base=base,
             imagem=caminho_imagem,
@@ -333,18 +442,61 @@ class InstagramPublicador:
                 timeout=60,
             )
             publish.raise_for_status()
-            media_id = publish.json().get("id")
+            publish_data = publish.json()
+            media_id = publish_data.get("id")
+
+            links = []
+            if media_id:
+                try:
+                    # Buscar o permalink real da midia publicada sem inventar links
+                    media_info = httpx.get(
+                        f"https://graph.facebook.com/{api_version}/{media_id}",
+                        params={"fields": "permalink", "access_token": access_token},
+                        timeout=10,
+                    )
+                    media_info.raise_for_status()
+                    permalink = media_info.json().get("permalink")
+                    if permalink:
+                        links.append(permalink)
+                except Exception as info_exc:
+                    import logging
+                    logging.getLogger("caetusos.pipeline_post").warning(
+                        f"Nao foi possivel obter permalink real do Instagram para media_id {media_id}: {info_exc}"
+                    )
+
             return PublicacaoPost(
                 rede="instagram",
                 status="publicado",
-                links=[],
-                detalhes={"media_id": media_id, "creation_id": creation_id},
+                links=links,
+                detalhes={
+                    "media_id": media_id,
+                    "creation_id": creation_id,
+                    "resposta": publish_data,
+                    "erros": None
+                },
+            )
+        except httpx.HTTPStatusError as exc:
+            try:
+                erro_detalhe = exc.response.json()
+            except Exception:
+                erro_detalhe = exc.response.text
+            return PublicacaoPost(
+                rede="instagram",
+                status="erro",
+                detalhes={
+                    "erro": str(exc),
+                    "resposta": erro_detalhe,
+                    "erros": [erro_detalhe]
+                }
             )
         except Exception as exc:  # noqa: BLE001
             return PublicacaoPost(
                 rede="instagram",
                 status="erro",
-                detalhes={"erro": str(exc)[:500]},
+                detalhes={
+                    "erro": str(exc)[:500],
+                    "erros": [str(exc)]
+                },
             )
 
 
@@ -408,7 +560,7 @@ class PipelineCriarPost:
             "imagem": imagem.metadata,
             "publicacao": publicacao.__dict__,
         }
-        persistencia = self.persistencia.salvar(entrada, conteudo, imagem, metadata)
+        persistencia = self.persistencia.salvar(entrada, conteudo, imagem, metadata, contexto)
         contexto.registrar_evento(
             "arquivo.criado",
             "Arquivos salvos na Base de Conhecimento",
