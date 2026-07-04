@@ -39,3 +39,6 @@ backend/storage_local/
 .env
 backend/.env
 !backend/.env.example
+
+# Perfis de agente traduzidos (gerados por caetus/scripts/apply_profile.py)
+/caetus/.generated/

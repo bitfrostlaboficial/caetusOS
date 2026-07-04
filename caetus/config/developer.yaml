@@ -1,0 +1,28 @@
+# Perfil "Developer" — modo de operação permissivo para o agente de IA.
+#
+# Ver caetus/config/safe.yaml para a explicação do formato agnóstico de
+# agente e caetus/adapters/claude-code.md para como ele é traduzido.
+id: developer
+name: Developer
+description: >
+  Perfil permissivo para desenvolvimento ativo. Edições de arquivo e
+  comandos usuais de build/test/versionamento são aprovados
+  automaticamente; as operações mais destrutivas continuam bloqueadas.
+
+approval_mode: auto_edit
+
+shell:
+  allow:
+    - "git*"
+    - "npm*"
+    - "bun*"
+    - "node*"
+    - "python*"
+  deny:
+    - "rm -rf /*"
+    - "git push --force*"
+    - "git reset --hard*"
+
+filesystem:
+  deny_write:
+    - ".git/**"

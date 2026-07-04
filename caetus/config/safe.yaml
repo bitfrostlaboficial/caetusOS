@@ -1,0 +1,43 @@
+# Perfil "Safe" — modo de operação restritivo para o agente de IA.
+#
+# Este arquivo é agnóstico de agente: descreve intenção (o que pode
+# acontecer sem confirmação, o que nunca pode acontecer), não a sintaxe de
+# permissões de nenhum agente específico. A tradução para o formato de um
+# agente concreto (hoje, Claude Code) vive em caetus/scripts/apply_profile.py
+# e é documentada em caetus/adapters/claude-code.md.
+id: safe
+name: Safe
+description: >
+  Perfil restritivo. Toda ação que modifique arquivos, rode comandos ou
+  acesse a rede pede confirmação, exceto leituras e um conjunto pequeno de
+  comandos claramente inofensivos. Usar como padrão para exploração,
+  revisão de código, ou sempre que o escopo da tarefa não é bem conhecido.
+
+# confirm    -> pede aprovação para qualquer ação que não seja leitura pura
+# auto_edit  -> aprova edições de arquivo e comandos automaticamente
+# full_auto  -> não pede aprovação para nada (só para ambientes isolados)
+approval_mode: confirm
+
+shell:
+  allow:
+    - "git status"
+    - "git diff*"
+    - "git log*"
+    - "ls*"
+    - "pwd"
+  ask:
+    - "git commit*"
+    - "npm install*"
+    - "npm run*"
+  deny:
+    - "rm -rf*"
+    - "git push*"
+    - "git reset --hard*"
+    - "git clean*"
+    - "curl*"
+    - "wget*"
+
+filesystem:
+  deny_write:
+    - ".git/**"
+    - ".env*"

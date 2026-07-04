@@ -74,3 +74,8 @@ consultados a qualquer momento). Justificativa completa em
   é que, a partir de agora, cada `SKILL.md` correspondente a uma
   Capability do Caetus OS é fino e aponta para cá, em vez de conter a
   especificação inteira.
+- **Não é `caetus/config/`.** Aquela pasta controla **como** um agente de
+  IA opera este repositório (permissões, modo de aprovação — perfis
+  "Safe"/"Developer") — não o que ele sabe fazer. Uma Capability aqui nunca
+  decide seu próprio nível de permissão; isso é sempre uma decisão de
+  sessão, externa a ela. Ver `caetus/README.md`.
