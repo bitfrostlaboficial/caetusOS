@@ -1,0 +1,76 @@
+manifesto_versao: "1.0"
+
+id: company-knowledge
+nome: "Conhecimento da Empresa"
+versao: null
+descricao: >
+  Única porta de entrada para empresas/<slug>/conhecimento/; devolve
+  conhecimento da empresa já interpretado, nunca o arquivo bruto.
+camada: conhecimento
+categoria: conhecimento
+
+entradas:
+  - nome: empresa
+    tipo: string
+    obrigatorio: true
+    padrao: null
+    descricao: "Slug da empresa (ex. caetus_systems). Nunca tem padrão implícito."
+  - nome: campo_solicitado
+    tipo: "list[string]"
+    obrigatorio: true
+    padrao: null
+    descricao: >
+      Um ou mais campos do Context Contract (branding, identidade_visual,
+      paleta, tipografia, tom_de_voz, publico_alvo...) ou uma pergunta
+      livre quando não mapear para nenhum campo padrão.
+  - nome: contexto_da_tarefa
+    tipo: string
+    obrigatorio: false
+    padrao: null
+    descricao: "Ajuda a resolver ambiguidade quando há mais de uma resposta possível."
+
+saidas:
+  - nome: "(fragmento do Context Contract)"
+    tipo: object
+    descricao: "Ver ai/contracts/context-contract.md — só os campos pedidos vêm preenchidos."
+  - nome: documentos_utilizados
+    tipo: "list[string]"
+    descricao: "Caminhos dos arquivos de empresas/<slug>/conhecimento/ consultados."
+  - nome: data_da_consulta
+    tipo: string
+    descricao: "Timestamp ISO 8601 da consulta."
+  - nome: versao_base_conhecimento
+    tipo: string
+    descricao: "Ver ai/contracts/context-contract.md#versao_base_conhecimento."
+  - nome: error
+    tipo: "string | null"
+    descricao: "Mensagem de erro legível por humano, quando aplicável."
+
+contratos:
+  - context-contract
+dependencias: []
+
+permissoes:
+  - leitura_conhecimento_empresa
+
+modelos_compativeis: []
+adapters_disponiveis: []
+
+custo_estimado: nao_aplicavel
+timeout_segundos: null
+
+tags:
+  - conhecimento
+  - empresa
+  - branding
+  - marca
+
+autor: "Rick Caetano"
+data_criacao: "2026-07-04"
+status: planejada
+observacoes: >
+  Estrutura, contrato e permissões definidos; a lógica de leitura e
+  interpretação de empresas/<slug>/conhecimento/ ainda não foi
+  implementada — nenhum scripts/ existe ainda de propósito. Nenhuma
+  Capability de camada 'negócio' deve ser criada antes desta existir de
+  fato (ver ai/architecture/ARQUITETURA.md).

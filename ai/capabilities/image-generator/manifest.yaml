@@ -1,0 +1,101 @@
+manifesto_versao: "1.0"
+
+id: image-generator
+nome: "Gerador de Imagens"
+versao: "1.0.0"
+descricao: >
+  Gera imagens a partir de um prompt textual, chamando qualquer provedor de
+  geração de imagem disponível, sem conhecer nenhuma empresa.
+camada: capacidade-generica
+categoria: imagem
+
+entradas:
+  - nome: prompt
+    tipo: string
+    obrigatorio: true
+    padrao: null
+    descricao: "Descrição textual completa da imagem."
+  - nome: provider
+    tipo: string
+    obrigatorio: false
+    padrao: auto
+    descricao: "auto, openai, gemini, fal, stability ou huggingface."
+  - nome: n
+    tipo: integer
+    obrigatorio: false
+    padrao: 1
+    descricao: "Quantidade de imagens a gerar nesta chamada."
+  - nome: size
+    tipo: string
+    obrigatorio: false
+    padrao: "1024x1024"
+    descricao: "LARGURAxALTURA em pixels."
+  - nome: output_dir
+    tipo: string
+    obrigatorio: false
+    padrao: "./generated-images"
+    descricao: "Pasta onde os arquivos são salvos (criada se não existir)."
+  - nome: output_name
+    tipo: string
+    obrigatorio: false
+    padrao: null
+    descricao: "Prefixo do nome de arquivo. Padrão: slug do prompt + timestamp."
+  - nome: model
+    tipo: string
+    obrigatorio: false
+    padrao: null
+    descricao: "Sobrescreve o modelo padrão do provedor escolhido."
+
+saidas:
+  - nome: provider
+    tipo: "string | null"
+    descricao: "Provedor efetivamente usado (null em caso de erro antes da escolha)."
+  - nome: model
+    tipo: "string | null"
+    descricao: "Modelo efetivamente usado."
+  - nome: prompt
+    tipo: string
+    descricao: "Prompt usado na geração."
+  - nome: images
+    tipo: "list[object]"
+    descricao: "Lista de imagens geradas, cada uma com o campo 'path'."
+  - nome: error
+    tipo: "string | null"
+    descricao: "Mensagem de erro legível por humano, quando aplicável."
+
+contratos: []
+dependencias: []
+
+permissoes:
+  - rede_externa
+  - disco_escrita
+
+modelos_compativeis:
+  - openai
+  - gemini
+  - fal
+  - stability
+  - huggingface
+
+adapters_disponiveis:
+  - agente: claude-code
+    local: ".claude/skills/image-generator/SKILL.md"
+    status: implementado
+
+custo_estimado: variavel
+timeout_segundos: 120
+
+tags:
+  - imagem
+  - geracao-de-conteudo
+  - midia
+  - marketing
+
+autor: "Rick Caetano"
+data_criacao: "2026-07-04"
+status: implementada
+observacoes: >
+  O provedor fal.ai exige o caminho completo de três segmentos no modelo
+  (ex. fal-ai/flux/schnell) — o formato de dois segmentos usado em
+  backend/.env.example e backend/app/ia/provedores/fal.py está quebrado
+  (testado ao vivo; ver ai/capabilities/image-generator/references/providers.md).

@@ -30,3 +30,12 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Base de conhecimento local das empresas (dados privados, nunca versionados)
+/empresas/
+backend/storage_local/
+
+# Segredos locais (nunca versionados)
+.env
+backend/.env
+!backend/.env.example
