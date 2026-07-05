@@ -22,6 +22,43 @@ Arquitetura oficial congelada em **v6.1** — referência completa em [`.lovable
 
 ---
 
+## 🤖 Agentes de IA neste repositório: quando orquestrar
+
+Claude (ou qualquer outro agente) **não precisa de orquestração para nada além de executar uma Capability**. Conversar, programar, revisar arquitetura, escrever documentação e tirar dúvidas do projeto acontece direto, sem passar por nada abaixo.
+
+A orquestração só entra quando o agente decide que a tarefa exige uma **Capability** do Caetus OS (`ai/`) — gerar uma imagem, montar um post, consultar conhecimento da empresa, etc.:
+
+```
+Usuário
+  │
+  ▼
+Agente (Claude, Codex...)
+  ├── conversa comum, código, brainstorm, docs, arquitetura → responde direto
+  └── decide usar uma Capability
+          ↓
+      Resolver            (intenção → id da Capability/Workflow)
+          ↓
+      Planner              (id → plano de execução)
+          ↓
+      Company Knowledge     (conhecimento da empresa, quando a Capability é de negócio)
+          ↓
+      Context Manager        (monta o contexto de cada etapa)
+          ↓
+      Capabilities             (executam — nunca leem empresas/ nem decidem sozinhas)
+          ↓
+      Executor                  (roda o plano, valida, registra)
+          ↓
+      Resultado
+          ↓
+     Agente responde ao usuário
+```
+
+**Estado real hoje:** `Resolver`, `Planner`, `Executor` e `Context Manager` (`ai/orchestration/`) são especificação, sem código funcional ainda — só o `Registry` (`ai/registry/scripts/discover.py`) roda de verdade. Até a orquestração existir, um agente que decide usar uma Capability deve: **1)** ler o `CAPABILITY.md` dela (`ai/capabilities|workflows|knowledge/<slug>/`); **2)** se for Capability de negócio, obter o conhecimento da empresa necessário (hoje, perguntando ao usuário — `company-knowledge` também ainda não está implementada); **3)** rodar o script pela seção "Como executar" do `CAPABILITY.md`, ou pelo adapter em `.claude/skills/<slug>/` — nunca inventar um passo de orquestração que ainda não existe. Especificação completa em [`ai/README.md`](./ai/README.md).
+
+> Não confundir com o **Executor** do "Pipeline de Execução" logo abaixo (`backend/app/executor/`) — esse é o motor de produção do backend (`Comando` → `Habilidade` → provedor de IA), já implementado e em uso. O Executor citado acima é o do núcleo de orquestração de Capabilities, em `ai/orchestration/executor/`, ainda não implementado. Nomes parecidos, sistemas diferentes.
+
+---
+
 ## 🧱 Stack
 
 | Camada    | Tecnologia                                            |
