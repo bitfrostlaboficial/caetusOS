@@ -1,0 +1,26 @@
+{
+  "provider": "cloudflare",
+  "default_model": "@cf/black-forest-labs/flux-1-schnell",
+  "models": [
+    {
+      "name": "@cf/black-forest-labs/flux-1-schnell",
+      "status": "free",
+      "notes": "fast, default, simplest input format (JSON)"
+    },
+    {
+      "name": "@cf/black-forest-labs/flux-2-dev",
+      "status": "free",
+      "notes": "high quality, multi-reference, multipart input"
+    },
+    {
+      "name": "@cf/black-forest-labs/flux-2-klein-4b",
+      "status": "free",
+      "notes": "fast, preview, multipart input"
+    },
+    {
+      "name": "@cf/black-forest-labs/flux-2-klein-9b",
+      "status": "free",
+      "notes": "fast, higher quality than klein-4b, multipart input"
+    }
+  ]
+}

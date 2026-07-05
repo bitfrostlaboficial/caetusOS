@@ -19,7 +19,7 @@ entradas:
     tipo: string
     obrigatorio: false
     padrao: auto
-    descricao: "auto, openai, gemini, fal, stability ou huggingface."
+    descricao: "auto, openai, gemini, fal, stability, huggingface ou pollinations."
   - nome: n
     tipo: integer
     obrigatorio: false
@@ -76,6 +76,7 @@ modelos_compativeis:
   - fal
   - stability
   - huggingface
+  - pollinations
 
 adapters_disponiveis:
   - agente: claude-code
@@ -99,3 +100,14 @@ observacoes: >
   (ex. fal-ai/flux/schnell) — o formato de dois segmentos usado em
   backend/.env.example e backend/app/ia/provedores/fal.py está quebrado
   (testado ao vivo; ver ai/capabilities/image-generator/references/providers.md).
+  O provedor gemini chama Nano Banana (gemini-2.5-flash-image) via
+  generateContent, não Imagen via :predict — mudança feita em 2026-07-05
+  para atender o pedido explícito de rodar Nano Banana; ver
+  references/providers.md para os três modelos da família (Nano Banana /
+  2 / Pro) e o motivo do endpoint ser outro. Provedor pollinations
+  adicionado na mesma data como fallback gratuito sem chave obrigatória.
+  Validado offline com respostas simuladas (parsing de inlineData e do
+  binário do Pollinations); chamada real às APIs não pôde ser testada
+  neste ambiente porque o sandbox de execução bloqueia egress para
+  generativelanguage.googleapis.com e image.pollinations.ai — rodar de
+  verdade a partir da máquina do usuário ou do backend em produção.
