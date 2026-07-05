@@ -66,6 +66,15 @@ a substitui.
 - **Manifesto:** ainda não existe.
 - **Especificação:** ainda não existe.
 
+### layout-engine
+- **Camada:** capacidade-genérica
+- **Objetivo:** montar peças visuais (posts, banners, slides) a partir de uma árvore de componentes reutilizáveis (React/HTML/CSS/SVG) e exportar um PNG via Playwright, sem usar IA para desenhar nem conhecer nenhuma empresa — a engrenagem mecânica do "Visual Composer" (ver `branded-layout-composer` e `visual-composer` abaixo).
+- **Depende de:** nenhuma.
+- **Status:** implementada
+- **Versão:** 1.0.0
+- **Manifesto:** `ai/capabilities/layout-engine/manifest.yaml`
+- **Especificação:** `ai/capabilities/layout-engine/CAPABILITY.md`
+
 ## Camada 3 — Negócio
 
 ### branded-image-generator
@@ -77,6 +86,15 @@ a substitui.
 - **Manifesto:** ainda não existe.
 - **Especificação:** ainda não existe.
 
+### branded-layout-composer
+- **Camada:** negócio
+- **Objetivo:** aplicar as decisões criativas ("Creative Director"/"Design Strategist"/"Model Analyst"/"Reviewer" do conceito Visual Composer) e a identidade visual da empresa ativa sobre `layout-engine` — consulta `company-knowledge` para paleta/tom/logo, decide quais ativos precisam de `image-generator` (ver `ai/capabilities/layout-engine/references/model-analyst.md`) e chama `layout-engine` com `composition`/`style_tokens` já resolvidos.
+- **Depende de:** `company-knowledge`, `layout-engine`, `image-generator` (opcional, só quando algum ativo exige geração por IA).
+- **Status:** planejada — bloqueada por `company-knowledge` ainda não estar implementada (ver pré-requisito em `ai/knowledge/company-knowledge/CAPABILITY.md`).
+- **Versão:** —
+- **Manifesto:** ainda não existe.
+- **Especificação:** ainda não existe.
+
 ## Camada 4 — Workflow
 
 ### instagram-post
@@ -84,6 +102,15 @@ a substitui.
 - **Objetivo:** produzir e preparar um post completo para Instagram (texto + imagem, no tom e visual da empresa) a partir de um pedido de alto nível.
 - **Depende de:** `company-knowledge`, `branded-image-generator` (e futuramente uma Capability de negócio de texto equivalente).
 - **Status:** planejada
+- **Versão:** —
+- **Manifesto:** ainda não existe.
+- **Especificação:** ainda não existe.
+
+### visual-composer
+- **Camada:** workflow
+- **Objetivo:** entregar, de ponta a ponta, uma peça visual institucional/de marketing pronta para publicação a partir de um pedido em linguagem natural — orquestra a consulta a `company-knowledge`, a decisão criativa (conceito, mensagem, hierarquia) e `branded-layout-composer` (que por sua vez decide ativos e chama `layout-engine`/`image-generator`), terminando com uma revisão automática do resultado (alinhamento, contraste, legibilidade, uso da marca) antes de considerar a peça pronta.
+- **Depende de:** `company-knowledge`, `branded-layout-composer`.
+- **Status:** planejada — bloqueada por `company-knowledge` e `branded-layout-composer` (ver acima).
 - **Versão:** —
 - **Manifesto:** ainda não existe.
 - **Especificação:** ainda não existe.

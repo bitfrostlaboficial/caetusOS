@@ -1,0 +1,27 @@
+{
+  "format": "instagram-feed",
+  "style_tokens": {
+    "colors": {
+      "background": "#0B1220",
+      "surface": "#111827",
+      "primary": "#5B8CFF",
+      "secondary": "#22D3A8",
+      "text": "#F8FAFC",
+      "muted": "#94A3B8"
+    },
+    "fonts": { "heading": "Inter, sans-serif", "body": "Inter, sans-serif" },
+    "radius": 24
+  },
+  "root": {
+    "component": "Post",
+    "props": { "padding": 72, "align": "flex-start" },
+    "children": [
+      { "component": "Logo", "props": { "src": null, "position": "top-left", "size": 40 } },
+      { "component": "Subtitle", "props": { "text": "Nome da empresa" } },
+      { "component": "Headline", "props": { "text": "Frase de impacto em até duas linhas", "size": "xl" } },
+      { "component": "Paragraph", "props": { "text": "Um complemento curto que explica o benefício central da peça." } },
+      { "component": "Illustration", "props": { "shape": "blob", "position": "right" } },
+      { "component": "Footer", "props": { "text": "@handle" } }
+    ]
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "instagram-feed": { "width": 1080, "height": 1350 },
+  "instagram-square": { "width": 1080, "height": 1080 },
+  "instagram-story": { "width": 1080, "height": 1920 },
+  "linkedin-post": { "width": 1200, "height": 1200 },
+  "facebook-post": { "width": 1200, "height": 630 },
+  "twitter-post": { "width": 1600, "height": 900 },
+  "youtube-thumbnail": { "width": 1280, "height": 720 }
+}

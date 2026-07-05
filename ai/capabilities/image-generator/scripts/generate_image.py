@@ -399,9 +399,13 @@ def gen_cloudflare(prompt: str, model: str, n: int, size: str, out_dir: Path, pr
     caminhos = []
     for i in range(n):
         if usa_multipart:
+            # flux-2-dev roda mais steps que o flux-1-schnell (default) e pode
+            # estourar o timeout padrao de 120s em cold start -- 300s cobre
+            # esse caso sem penalizar os outros provedores.
             resp = _post_multipart(
                 url, {"Authorization": f"Bearer {token}"},
                 {"prompt": prompt, "width": largura, "height": altura},
+                timeout=300,
             )
         else:
             resp = _post_json(url, {"Authorization": f"Bearer {token}"}, {"prompt": prompt})

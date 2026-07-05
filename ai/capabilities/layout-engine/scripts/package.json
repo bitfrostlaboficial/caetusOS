@@ -1,0 +1,11 @@
+{
+  "name": "layout-engine-scripts",
+  "private": true,
+  "type": "module",
+  "description": "Dependências mínimas do renderer da Capability layout-engine (ai/capabilities/layout-engine). Instale uma vez com `npm install` dentro desta pasta antes de rodar render.mjs.",
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "playwright": "^1.48.0"
+  }
+}
