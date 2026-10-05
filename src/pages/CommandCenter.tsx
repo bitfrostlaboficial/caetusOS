@@ -22,19 +22,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import {
-  api,
-  type Empresa,
-  type Execucao,
-  type IaMetrics,
-  type IaOverview,
-} from "@/lib/api";
-import {
-  FUNCIONARIOS_DIGITAIS,
-  MISSAO_NOVA,
-  MISSOES,
-  type Missao,
-} from "@/lib/missoes";
+import { api, type Empresa, type Execucao, type IaMetrics, type IaOverview } from "@/lib/api";
+import { FUNCIONARIOS_DIGITAIS, MISSAO_NOVA, MISSOES, type Missao } from "@/lib/missoes";
 
 const EXEMPLOS = [
   "Criar campanha de Dia dos Pais",
@@ -65,10 +54,22 @@ export default function CommandCenter() {
   const [agora, setAgora] = useState(() => new Date());
 
   useEffect(() => {
-    api.empresaAtual().then(setEmpresa).catch(() => undefined);
-    api.infraIaMetrics().then(setMetrics).catch(() => setMetrics(null));
-    api.infraIaOverview().then(setOverview).catch(() => setOverview(null));
-    api.historico(8).then(setHistorico).catch(() => setHistorico([]));
+    api
+      .empresaAtual()
+      .then(setEmpresa)
+      .catch(() => undefined);
+    api
+      .infraIaMetrics()
+      .then(setMetrics)
+      .catch(() => setMetrics(null));
+    api
+      .infraIaOverview()
+      .then(setOverview)
+      .catch(() => setOverview(null));
+    api
+      .historico(8)
+      .then(setHistorico)
+      .catch(() => setHistorico([]));
   }, []);
 
   useEffect(() => {
@@ -151,7 +152,10 @@ export default function CommandCenter() {
               </span>
             </Badge>
           ) : proxima ? (
-            <Badge variant="outline" className="gap-1.5 font-mono text-[10px] uppercase tracking-wider">
+            <Badge
+              variant="outline"
+              className="gap-1.5 font-mono text-[10px] uppercase tracking-wider"
+            >
               <CalendarDays className="h-3 w-3" />
               {proxima.rotulo} em {proxima.emDias}d
             </Badge>
@@ -226,7 +230,6 @@ export default function CommandCenter() {
           ))}
         </div>
       </section>
-
 
       {/* Missões */}
       <section>
@@ -378,7 +381,8 @@ export default function CommandCenter() {
                   <span
                     className={cn(
                       "mt-1.5 inline-block h-2 w-2 rounded-full",
-                      f.status === "online" && "bg-primary shadow-[0_0_8px_oklch(0.85_0.21_135_/_0.6)]",
+                      f.status === "online" &&
+                        "bg-primary shadow-[0_0_8px_oklch(0.85_0.21_135_/_0.6)]",
                       f.status === "aguardando" && "bg-amber-400",
                       f.status === "offline" && "bg-muted-foreground/40",
                     )}
@@ -432,9 +436,7 @@ function Kpi({
           />
         </div>
         <p className="font-display text-xl leading-tight">{valor}</p>
-        {hint && (
-          <p className="mt-0.5 font-mono text-[10px] text-muted-foreground">{hint}</p>
-        )}
+        {hint && <p className="mt-0.5 font-mono text-[10px] text-muted-foreground">{hint}</p>}
       </CardContent>
     </Card>
   );

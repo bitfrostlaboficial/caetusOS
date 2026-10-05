@@ -72,8 +72,8 @@ export default function InfraestruturaIABenchmark() {
       toast.success(
         `Benchmark concluído — ${r.resultados.filter((x: { sucesso: boolean }) => x.sucesso).length}/${r.resultados.length} sucessos.`,
       );
-    } catch (e: any) {
-      toast.error(`Falha ao executar benchmark: ${e?.message ?? e}`);
+    } catch (e) {
+      toast.error(`Falha ao executar benchmark: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
       setExecutando(false);
     }
@@ -202,7 +202,10 @@ export default function InfraestruturaIABenchmark() {
                     <span>
                       {r.total_tokens ?? "—"} tok
                       {r.total_tokens != null && (
-                        <> ({r.tokens_in ?? 0}/{r.tokens_out ?? 0})</>
+                        <>
+                          {" "}
+                          ({r.tokens_in ?? 0}/{r.tokens_out ?? 0})
+                        </>
                       )}
                     </span>
                     <span>{fmtUsd(r.custo_estimado)}</span>

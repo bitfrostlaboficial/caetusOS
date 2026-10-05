@@ -22,9 +22,7 @@ export function CsvViewer({ conteudo, nomeArquivo }: CsvViewerProps) {
     const semicolons = (firstLine.match(/;/g) || []).length;
     const separator = semicolons > commas ? ";" : ",";
 
-    const headers = firstLine
-      .split(separator)
-      .map((h) => h.replace(/^["']|["']$/g, "").trim());
+    const headers = firstLine.split(separator).map((h) => h.replace(/^["']|["']$/g, "").trim());
 
     const rows = lines.slice(1).map((line) => {
       const matches = [];
@@ -52,9 +50,7 @@ export function CsvViewer({ conteudo, nomeArquivo }: CsvViewerProps) {
   const rowsFiltradas = useMemo(() => {
     if (!busca.trim()) return data.rows;
     const q = busca.toLowerCase();
-    return data.rows.filter((row) =>
-      row.some((val) => val.toLowerCase().includes(q))
-    );
+    return data.rows.filter((row) => row.some((val) => val.toLowerCase().includes(q)));
   }, [data.rows, busca]);
 
   const handleCopy = () => {
@@ -131,10 +127,7 @@ export function CsvViewer({ conteudo, nomeArquivo }: CsvViewerProps) {
               </tr>
             ) : (
               rowsFiltradas.map((row, rowIdx) => (
-                <tr
-                  key={rowIdx}
-                  className="hover:bg-muted/30 even:bg-muted/10 transition-colors"
-                >
+                <tr key={rowIdx} className="hover:bg-muted/30 even:bg-muted/10 transition-colors">
                   {data.headers.map((_, colIdx) => (
                     <td
                       key={colIdx}

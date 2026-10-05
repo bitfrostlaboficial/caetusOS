@@ -6,7 +6,13 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { api, type IaHistoricoItem, type IaOverview } from "@/lib/api";
@@ -54,7 +60,10 @@ export default function InfraestruturaIAHistorico() {
   const [pagina, setPagina] = useState(0);
 
   useEffect(() => {
-    api.infraIaOverview().then(setOverview).catch(() => {});
+    api
+      .infraIaOverview()
+      .then(setOverview)
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -121,21 +130,35 @@ export default function InfraestruturaIAHistorico() {
               className="pl-9"
             />
           </div>
-          <Select value={provider || "__all"} onValueChange={(v) => setProvider(v === "__all" ? "" : v)}>
-            <SelectTrigger><SelectValue placeholder="Provider" /></SelectTrigger>
+          <Select
+            value={provider || "__all"}
+            onValueChange={(v) => setProvider(v === "__all" ? "" : v)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Provider" />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="__all">Todos os providers</SelectItem>
               {overview?.providers.map((p) => (
-                <SelectItem key={p.nome} value={p.nome} className="capitalize">{p.nome}</SelectItem>
+                <SelectItem key={p.nome} value={p.nome} className="capitalize">
+                  {p.nome}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          <Select value={status || "__all"} onValueChange={(v) => setStatus(v === "__all" ? "" : v)}>
-            <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
+          <Select
+            value={status || "__all"}
+            onValueChange={(v) => setStatus(v === "__all" ? "" : v)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="__all">Todos os status</SelectItem>
               {STATUSES.map((s) => (
-                <SelectItem key={s} value={s}>{s}</SelectItem>
+                <SelectItem key={s} value={s}>
+                  {s}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -163,7 +186,9 @@ export default function InfraestruturaIAHistorico() {
                 {carregando ? (
                   Array.from({ length: 8 }).map((_, i) => (
                     <tr key={i} className="border-b border-border/40">
-                      <td colSpan={7} className="px-4 py-3"><Skeleton className="h-4 w-full" /></td>
+                      <td colSpan={7} className="px-4 py-3">
+                        <Skeleton className="h-4 w-full" />
+                      </td>
                     </tr>
                   ))
                 ) : pagSlice.length === 0 ? (
@@ -179,22 +204,38 @@ export default function InfraestruturaIAHistorico() {
                     const Icon = m.icone;
                     return (
                       <tr key={h.id} className="border-b border-border/30 hover:bg-muted/20">
-                        <td className="px-4 py-2 font-mono text-xs text-muted-foreground">{formatar(h.ocorrido_em)}</td>
+                        <td className="px-4 py-2 font-mono text-xs text-muted-foreground">
+                          {formatar(h.ocorrido_em)}
+                        </td>
                         <td className="px-4 py-2 capitalize">{h.provider}</td>
-                        <td className="px-4 py-2 font-mono text-xs text-muted-foreground">{h.modelo ?? "—"}</td>
+                        <td className="px-4 py-2 font-mono text-xs text-muted-foreground">
+                          {h.modelo ?? "—"}
+                        </td>
                         <td className="px-4 py-2">
                           <div className="flex items-center gap-1.5">
                             {h.status_anterior && (
-                              <span className="font-mono text-[10px] text-muted-foreground">{h.status_anterior} →</span>
+                              <span className="font-mono text-[10px] text-muted-foreground">
+                                {h.status_anterior} →
+                              </span>
                             )}
-                            <span className={cn("inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px]", c.badge)}>
+                            <span
+                              className={cn(
+                                "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px]",
+                                c.badge,
+                              )}
+                            >
                               <Icon className="h-3 w-3" /> {m.rotulo}
                             </span>
                           </div>
                         </td>
                         <td className="px-4 py-2 font-mono text-xs">{h.codigo_http ?? "—"}</td>
-                        <td className="px-4 py-2 font-mono text-xs">{h.latencia_ms != null ? `${h.latencia_ms} ms` : "—"}</td>
-                        <td className="px-4 py-2 max-w-[420px] truncate text-xs text-muted-foreground" title={h.erro ?? h.acao_recomendada ?? ""}>
+                        <td className="px-4 py-2 font-mono text-xs">
+                          {h.latencia_ms != null ? `${h.latencia_ms} ms` : "—"}
+                        </td>
+                        <td
+                          className="px-4 py-2 max-w-[420px] truncate text-xs text-muted-foreground"
+                          title={h.erro ?? h.acao_recomendada ?? ""}
+                        >
                           {h.erro ?? h.acao_recomendada ?? "—"}
                         </td>
                       </tr>
@@ -209,7 +250,12 @@ export default function InfraestruturaIAHistorico() {
               {filtrados.length} registros · página {pagina + 1} / {totalPaginas}
             </p>
             <div className="flex gap-1">
-              <Button variant="outline" size="sm" disabled={pagina === 0} onClick={() => setPagina((p) => p - 1)}>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={pagina === 0}
+                onClick={() => setPagina((p) => p - 1)}
+              >
                 Anterior
               </Button>
               <Button

@@ -38,9 +38,7 @@ export default function MissaoEmBreve() {
             <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-primary/80">
               Missão {missao ? "em construção" : "não encontrada"}
             </p>
-            <h1 className="font-display text-2xl">
-              {missao?.nome ?? "Missão desconhecida"}
-            </h1>
+            <h1 className="font-display text-2xl">{missao?.nome ?? "Missão desconhecida"}</h1>
             {missao && (
               <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
                 {missao.descricao}
@@ -48,9 +46,9 @@ export default function MissaoEmBreve() {
             )}
           </div>
           <p className="max-w-md text-xs text-muted-foreground">
-            Esta missão ainda não tem uma tela especializada. A infraestrutura,
-            o roteador de IA e o relatório de execução já estão prontos — falta
-            apenas a interface dedicada, que chegará em breve.
+            Esta missão ainda não tem uma tela especializada. A infraestrutura, o roteador de IA e o
+            relatório de execução já estão prontos — falta apenas a interface dedicada, que chegará
+            em breve.
           </p>
           <div className="flex gap-2">
             <Link to="/app/missoes">

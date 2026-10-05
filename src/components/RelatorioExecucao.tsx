@@ -28,7 +28,10 @@ export function RelatorioExecucao({ resultado }: { resultado: ResultadoExecucao 
   const linhasMetricas: [string, unknown][] = [
     ["Provider", metricas.provedor],
     ["Modelo", metricas.modelo],
-    ["Tempo", metricas.latencia_ms != null ? `${(metricas.latencia_ms / 1000).toFixed(1)} s` : null],
+    [
+      "Tempo",
+      metricas.latencia_ms != null ? `${(metricas.latencia_ms / 1000).toFixed(1)} s` : null,
+    ],
     ["Tokens entrada", metricas.tokens_in],
     ["Tokens saída", metricas.tokens_out],
     ["Custo (USD)", metricas.custo],
@@ -81,7 +84,9 @@ export function RelatorioExecucao({ resultado }: { resultado: ResultadoExecucao 
               <li key={i} className="rounded-md border bg-card p-2">
                 <div className="flex items-start justify-between gap-2">
                   <span className="font-medium">{ev.titulo}</span>
-                  <span className={`rounded px-1.5 py-0.5 text-[10px] uppercase ${NIVEL_COR[ev.nivel]}`}>
+                  <span
+                    className={`rounded px-1.5 py-0.5 text-[10px] uppercase ${NIVEL_COR[ev.nivel]}`}
+                  >
                     {ev.tipo}
                   </span>
                 </div>

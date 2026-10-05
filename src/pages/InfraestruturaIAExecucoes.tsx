@@ -183,10 +183,7 @@ export default function InfraestruturaIAExecucoes() {
               <div className="mt-2 grid grid-cols-2 gap-2 text-[11px]">
                 {(["mais_utilizado", "mais_rapido", "mais_barato", "maior_sucesso"] as const).map(
                   (k) => (
-                    <div
-                      key={k}
-                      className="rounded border border-border/60 bg-background/40 p-2"
-                    >
+                    <div key={k} className="rounded border border-border/60 bg-background/40 p-2">
                       <div className="font-mono uppercase tracking-widest text-muted-foreground">
                         {k.replace("_", " ")}
                       </div>

@@ -1,4 +1,13 @@
-import { FolderOpen, ShieldCheck, Sparkles, AlertCircle, FilePlus2, Upload, CheckCircle2, HelpCircle } from "lucide-react";
+import {
+  FolderOpen,
+  ShieldCheck,
+  Sparkles,
+  AlertCircle,
+  FilePlus2,
+  Upload,
+  CheckCircle2,
+  HelpCircle,
+} from "lucide-react";
 import { INFORMACOES_PASTAS } from "./folderInfo";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -102,15 +111,14 @@ export function FolderReadme({
               <Sparkles className="h-4 w-4" />
               <span>Impacto na IA do caetusOS:</span>
             </div>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              {info.impactoIA}
-            </p>
+            <p className="text-xs text-muted-foreground leading-relaxed">{info.impactoIA}</p>
           </div>
 
           <div className="rounded border border-primary/20 bg-primary/10 p-2.5 flex items-start gap-2">
             <AlertCircle className="h-4 w-4 text-primary shrink-0 mt-0.5" />
             <span className="font-mono text-[10px] text-muted-foreground leading-normal">
-              Os documentos desta pasta serão usados diretamente na tomada de decisão dos Funcionários Digitais para gerar conversas e responder aos clientes.
+              Os documentos desta pasta serão usados diretamente na tomada de decisão dos
+              Funcionários Digitais para gerar conversas e responder aos clientes.
             </span>
           </div>
         </div>
@@ -136,7 +144,7 @@ export function FolderReadme({
         <div className="grid gap-2 sm:grid-cols-2">
           {arquivos.map((a) => {
             const isPendente = a.status === "pendente";
-            
+
             return (
               <div
                 key={a.id}
@@ -153,7 +161,9 @@ export function FolderReadme({
                     <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
                   )}
                   <div className="min-w-0">
-                    <p className={`font-mono text-xs truncate ${isPendente ? "text-muted-foreground/80 font-normal" : "text-foreground font-semibold"}`}>
+                    <p
+                      className={`font-mono text-xs truncate ${isPendente ? "text-muted-foreground/80 font-normal" : "text-foreground font-semibold"}`}
+                    >
                       {a.nome}
                     </p>
                     <p className="font-mono text-[9px] text-muted-foreground leading-none mt-0.5">
@@ -211,7 +221,10 @@ export function FolderReadme({
           ))}
           <li className="flex items-start gap-1.5">
             <span className="text-amber-500">•</span>
-            <span>Evite arquivos excessivamente longos e genéricos. Prefira documentações precisas e diretas ao ponto.</span>
+            <span>
+              Evite arquivos excessivamente longos e genéricos. Prefira documentações precisas e
+              diretas ao ponto.
+            </span>
           </li>
         </ul>
       </div>

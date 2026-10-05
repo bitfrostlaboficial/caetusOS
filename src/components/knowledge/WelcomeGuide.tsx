@@ -34,7 +34,9 @@ export function WelcomeGuide() {
             Seja bem-vindo à Central de Conhecimento do caetusOS
           </h2>
           <p className="text-xs md:text-sm text-muted-foreground leading-relaxed max-w-3xl">
-            Quanto melhor e mais organizada estiver a base de conhecimento da sua empresa, mais inteligentes, precisas e humanas serão as respostas e automações executadas pelos seus <strong className="text-foreground">Funcionários Digitais</strong>.
+            Quanto melhor e mais organizada estiver a base de conhecimento da sua empresa, mais
+            inteligentes, precisas e humanas serão as respostas e automações executadas pelos seus{" "}
+            <strong className="text-foreground">Funcionários Digitais</strong>.
           </p>
         </div>
 
@@ -94,9 +96,7 @@ function Step({
         {icone}
         <span>{titulo}</span>
       </div>
-      <p className="font-mono text-[10px] text-muted-foreground leading-normal">
-        {descricao}
-      </p>
+      <p className="font-mono text-[10px] text-muted-foreground leading-normal">{descricao}</p>
     </div>
   );
 }

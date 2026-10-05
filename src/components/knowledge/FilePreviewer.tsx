@@ -20,11 +20,11 @@ import { Button } from "@/components/ui/button";
 
 interface FilePreviewerProps {
   node: {
-    kind: "file";
+    kind: "file" | "folder";
     id: string;
     tipo: string;
     nome: string;
-    status: string;
+    status?: string;
     doc?: DocumentoConhecimento;
   };
   conteudo: string | null;
@@ -32,12 +32,7 @@ interface FilePreviewerProps {
   onDownload: () => void;
 }
 
-export function FilePreviewer({
-  node,
-  conteudo,
-  carregando,
-  onDownload,
-}: FilePreviewerProps) {
+export function FilePreviewer({ node, conteudo, carregando, onDownload }: FilePreviewerProps) {
   const [rawBlobUrl, setRawBlobUrl] = useState<string | null>(null);
   const [dimensoes, setDimensoes] = useState<{ width: number; height: number } | null>(null);
   const [carregandoRaw, setCarregandoRaw] = useState(false);
@@ -131,12 +126,19 @@ export function FilePreviewer({
         {/* Informações da Imagem */}
         <div className="mt-4 p-3 rounded-lg border border-border/40 bg-card/40 font-mono text-xs flex justify-between items-center">
           <div className="flex flex-col gap-0.5">
-            <span className="text-[10px] text-muted-foreground uppercase">Dimensões do arquivo</span>
+            <span className="text-[10px] text-muted-foreground uppercase">
+              Dimensões do arquivo
+            </span>
             <span className="font-semibold text-foreground">
               {dimensoes ? `${dimensoes.width} x ${dimensoes.height} px` : "Calculando…"}
             </span>
           </div>
-          <Button size="sm" variant="outline" onClick={onDownload} className="h-8 text-xs font-sans">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onDownload}
+            className="h-8 text-xs font-sans"
+          >
             <Download className="mr-1.5 h-3.5 w-3.5" /> Baixar Imagem
           </Button>
         </div>
@@ -222,9 +224,19 @@ export function FilePreviewer({
                     {children}
                   </h3>
                 ),
-                p: ({ children }) => <p className="my-3 text-muted-foreground leading-relaxed">{children}</p>,
-                ul: ({ children }) => <ul className="my-3 list-disc pl-5 space-y-1 text-muted-foreground">{children}</ul>,
-                ol: ({ children }) => <ol className="my-3 list-decimal pl-5 space-y-1 text-muted-foreground">{children}</ol>,
+                p: ({ children }) => (
+                  <p className="my-3 text-muted-foreground leading-relaxed">{children}</p>
+                ),
+                ul: ({ children }) => (
+                  <ul className="my-3 list-disc pl-5 space-y-1 text-muted-foreground">
+                    {children}
+                  </ul>
+                ),
+                ol: ({ children }) => (
+                  <ol className="my-3 list-decimal pl-5 space-y-1 text-muted-foreground">
+                    {children}
+                  </ol>
+                ),
                 li: ({ children }) => <li className="my-0.5">{children}</li>,
                 code: ({ children }) => (
                   <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-amber-300">
@@ -259,10 +271,20 @@ export function FilePreviewer({
                   </div>
                 ),
                 thead: ({ children }) => <thead className="bg-muted/45">{children}</thead>,
-                tbody: ({ children }) => <tbody className="divide-y divide-border/30">{children}</tbody>,
-                tr: ({ children }) => <tr className="hover:bg-muted/10 transition-colors">{children}</tr>,
-                th: ({ children }) => <th className="px-3 py-2 font-semibold text-muted-foreground font-mono">{children}</th>,
-                td: ({ children }) => <td className="px-3 py-2 font-mono text-[11px]">{children}</td>,
+                tbody: ({ children }) => (
+                  <tbody className="divide-y divide-border/30">{children}</tbody>
+                ),
+                tr: ({ children }) => (
+                  <tr className="hover:bg-muted/10 transition-colors">{children}</tr>
+                ),
+                th: ({ children }) => (
+                  <th className="px-3 py-2 font-semibold text-muted-foreground font-mono">
+                    {children}
+                  </th>
+                ),
+                td: ({ children }) => (
+                  <td className="px-3 py-2 font-mono text-[11px]">{children}</td>
+                ),
               }}
             >
               {conteudo ?? ""}
@@ -313,11 +335,10 @@ export function FilePreviewer({
             <FileText className="h-10 w-10 text-indigo-400" />
           )}
         </div>
-        <h4 className="font-display font-medium text-sm text-foreground mb-1">
-          {node.nome}
-        </h4>
+        <h4 className="font-display font-medium text-sm text-foreground mb-1">{node.nome}</h4>
         <p className="text-xs text-muted-foreground max-w-xs leading-relaxed mb-6">
-          Os arquivos da Microsoft Office ({extensao.toUpperCase()}) são armazenados com segurança. Para visualizar ou editá-los, faça o download.
+          Os arquivos da Microsoft Office ({extensao.toUpperCase()}) são armazenados com segurança.
+          Para visualizar ou editá-los, faça o download.
         </p>
         <div className="flex items-center gap-2">
           <Button onClick={onDownload} size="sm">
@@ -332,11 +353,10 @@ export function FilePreviewer({
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-card/10">
       <FileText className="h-12 w-12 text-muted-foreground/30 mb-3" />
-      <h4 className="font-display font-medium text-sm text-foreground mb-1">
-        {node.nome}
-      </h4>
+      <h4 className="font-display font-medium text-sm text-foreground mb-1">{node.nome}</h4>
       <p className="text-xs text-muted-foreground max-w-xs leading-relaxed mb-6">
-        Formato de arquivo binário ou desconhecido ({extensao.toUpperCase() || "SEM EXTENSÃO"}). Faça o download do arquivo para utilizá-lo localmente.
+        Formato de arquivo binário ou desconhecido ({extensao.toUpperCase() || "SEM EXTENSÃO"}).
+        Faça o download do arquivo para utilizá-lo localmente.
       </p>
       <Button onClick={onDownload} size="sm">
         <Download className="mr-1.5 h-3.5 w-3.5" /> Baixar Arquivo

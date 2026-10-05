@@ -57,7 +57,14 @@ export function ResultadoMissao({ resultado }: { resultado: ResultadoExecucao })
 type Bloco =
   | { tipo: "texto"; titulo?: string; texto: string; hashtags?: string[] }
   | { tipo: "imagem"; url: string; nome?: string }
-  | { tipo: "arquivo"; nome: string; categoria: string; mime?: string; tamanho?: number; url?: string }
+  | {
+      tipo: "arquivo";
+      nome: string;
+      categoria: string;
+      mime?: string;
+      tamanho?: number;
+      url?: string;
+    }
   | { tipo: "link"; url: string; rotulo?: string };
 
 function detectarBlocos(r: ResultadoExecucao): Bloco[] {
@@ -114,7 +121,7 @@ function BlocoTexto({
   hashtags?: string[];
 }) {
   const [expandido, setExpandido] = useState(false);
-  const ehMarkdown = /[#*_`\[\]]/.test(texto);
+  const ehMarkdown = /[#*_`[\]]/.test(texto);
 
   const copiar = async () => {
     await navigator.clipboard.writeText(texto);
@@ -189,12 +196,7 @@ function BlocoImagem({ url, nome }: { url: string; nome?: string }) {
           Imagem
         </p>
         <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            asChild
-            className="h-7 gap-1 px-2 text-xs"
-          >
+          <Button variant="ghost" size="sm" asChild className="h-7 gap-1 px-2 text-xs">
             <a href={url} target="_blank" rel="noreferrer">
               <ExternalLink className="h-3 w-3" /> Abrir
             </a>

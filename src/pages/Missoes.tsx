@@ -17,9 +17,9 @@ export default function Missoes() {
         </p>
         <h1 className="mt-1 font-display text-3xl">Missões</h1>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          Cada missão é uma automação executada por um funcionário digital. Ao
-          escolher uma missão, você abre a tela especializada com os campos e o
-          contexto certo para aquele tipo de trabalho.
+          Cada missão é uma automação executada por um funcionário digital. Ao escolher uma missão,
+          você abre a tela especializada com os campos e o contexto certo para aquele tipo de
+          trabalho.
         </p>
       </header>
 

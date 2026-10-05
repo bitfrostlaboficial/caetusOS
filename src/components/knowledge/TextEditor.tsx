@@ -25,11 +25,11 @@ import { api } from "@/lib/api";
 
 interface TextEditorProps {
   node: {
-    kind: "file";
+    kind: "file" | "folder";
     id: string;
     tipo: string;
     nome: string;
-    status: string;
+    status?: string;
   };
   conteudoOriginal: string;
   idExemplo?: string;
@@ -118,7 +118,11 @@ export function TextEditor({
 
   const restaurarTemplate = () => {
     if (!hasTemplate) return;
-    if (confirm("Deseja restaurar este arquivo para o modelo padrão do caetusOS? Suas alterações atuais serão perdidas.")) {
+    if (
+      confirm(
+        "Deseja restaurar este arquivo para o modelo padrão do caetusOS? Suas alterações atuais serão perdidas.",
+      )
+    ) {
       setConteudo(TEMPLATES_SISTEMA[node.nome].conteudo);
       toast.info("Modelo original restaurado no editor!");
     }
@@ -130,20 +134,25 @@ export function TextEditor({
     // Detect if user has typed something that isn't the blank skeleton
     const textTrimmed = conteudo.trim();
     const originalTrimmed = conteudoOriginal.trim();
-    const isTouched = textTrimmed !== "" && 
-                      textTrimmed !== originalTrimmed && 
-                      textTrimmed !== `# ${node.nome}` &&
-                      !textTrimmed.startsWith("# Ficha de Produto:") &&
-                      !textTrimmed.startsWith("# Perfil do Cliente Ideal") &&
-                      !textTrimmed.startsWith("# Missão da Empresa") &&
-                      !textTrimmed.startsWith("# Visão da Empresa") &&
-                      !textTrimmed.startsWith("# Cultura e Valores") &&
-                      !textTrimmed.startsWith("# Diretrizes de Tom de Voz") &&
-                      !textTrimmed.startsWith("# Manual de Objeções") &&
-                      !textTrimmed.startsWith("# Sobre a Empresa");
+    const isTouched =
+      textTrimmed !== "" &&
+      textTrimmed !== originalTrimmed &&
+      textTrimmed !== `# ${node.nome}` &&
+      !textTrimmed.startsWith("# Ficha de Produto:") &&
+      !textTrimmed.startsWith("# Perfil do Cliente Ideal") &&
+      !textTrimmed.startsWith("# Missão da Empresa") &&
+      !textTrimmed.startsWith("# Visão da Empresa") &&
+      !textTrimmed.startsWith("# Cultura e Valores") &&
+      !textTrimmed.startsWith("# Diretrizes de Tom de Voz") &&
+      !textTrimmed.startsWith("# Manual de Objeções") &&
+      !textTrimmed.startsWith("# Sobre a Empresa");
 
     if (isTouched) {
-      if (!confirm("Este arquivo já contém informações. Deseja substituí-las pelo conteúdo de exemplo do caetusOS?")) {
+      if (
+        !confirm(
+          "Este arquivo já contém informações. Deseja substituí-las pelo conteúdo de exemplo do caetusOS?",
+        )
+      ) {
         return;
       }
     }
@@ -173,7 +182,8 @@ export function TextEditor({
   };
 
   // Detecta se existem blocos de exemplo não modificados
-  const contemExemplosFicticios = conteudo.includes("<!-- CAETUSOS_EXEMPLO_START -->") || conteudo.includes("[Insira aqui");
+  const contemExemplosFicticios =
+    conteudo.includes("<!-- CAETUSOS_EXEMPLO_START -->") || conteudo.includes("[Insira aqui");
 
   return (
     <div className="flex flex-col h-full overflow-hidden bg-background">
@@ -184,9 +194,7 @@ export function TextEditor({
             Pasta: sugeridos/conhecimento/{node.tipo}
           </span>
           <div className="flex items-center gap-2 mt-0.5">
-            <h2 className="font-display font-semibold text-sm text-foreground">
-              {node.nome}
-            </h2>
+            <h2 className="font-display font-semibold text-sm text-foreground">{node.nome}</h2>
             {isDirty && (
               <span className="h-2 w-2 rounded-full bg-amber-500" title="Alterações não salvas" />
             )}
@@ -277,9 +285,18 @@ export function TextEditor({
         <div className="mx-4 mt-3 rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-2.5 flex items-start gap-2.5 select-none">
           <AlertCircle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
           <div className="space-y-0.5 font-mono text-[10px] text-amber-500 leading-normal">
-            <span className="font-semibold uppercase tracking-wider block">⚠️ Modo Template Inteligente Ativo</span>
+            <span className="font-semibold uppercase tracking-wider block">
+              ⚠️ Modo Template Inteligente Ativo
+            </span>
             <p className="text-muted-foreground">
-              Os textos fictícios marcados como exemplo e instruções do caetusOS servem como orientação e <span className="text-amber-500 font-semibold">não são considerados pela IA</span>. Lembre-se de preencher as seções de colchetes como <code className="bg-amber-500/10 px-1 py-0.5 rounded text-amber-400">[Insira aqui...]</code> para alimentar a IA com dados reais da sua marca!
+              Os textos fictícios marcados como exemplo e instruções do caetusOS servem como
+              orientação e{" "}
+              <span className="text-amber-500 font-semibold">não são considerados pela IA</span>.
+              Lembre-se de preencher as seções de colchetes como{" "}
+              <code className="bg-amber-500/10 px-1 py-0.5 rounded text-amber-400">
+                [Insira aqui...]
+              </code>{" "}
+              para alimentar a IA com dados reais da sua marca!
             </p>
           </div>
         </div>
@@ -288,16 +305,48 @@ export function TextEditor({
       {/* Barra de Ferramentas Markdown */}
       {modoPreview !== "preview" && (
         <div className="flex items-center gap-1 border-b border-border/40 px-4 py-1.5 bg-muted/10">
-          <ToolbarButton onClick={() => inserirSintaxe("h2")} icon={<Heading className="h-3.5 w-3.5" />} tooltip="Título (H2)" />
-          <ToolbarButton onClick={() => inserirSintaxe("bold")} icon={<Bold className="h-3.5 w-3.5" />} tooltip="Negrito" />
-          <ToolbarButton onClick={() => inserirSintaxe("italic")} icon={<Italic className="h-3.5 w-3.5" />} tooltip="Itálico" />
+          <ToolbarButton
+            onClick={() => inserirSintaxe("h2")}
+            icon={<Heading className="h-3.5 w-3.5" />}
+            tooltip="Título (H2)"
+          />
+          <ToolbarButton
+            onClick={() => inserirSintaxe("bold")}
+            icon={<Bold className="h-3.5 w-3.5" />}
+            tooltip="Negrito"
+          />
+          <ToolbarButton
+            onClick={() => inserirSintaxe("italic")}
+            icon={<Italic className="h-3.5 w-3.5" />}
+            tooltip="Itálico"
+          />
           <div className="h-4 w-px bg-border/40 mx-1" />
-          <ToolbarButton onClick={() => inserirSintaxe("list")} icon={<List className="h-3.5 w-3.5" />} tooltip="Lista" />
-          <ToolbarButton onClick={() => inserirSintaxe("link")} icon={<LinkIcon className="h-3.5 w-3.5" />} tooltip="Link" />
-          <ToolbarButton onClick={() => inserirSintaxe("image")} icon={<ImageIcon className="h-3.5 w-3.5" />} tooltip="Imagem" />
+          <ToolbarButton
+            onClick={() => inserirSintaxe("list")}
+            icon={<List className="h-3.5 w-3.5" />}
+            tooltip="Lista"
+          />
+          <ToolbarButton
+            onClick={() => inserirSintaxe("link")}
+            icon={<LinkIcon className="h-3.5 w-3.5" />}
+            tooltip="Link"
+          />
+          <ToolbarButton
+            onClick={() => inserirSintaxe("image")}
+            icon={<ImageIcon className="h-3.5 w-3.5" />}
+            tooltip="Imagem"
+          />
           <div className="h-4 w-px bg-border/40 mx-1" />
-          <ToolbarButton onClick={() => inserirSintaxe("code")} icon={<Code className="h-3.5 w-3.5" />} tooltip="Código" />
-          <ToolbarButton onClick={() => inserirSintaxe("table")} icon={<Table className="h-3.5 w-3.5" />} tooltip="Tabela" />
+          <ToolbarButton
+            onClick={() => inserirSintaxe("code")}
+            icon={<Code className="h-3.5 w-3.5" />}
+            tooltip="Código"
+          />
+          <ToolbarButton
+            onClick={() => inserirSintaxe("table")}
+            icon={<Table className="h-3.5 w-3.5" />}
+            tooltip="Tabela"
+          />
         </div>
       )}
 
@@ -338,9 +387,19 @@ export function TextEditor({
                       {children}
                     </h3>
                   ),
-                  p: ({ children }) => <p className="my-3 text-muted-foreground leading-relaxed">{children}</p>,
-                  ul: ({ children }) => <ul className="my-3 list-disc pl-5 space-y-1 text-muted-foreground">{children}</ul>,
-                  ol: ({ children }) => <ol className="my-3 list-decimal pl-5 space-y-1 text-muted-foreground">{children}</ol>,
+                  p: ({ children }) => (
+                    <p className="my-3 text-muted-foreground leading-relaxed">{children}</p>
+                  ),
+                  ul: ({ children }) => (
+                    <ul className="my-3 list-disc pl-5 space-y-1 text-muted-foreground">
+                      {children}
+                    </ul>
+                  ),
+                  ol: ({ children }) => (
+                    <ol className="my-3 list-decimal pl-5 space-y-1 text-muted-foreground">
+                      {children}
+                    </ol>
+                  ),
                   li: ({ children }) => <li className="my-0.5">{children}</li>,
                   code: ({ children }) => (
                     <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-amber-300">
@@ -375,14 +434,27 @@ export function TextEditor({
                     </div>
                   ),
                   thead: ({ children }) => <thead className="bg-muted/45">{children}</thead>,
-                  tbody: ({ children }) => <tbody className="divide-y divide-border/30">{children}</tbody>,
-                  tr: ({ children }) => <tr className="hover:bg-muted/10 transition-colors">{children}</tr>,
-                  th: ({ children }) => <th className="px-3 py-2 font-semibold text-muted-foreground font-mono">{children}</th>,
-                  td: ({ children }) => <td className="px-3 py-2 font-mono text-[11px]">{children}</td>,
+                  tbody: ({ children }) => (
+                    <tbody className="divide-y divide-border/30">{children}</tbody>
+                  ),
+                  tr: ({ children }) => (
+                    <tr className="hover:bg-muted/10 transition-colors">{children}</tr>
+                  ),
+                  th: ({ children }) => (
+                    <th className="px-3 py-2 font-semibold text-muted-foreground font-mono">
+                      {children}
+                    </th>
+                  ),
+                  td: ({ children }) => (
+                    <td className="px-3 py-2 font-mono text-[11px]">{children}</td>
+                  ),
                 }}
               >
                 {/* Remove o header de template do preview final para ficar limpo */}
-                {conteudo.replace(/<!-- CAETUSOS_TEMPLATE_HEADER_START -->[\s\S]*?<!-- CAETUSOS_TEMPLATE_HEADER_END -->/, "")}
+                {conteudo.replace(
+                  /<!-- CAETUSOS_TEMPLATE_HEADER_START -->[\s\S]*?<!-- CAETUSOS_TEMPLATE_HEADER_END -->/,
+                  "",
+                )}
               </ReactMarkdown>
             </article>
           </div>
@@ -393,7 +465,9 @@ export function TextEditor({
       <div className="border-t border-border/40 bg-muted/10 px-4 py-2 flex items-center justify-between font-mono text-[9px] text-muted-foreground select-none">
         <div className="flex items-center gap-1.5">
           <Sparkles className="h-3 w-3 text-primary" />
-          <span>Fase 3: Auto-verificação de coerência via IA integrada habilitada para este documento</span>
+          <span>
+            Fase 3: Auto-verificação de coerência via IA integrada habilitada para este documento
+          </span>
         </div>
         <span>caetusOS Editor v1.2</span>
       </div>

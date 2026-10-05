@@ -6,7 +6,8 @@
  */
 
 const API_BASE =
-  (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_API_BASE_URL) ||
+  (typeof import.meta !== "undefined" &&
+    (import.meta as { env?: Record<string, string | undefined> }).env?.VITE_API_BASE_URL) ||
   "http://localhost:8000";
 
 const ACCESS_KEY = "empresaia.access_token";
@@ -14,7 +15,8 @@ const REFRESH_KEY = "empresaia.refresh_token";
 
 export const auth = {
   getAccess: () => (typeof localStorage !== "undefined" ? localStorage.getItem(ACCESS_KEY) : null),
-  getRefresh: () => (typeof localStorage !== "undefined" ? localStorage.getItem(REFRESH_KEY) : null),
+  getRefresh: () =>
+    typeof localStorage !== "undefined" ? localStorage.getItem(REFRESH_KEY) : null,
   setTokens: (access: string, refresh: string) => {
     localStorage.setItem(ACCESS_KEY, access);
     localStorage.setItem(REFRESH_KEY, refresh);
@@ -86,7 +88,9 @@ export async function apiRequest<T = unknown>(path: string, opts: RequestOptions
   const data = text ? safeJson(text) : null;
   if (!res.ok) {
     const detail =
-      data && typeof data === "object" && "detail" in data ? String((data as any).detail) : "";
+      data && typeof data === "object" && "detail" in data
+        ? String((data as { detail?: unknown }).detail)
+        : "";
     const message = detail || `HTTP ${res.status}`;
     throw new ApiError(res.status, data, message);
   }
@@ -167,7 +171,6 @@ export type ResultadoExecucao = {
   erro: { codigo: string; mensagem: string } | null;
 };
 
-
 export const api = {
   registrar: (nome_empresa: string, email: string, senha: string) =>
     apiRequest<{ access_token: string; refresh_token: string }>("/v1/auth/registrar", {
@@ -218,8 +221,7 @@ export const api = {
     apiRequest<ResultadoExecucao>("/v1/comandos/executar", {
       body: { schema_version: 1, tipo: "SKILL", alvo, entrada, origem: "WEB" },
     }),
-  historico: (limite = 20) =>
-    apiRequest<Execucao[]>(`/v1/historico?limite=${limite}`),
+  historico: (limite = 20) => apiRequest<Execucao[]>(`/v1/historico?limite=${limite}`),
 
   // ───────── Infraestrutura — Provedores de IA (Fase 2) ─────────
   infraIaOverview: () => apiRequest<IaOverview>("/v1/infraestrutura/ia"),
@@ -231,9 +233,7 @@ export const api = {
     if (filtros.ate) p.set("ate", filtros.ate);
     if (filtros.limite) p.set("limite", String(filtros.limite));
     const qs = p.toString();
-    return apiRequest<IaHistoricoItem[]>(
-      `/v1/infraestrutura/ia/history${qs ? `?${qs}` : ""}`,
-    );
+    return apiRequest<IaHistoricoItem[]>(`/v1/infraestrutura/ia/history${qs ? `?${qs}` : ""}`);
   },
   infraIaCheckAgora: () =>
     apiRequest<IaProviderEstado[]>("/v1/infraestrutura/ia/check", { method: "POST" }),
@@ -255,9 +255,7 @@ export const api = {
     if (f.limite) p.set("limite", String(f.limite));
     if (f.offset) p.set("offset", String(f.offset));
     const qs = p.toString();
-    return apiRequest<IaExecucao[]>(
-      `/v1/infraestrutura/ia/executions${qs ? `?${qs}` : ""}`,
-    );
+    return apiRequest<IaExecucao[]>(`/v1/infraestrutura/ia/executions${qs ? `?${qs}` : ""}`);
   },
   infraIaExecucao: (id: string) =>
     apiRequest<IaExecucaoDetalhe>(`/v1/infraestrutura/ia/executions/${id}`),
@@ -269,8 +267,7 @@ export const api = {
   // ───────── Fase 5.1 — Catálogo, Missões, Métricas, Fallbacks, Perfis ─────────
   infraIaCatalogo: () => apiRequest<IaCatalogoEntrada[]>("/v1/infraestrutura/ia/catalogo"),
   infraIaMissoes: () => apiRequest<IaMissao[]>("/v1/infraestrutura/ia/missoes"),
-  infraIaMetricasMemoria: () =>
-    apiRequest<IaMetricaModelo[]>("/v1/infraestrutura/ia/metricas"),
+  infraIaMetricasMemoria: () => apiRequest<IaMetricaModelo[]>("/v1/infraestrutura/ia/metricas"),
   infraIaFallbacks: (limite = 50) =>
     apiRequest<IaFallback[]>(`/v1/infraestrutura/ia/fallbacks?limite=${limite}`),
   infraIaPerfis: () => apiRequest<IaPerfisInfo>("/v1/infraestrutura/ia/perfis"),
@@ -358,7 +355,6 @@ export type IaHistoricoFiltros = {
   ate?: string;
   limite?: number;
 };
-
 
 // ───────── Tipos — Fase 4 (Observabilidade) ─────────
 export type IaMetrics = {

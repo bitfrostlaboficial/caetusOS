@@ -9,10 +9,22 @@ type Etapa = {
 };
 
 const ETAPAS: Etapa[] = [
-  { chave: "comando", rotulo: "Recebendo comando", marcadores: ["comando.recebido", "skill.iniciada"] },
-  { chave: "prompt", rotulo: "Montando prompt", marcadores: ["prompt.renderizado", "contexto.montado"] },
+  {
+    chave: "comando",
+    rotulo: "Recebendo comando",
+    marcadores: ["comando.recebido", "skill.iniciada"],
+  },
+  {
+    chave: "prompt",
+    rotulo: "Montando prompt",
+    marcadores: ["prompt.renderizado", "contexto.montado"],
+  },
   { chave: "ia", rotulo: "Executando IA", marcadores: ["ia.resposta", "ia.fallback"] },
-  { chave: "resposta", rotulo: "Processando resposta", marcadores: ["resposta.processada", "skill.concluida"] },
+  {
+    chave: "resposta",
+    rotulo: "Processando resposta",
+    marcadores: ["resposta.processada", "skill.concluida"],
+  },
   { chave: "arquivos", rotulo: "Gerando arquivos", marcadores: ["arquivo.criado"] },
   { chave: "concluido", rotulo: "Concluído", marcadores: ["skill.concluida"] },
 ];

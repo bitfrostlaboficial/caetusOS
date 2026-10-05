@@ -67,10 +67,7 @@ function CustoBadge({ custo }: { custo: string }) {
   return (
     <Badge
       variant="outline"
-      className={cn(
-        "font-mono text-[10px] uppercase tracking-wider",
-        tom[custo] ?? tom.unknown,
-      )}
+      className={cn("font-mono text-[10px] uppercase tracking-wider", tom[custo] ?? tom.unknown)}
     >
       {custo}
     </Badge>
@@ -203,14 +200,8 @@ export default function InfraestruturaIAMissoes() {
     }
   }
 
-  const totalProviders = useMemo(
-    () => new Set(catalogo.map((c) => c.provider)).size,
-    [catalogo],
-  );
-  const totalEspec = useMemo(
-    () => new Set(catalogo.map((c) => c.especializacao)).size,
-    [catalogo],
-  );
+  const totalProviders = useMemo(() => new Set(catalogo.map((c) => c.provider)).size, [catalogo]);
+  const totalEspec = useMemo(() => new Set(catalogo.map((c) => c.especializacao)).size, [catalogo]);
   const totalChamadas = metricas.reduce((a, b) => a + b.chamadas, 0);
 
   if (carregando && !missoes.length) {
@@ -232,10 +223,10 @@ export default function InfraestruturaIAMissoes() {
           </p>
           <h1 className="mt-1 font-display text-3xl">Missões, Catálogo & Métricas</h1>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-            Cada habilidade pede uma <strong>missão</strong>; o roteador escolhe o melhor
-            provider conforme categoria, especialização, peso, health e métricas em tempo
-            real. Tudo configurável via <code className="font-mono text-xs">.env</code> e
-            perfis YAML — zero hardcode.
+            Cada habilidade pede uma <strong>missão</strong>; o roteador escolhe o melhor provider
+            conforme categoria, especialização, peso, health e métricas em tempo real. Tudo
+            configurável via <code className="font-mono text-xs">.env</code> e perfis YAML — zero
+            hardcode.
           </p>
         </div>
         <Button variant="outline" size="sm" onClick={() => carregar()}>
@@ -270,9 +261,7 @@ export default function InfraestruturaIAMissoes() {
             <span
               className={cn(
                 "font-mono text-[10px] uppercase tracking-wider",
-                perfis?.modo === "automatico"
-                  ? "text-emerald-400"
-                  : "text-muted-foreground",
+                perfis?.modo === "automatico" ? "text-emerald-400" : "text-muted-foreground",
               )}
             >
               Automático
@@ -297,14 +286,12 @@ export default function InfraestruturaIAMissoes() {
             Perfil ativo: <span className="text-foreground">{perfis?.ativo ?? "—"}</span>
             {" · "}
             Disponíveis:{" "}
-            <span className="text-foreground">
-              {perfis?.disponiveis.join(", ") || "—"}
-            </span>
+            <span className="text-foreground">{perfis?.disponiveis.join(", ") || "—"}</span>
           </p>
           {perfis?.modo === "manual" && (
             <p className="mt-2 text-xs text-amber-400">
-              No modo manual, o roteador segue o provider fixado por missão (abaixo). Sem
-              fallback automático.
+              No modo manual, o roteador segue o provider fixado por missão (abaixo). Sem fallback
+              automático.
             </p>
           )}
         </CardContent>
@@ -356,9 +343,7 @@ export default function InfraestruturaIAMissoes() {
                         {m.preferencial ? (
                           <div className="font-mono text-xs">
                             <div className="capitalize">{m.preferencial.provider}</div>
-                            <div className="text-muted-foreground">
-                              {m.preferencial.modelo}
-                            </div>
+                            <div className="text-muted-foreground">{m.preferencial.modelo}</div>
                           </div>
                         ) : (
                           <span className="text-xs text-muted-foreground">—</span>
@@ -378,9 +363,7 @@ export default function InfraestruturaIAMissoes() {
                         {m.preferencial?.peso_final ?? "—"}
                       </TableCell>
                       <TableCell className="text-right font-mono text-xs">
-                        {m.metricas?.lat_media_ms
-                          ? `${m.metricas.lat_media_ms} ms`
-                          : "—"}
+                        {m.metricas?.lat_media_ms ? `${m.metricas.lat_media_ms} ms` : "—"}
                       </TableCell>
                       <TableCell className="text-right font-mono text-xs">
                         {m.fallbacks_recentes}
@@ -438,19 +421,13 @@ export default function InfraestruturaIAMissoes() {
                 <TableBody>
                   {catalogo.map((e, i) => (
                     <TableRow key={`${e.provider}-${e.especializacao}-${i}`}>
-                      <TableCell className="font-medium capitalize">
-                        {e.provider}
-                      </TableCell>
+                      <TableCell className="font-medium capitalize">{e.provider}</TableCell>
                       <TableCell className="font-mono text-xs">{e.categoria}</TableCell>
-                      <TableCell className="font-mono text-xs">
-                        {e.especializacao}
-                      </TableCell>
+                      <TableCell className="font-mono text-xs">{e.especializacao}</TableCell>
                       <TableCell className="font-mono text-xs text-muted-foreground">
                         {e.modelo}
                       </TableCell>
-                      <TableCell className="text-right font-mono text-xs">
-                        {e.peso}
-                      </TableCell>
+                      <TableCell className="text-right font-mono text-xs">{e.peso}</TableCell>
                       <TableCell>
                         <CustoBadge custo={e.custo} />
                       </TableCell>
@@ -515,9 +492,7 @@ export default function InfraestruturaIAMissoes() {
                         <TableCell className="font-mono text-xs text-muted-foreground">
                           {m.modelo}
                         </TableCell>
-                        <TableCell className="text-right font-mono text-xs">
-                          {m.chamadas}
-                        </TableCell>
+                        <TableCell className="text-right font-mono text-xs">{m.chamadas}</TableCell>
                         <TableCell className="text-right font-mono text-xs text-emerald-400">
                           {m.sucessos}
                         </TableCell>
@@ -556,8 +531,8 @@ export default function InfraestruturaIAMissoes() {
           <CardContent className="p-0">
             {fallbacks.length === 0 ? (
               <p className="p-6 text-sm text-muted-foreground">
-                Nenhum fallback registrado ainda. Quando um provider falhar, a troca
-                automática aparecerá aqui.
+                Nenhum fallback registrado ainda. Quando um provider falhar, a troca automática
+                aparecerá aqui.
               </p>
             ) : (
               <div className="max-h-[480px] overflow-auto">
@@ -578,16 +553,11 @@ export default function InfraestruturaIAMissoes() {
                         <TableCell className="font-mono text-xs text-muted-foreground">
                           {formatarHora(f.timestamp)}
                         </TableCell>
-                        <TableCell className="font-mono text-xs">
-                          {f.missao ?? "—"}
-                        </TableCell>
+                        <TableCell className="font-mono text-xs">{f.missao ?? "—"}</TableCell>
                         <TableCell className="font-mono text-xs">
                           <span className="capitalize">{f.provider_original}</span>
                           {f.modelo_original && (
-                            <span className="text-muted-foreground">
-                              {" "}
-                              · {f.modelo_original}
-                            </span>
+                            <span className="text-muted-foreground"> · {f.modelo_original}</span>
                           )}
                         </TableCell>
                         <TableCell className="font-mono text-xs">

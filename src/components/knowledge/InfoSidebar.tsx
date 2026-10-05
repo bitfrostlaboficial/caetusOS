@@ -21,11 +21,11 @@ import { toast } from "sonner";
 
 interface InfoSidebarProps {
   node: {
-    kind: "file";
+    kind: "file" | "folder";
     id: string;
     tipo: string;
     nome: string;
-    status: string;
+    status?: string;
     doc?: DocumentoConhecimento;
   } | null;
 }
@@ -68,7 +68,9 @@ export function InfoSidebar({ node }: InfoSidebarProps) {
     const tipo = nome.split(".").pop()?.toUpperCase() || "Desconhecido";
     const tamanhoStr = node.doc ? fmtTamanho(node.doc.tamanho) : "Pendente";
     const criadoEm = node.doc ? fmtData(node.doc.data_upload) : "Pendente";
-    const alteradoEm = node.doc ? fmtData(node.doc.atualizado_em || node.doc.data_upload) : "Pendente";
+    const alteradoEm = node.doc
+      ? fmtData(node.doc.atualizado_em || node.doc.data_upload)
+      : "Pendente";
 
     // Categoria com rótulo amigável
     const categorias: Record<string, string> = {
@@ -144,15 +146,24 @@ export function InfoSidebar({ node }: InfoSidebarProps) {
           <Database className="h-3.5 w-3.5 text-primary" />
           <span>Inspecionar Arquivo</span>
         </div>
-        <h3 className="font-display text-sm font-semibold text-foreground truncate select-text" title={node.nome}>
+        <h3
+          className="font-display text-sm font-semibold text-foreground truncate select-text"
+          title={node.nome}
+        >
           {node.nome}
         </h3>
         {node.status === "pendente" ? (
-          <Badge variant="destructive" className="mt-1.5 h-4 text-[9px] font-mono font-semibold uppercase">
+          <Badge
+            variant="destructive"
+            className="mt-1.5 h-4 text-[9px] font-mono font-semibold uppercase"
+          >
             Pendente
           </Badge>
         ) : (
-          <Badge variant="outline" className="mt-1.5 h-4 text-[9px] font-mono text-emerald-400 bg-emerald-500/5 border-emerald-500/20 uppercase">
+          <Badge
+            variant="outline"
+            className="mt-1.5 h-4 text-[9px] font-mono text-emerald-400 bg-emerald-500/5 border-emerald-500/20 uppercase"
+          >
             Sincronizado v{node.doc?.versao || 1}
           </Badge>
         )}
@@ -209,7 +220,11 @@ export function InfoSidebar({ node }: InfoSidebarProps) {
                   onClick={() => handleCopy(d.caminho, "Caminho")}
                   className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground"
                 >
-                  {copiedField === "Caminho" ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
+                  {copiedField === "Caminho" ? (
+                    <Check className="h-3 w-3 text-emerald-500" />
+                  ) : (
+                    <Copy className="h-3 w-3" />
+                  )}
                 </button>
               </div>
             </div>
@@ -274,7 +289,10 @@ export function InfoSidebar({ node }: InfoSidebarProps) {
                 <Hash className="h-3 w-3" /> Hash SHA-256 (Identidade)
               </span>
               <div className="flex items-center gap-1 rounded bg-muted/40 p-1.5 border border-border/30">
-                <span className="truncate flex-1 text-foreground font-mono select-text" title={d.hash}>
+                <span
+                  className="truncate flex-1 text-foreground font-mono select-text"
+                  title={d.hash}
+                >
                   {d.hash}
                 </span>
                 {d.hash !== "—" && (
@@ -282,7 +300,11 @@ export function InfoSidebar({ node }: InfoSidebarProps) {
                     onClick={() => handleCopy(d.hash, "Hash")}
                     className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground"
                   >
-                    {copiedField === "Hash" ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
+                    {copiedField === "Hash" ? (
+                      <Check className="h-3 w-3 text-emerald-500" />
+                    ) : (
+                      <Copy className="h-3 w-3" />
+                    )}
                   </button>
                 )}
               </div>
@@ -305,15 +327,22 @@ export function InfoSidebar({ node }: InfoSidebarProps) {
             {/* Sumarização */}
             <div className="rounded-md border border-border/50 bg-muted/10 p-3 space-y-2 opacity-60">
               <div className="flex justify-between items-center">
-                <span className="font-mono text-[11px] font-semibold text-foreground">Perguntar à IA</span>
-                <Badge variant="outline" className="text-[8px] font-mono tracking-wider h-4">Fase 3</Badge>
+                <span className="font-mono text-[11px] font-semibold text-foreground">
+                  Perguntar à IA
+                </span>
+                <Badge variant="outline" className="text-[8px] font-mono tracking-wider h-4">
+                  Fase 3
+                </Badge>
               </div>
               <textarea
                 disabled
                 placeholder="Ex: Qual o tom de voz descrito neste documento?"
                 className="w-full h-16 rounded border border-border/40 bg-background/50 p-2 font-mono text-[10px] resize-none focus:outline-none"
               />
-              <button disabled className="w-full py-1.5 rounded bg-primary/20 text-primary-foreground font-mono text-[10px] uppercase font-semibold">
+              <button
+                disabled
+                className="w-full py-1.5 rounded bg-primary/20 text-primary-foreground font-mono text-[10px] uppercase font-semibold"
+              >
                 Analisar com IA
               </button>
             </div>
@@ -321,11 +350,16 @@ export function InfoSidebar({ node }: InfoSidebarProps) {
             {/* Sumário rápido */}
             <div className="rounded-md border border-border/50 bg-muted/10 p-3 space-y-1.5 opacity-60">
               <div className="flex justify-between items-center">
-                <span className="font-mono text-[11px] font-semibold text-foreground">Gerar Resumo</span>
-                <Badge variant="outline" className="text-[8px] font-mono tracking-wider h-4">Fase 3</Badge>
+                <span className="font-mono text-[11px] font-semibold text-foreground">
+                  Gerar Resumo
+                </span>
+                <Badge variant="outline" className="text-[8px] font-mono tracking-wider h-4">
+                  Fase 3
+                </Badge>
               </div>
               <p className="text-[10px] text-muted-foreground font-mono leading-relaxed">
-                Gera um resumo executivo dos tópicos, intenções e pontos de melhoria deste documento.
+                Gera um resumo executivo dos tópicos, intenções e pontos de melhoria deste
+                documento.
               </p>
             </div>
           </div>
@@ -338,7 +372,8 @@ export function InfoSidebar({ node }: InfoSidebarProps) {
               <div className="space-y-1 font-mono text-[11px]">
                 <p className="font-semibold text-foreground">Versionamento Automatizado</p>
                 <p className="text-[10px] text-muted-foreground leading-relaxed">
-                  Arquitetura de dados pronta para comparar alterações e restaurar versões anteriores.
+                  Arquitetura de dados pronta para comparar alterações e restaurar versões
+                  anteriores.
                 </p>
               </div>
             </div>
@@ -349,10 +384,14 @@ export function InfoSidebar({ node }: InfoSidebarProps) {
                 <div className="relative">
                   <div className="absolute -left-[20.5px] top-1 h-2.5 w-2.5 rounded-full border-2 border-primary bg-background" />
                   <div className="flex justify-between items-start">
-                    <span className="font-semibold text-foreground">Versão Atual (v{node.doc?.versao || 1})</span>
+                    <span className="font-semibold text-foreground">
+                      Versão Atual (v{node.doc?.versao || 1})
+                    </span>
                     <span className="text-[9px] text-muted-foreground">{d.alteradoEm}</span>
                   </div>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">Disponível para uso na IA do caetusOS.</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">
+                    Disponível para uso na IA do caetusOS.
+                  </p>
                 </div>
 
                 {node.doc && node.doc.versao > 1 && (
@@ -362,7 +401,9 @@ export function InfoSidebar({ node }: InfoSidebarProps) {
                       <span className="font-medium text-muted-foreground">v1 (Versão Inicial)</span>
                       <span className="text-[9px] text-muted-foreground">{d.criadoEm}</span>
                     </div>
-                    <p className="text-[10px] text-muted-foreground/60 mt-0.5">Versão de criação do documento.</p>
+                    <p className="text-[10px] text-muted-foreground/60 mt-0.5">
+                      Versão de criação do documento.
+                    </p>
                   </div>
                 )}
               </div>

@@ -20,8 +20,14 @@ export default function Dashboard() {
   const [erro, setErro] = useState<string | null>(null);
 
   useEffect(() => {
-    api.empresaAtual().then(setEmpresa).catch(() => undefined);
-    api.listarConhecimento().then(setConhecimento).catch(() => undefined);
+    api
+      .empresaAtual()
+      .then(setEmpresa)
+      .catch(() => undefined);
+    api
+      .listarConhecimento()
+      .then(setConhecimento)
+      .catch(() => undefined);
   }, []);
 
   async function executar(e: React.FormEvent) {
@@ -141,9 +147,7 @@ export default function Dashboard() {
         <Card>
           <CardHeader>
             <CardTitle>Relatório de Execução</CardTitle>
-            <CardDescription>
-              Tudo que aconteceu no sistema durante essa execução.
-            </CardDescription>
+            <CardDescription>Tudo que aconteceu no sistema durante essa execução.</CardDescription>
           </CardHeader>
           <CardContent>
             <RelatorioExecucao resultado={resultado} />
@@ -153,7 +157,6 @@ export default function Dashboard() {
     </div>
   );
 }
-
 
 function ResultadoView({ resultado }: { resultado: ResultadoExecucao }) {
   if (resultado.erro) {

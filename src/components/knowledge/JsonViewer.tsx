@@ -9,7 +9,7 @@ interface JsonViewerProps {
 export function JsonViewer({ conteudo }: JsonViewerProps) {
   const [copiado, setCopiado] = useState(false);
 
-  let parsed: any = null;
+  let parsed: unknown = null;
   let erroParsing = null;
 
   try {

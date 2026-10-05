@@ -39,7 +39,12 @@ function StatusBadge({ status }: { status: string | null }) {
   const c = classesTom(m.tone);
   const Icon = m.icone;
   return (
-    <span className={cn("inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium", c.badge)}>
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium",
+        c.badge,
+      )}
+    >
       <Icon className="h-3.5 w-3.5" />
       {m.rotulo}
     </span>
@@ -106,7 +111,9 @@ function CardResumo({
     <Card className="border-border/60 bg-card/60 backdrop-blur-sm">
       <CardContent className="flex items-center justify-between gap-3 p-4">
         <div>
-          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{titulo}</p>
+          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+            {titulo}
+          </p>
           <p className="mt-1 font-display text-2xl">{valor}</p>
           {hint && <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>}
         </div>
@@ -121,7 +128,7 @@ function CardResumo({
 function CardProvider({ p }: { p: IaProvider }) {
   const estado = p.estado;
   const status = estado?.status ?? (p.configuracao.configurado ? null : "DESCONHECIDO");
-  const meta = statusMeta(p.configuracao.configurado ? estado?.status ?? null : null);
+  const meta = statusMeta(p.configuracao.configurado ? (estado?.status ?? null) : null);
   const tom = classesTom(meta.tone);
 
   return (
@@ -135,13 +142,15 @@ function CardProvider({ p }: { p: IaProvider }) {
           </CardTitle>
           <p className="mt-1 font-mono text-xs text-muted-foreground">{p.configuracao.modelo}</p>
         </div>
-        <StatusBadge status={p.configuracao.configurado ? estado?.status ?? null : null} />
+        <StatusBadge status={p.configuracao.configurado ? (estado?.status ?? null) : null} />
       </CardHeader>
       <CardContent className="space-y-4 text-sm">
         <div className="grid grid-cols-2 gap-3 font-mono text-xs">
           <div>
             <p className="text-muted-foreground">Latência</p>
-            <p className="text-foreground">{estado?.latencia_ms != null ? `${estado.latencia_ms} ms` : "—"}</p>
+            <p className="text-foreground">
+              {estado?.latencia_ms != null ? `${estado.latencia_ms} ms` : "—"}
+            </p>
           </div>
           <div>
             <p className="text-muted-foreground">Último check</p>
@@ -150,7 +159,9 @@ function CardProvider({ p }: { p: IaProvider }) {
         </div>
 
         <div>
-          <p className="mb-1.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Capacidades</p>
+          <p className="mb-1.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+            Capacidades
+          </p>
           <CapabilitiesList caps={p.capabilities} />
         </div>
 
@@ -177,22 +188,24 @@ function CardProvider({ p }: { p: IaProvider }) {
         <Separator className="bg-border/60" />
 
         <div className="flex flex-wrap gap-1.5">
-          {(Object.entries(URLS_ROTULOS) as [keyof typeof URLS_ROTULOS, string][]).map(([k, label]) => {
-            const href = p.urls[k as keyof typeof p.urls];
-            if (!href) return null;
-            return (
-              <a
-                key={k}
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 rounded-md border border-border/70 bg-background/40 px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground transition hover:text-foreground hover:border-border"
-              >
-                {label}
-                <ExternalLink className="h-3 w-3" />
-              </a>
-            );
-          })}
+          {(Object.entries(URLS_ROTULOS) as [keyof typeof URLS_ROTULOS, string][]).map(
+            ([k, label]) => {
+              const href = p.urls[k as keyof typeof p.urls];
+              if (!href) return null;
+              return (
+                <a
+                  key={k}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 rounded-md border border-border/70 bg-background/40 px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground transition hover:text-foreground hover:border-border"
+                >
+                  {label}
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              );
+            },
+          )}
         </div>
       </CardContent>
     </Card>
@@ -225,7 +238,12 @@ function TimelineMini({ items }: { items: IaHistoricoItem[] }) {
               <p className="font-mono text-xs text-muted-foreground">
                 {formatarData(h.ocorrido_em)}
               </p>
-              <span className={cn("inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px]", c.badge)}>
+              <span
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px]",
+                  c.badge,
+                )}
+              >
                 <Icon className="h-3 w-3" />
                 {m.rotulo}
               </span>
@@ -233,11 +251,16 @@ function TimelineMini({ items }: { items: IaHistoricoItem[] }) {
             <p className="mt-0.5 text-sm">
               <span className="capitalize">{h.provider}</span>
               {h.status_anterior && (
-                <span className="text-muted-foreground"> · {h.status_anterior} → {h.status_novo}</span>
+                <span className="text-muted-foreground">
+                  {" "}
+                  · {h.status_anterior} → {h.status_novo}
+                </span>
               )}
             </p>
             {h.erro && (
-              <p className="mt-0.5 truncate font-mono text-[11px] text-muted-foreground">{h.erro}</p>
+              <p className="mt-0.5 truncate font-mono text-[11px] text-muted-foreground">
+                {h.erro}
+              </p>
             )}
           </li>
         );
@@ -257,7 +280,8 @@ function notificarMudancas(prev: IaProvider[] | null, prox: IaProvider[]) {
     const titulo = `${p.nome[0].toUpperCase() + p.nome.slice(1)}: ${m.rotulo}`;
     const desc = p.estado?.acao_recomendada || p.estado?.erro || "Mudança de status detectada.";
     if (m.tone === "online") toast.success(titulo, { description: desc });
-    else if (m.tone === "warning" || m.tone === "alerta") toast.warning(titulo, { description: desc });
+    else if (m.tone === "warning" || m.tone === "alerta")
+      toast.warning(titulo, { description: desc });
     else if (m.tone === "offline") toast.error(titulo, { description: desc });
     else toast(titulo, { description: desc });
   }
@@ -339,23 +363,56 @@ export default function InfraestruturaIA() {
 
       <section className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
         {carregando && !overview ? (
-          Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-[88px] rounded-xl" />)
+          Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="h-[88px] rounded-xl" />
+          ))
         ) : (
           <>
-            <CardResumo titulo="Total" valor={resumo?.total ?? 0} icon={ActivitySquare} tom="neutro" />
-            <CardResumo titulo="Online" valor={resumo?.ativos ?? 0} icon={ShieldCheck} tom="online" />
-            <CardResumo titulo="Avisos" valor={resumo?.warnings ?? 0} icon={TriangleAlert} tom="warning" />
+            <CardResumo
+              titulo="Total"
+              valor={resumo?.total ?? 0}
+              icon={ActivitySquare}
+              tom="neutro"
+            />
+            <CardResumo
+              titulo="Online"
+              valor={resumo?.ativos ?? 0}
+              icon={ShieldCheck}
+              tom="online"
+            />
+            <CardResumo
+              titulo="Avisos"
+              valor={resumo?.warnings ?? 0}
+              icon={TriangleAlert}
+              tom="warning"
+            />
             <CardResumo titulo="Offline" valor={resumo?.erro ?? 0} icon={XCircle} tom="offline" />
             <CardResumo
               titulo="Última verificação"
-              valor={resumo?.ultima_verificacao ? formatarData(resumo.ultima_verificacao).split(" ")[1] ?? "—" : "—"}
-              hint={resumo?.ultima_verificacao ? formatarData(resumo.ultima_verificacao).split(" ")[0] : undefined}
+              valor={
+                resumo?.ultima_verificacao
+                  ? (formatarData(resumo.ultima_verificacao).split(" ")[1] ?? "—")
+                  : "—"
+              }
+              hint={
+                resumo?.ultima_verificacao
+                  ? formatarData(resumo.ultima_verificacao).split(" ")[0]
+                  : undefined
+              }
               icon={Gauge}
             />
             <CardResumo
               titulo="Próxima execução"
-              valor={resumo?.proxima_verificacao ? formatarData(resumo.proxima_verificacao).split(" ")[1] ?? "—" : "—"}
-              hint={resumo?.proxima_verificacao ? formatarData(resumo.proxima_verificacao).split(" ")[0] : "—"}
+              valor={
+                resumo?.proxima_verificacao
+                  ? (formatarData(resumo.proxima_verificacao).split(" ")[1] ?? "—")
+                  : "—"
+              }
+              hint={
+                resumo?.proxima_verificacao
+                  ? formatarData(resumo.proxima_verificacao).split(" ")[0]
+                  : "—"
+              }
               icon={Sparkles}
             />
           </>

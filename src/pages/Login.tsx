@@ -8,8 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Login() {
-  if (auth.isAuthenticated()) return <Navigate to="/app" replace />;
-
   const navigate = useNavigate();
   const [aba, setAba] = useState("login");
   const [email, setEmail] = useState("");
@@ -17,6 +15,9 @@ export default function Login() {
   const [nomeEmpresa, setNomeEmpresa] = useState("");
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+
+  // Hooks sempre antes de qualquer return condicional (regra dos hooks).
+  if (auth.isAuthenticated()) return <Navigate to="/app" replace />;
 
   async function submeter(e: React.FormEvent) {
     e.preventDefault();

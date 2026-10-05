@@ -31,22 +31,22 @@ export type StatusMeta = {
 };
 
 const MAP: Record<string, StatusMeta> = {
-  OK:                      { rotulo: "Operacional",         tone: "online",      icone: ShieldCheck },
-  RATE_LIMIT:              { rotulo: "Rate limit",          tone: "warning",     icone: Clock },
-  ACEITE_TERMOS:           { rotulo: "Aceitar termos",      tone: "warning",     icone: FileWarning },
-  BILLING:                 { rotulo: "Billing pendente",    tone: "warning",     icone: CreditCard },
-  MODELO_DEPRECIADO:       { rotulo: "Modelo descontinuado",tone: "warning",     icone: TriangleAlert },
-  QUOTA_EXCEDIDA:          { rotulo: "Quota excedida",      tone: "alerta",      icone: AlertTriangle },
-  SERVICO_INDISPONIVEL:    { rotulo: "Serviço indisponível",tone: "alerta",      icone: CloudOff },
-  TIMEOUT:                 { rotulo: "Timeout",             tone: "offline",     icone: Clock },
-  DNS_ERROR:               { rotulo: "Erro DNS",            tone: "offline",     icone: Network },
-  SSL_ERROR:               { rotulo: "Erro SSL",            tone: "offline",     icone: ShieldAlert },
-  SEM_CONEXAO:             { rotulo: "Sem conexão",         tone: "offline",     icone: WifiOff },
-  API_KEY_INVALIDA:        { rotulo: "API Key inválida",    tone: "offline",     icone: KeyRound },
-  CONTA_SUSPENSA:          { rotulo: "Conta suspensa",      tone: "offline",     icone: Ban },
-  MODELO_REMOVIDO:         { rotulo: "Modelo removido",     tone: "offline",     icone: XCircle },
-  AUTH_ERROR:              { rotulo: "Erro de autenticação",tone: "offline",     icone: ShieldAlert },
-  DESCONHECIDO:            { rotulo: "Erro desconhecido",   tone: "offline",     icone: AlertTriangle },
+  OK: { rotulo: "Operacional", tone: "online", icone: ShieldCheck },
+  RATE_LIMIT: { rotulo: "Rate limit", tone: "warning", icone: Clock },
+  ACEITE_TERMOS: { rotulo: "Aceitar termos", tone: "warning", icone: FileWarning },
+  BILLING: { rotulo: "Billing pendente", tone: "warning", icone: CreditCard },
+  MODELO_DEPRECIADO: { rotulo: "Modelo descontinuado", tone: "warning", icone: TriangleAlert },
+  QUOTA_EXCEDIDA: { rotulo: "Quota excedida", tone: "alerta", icone: AlertTriangle },
+  SERVICO_INDISPONIVEL: { rotulo: "Serviço indisponível", tone: "alerta", icone: CloudOff },
+  TIMEOUT: { rotulo: "Timeout", tone: "offline", icone: Clock },
+  DNS_ERROR: { rotulo: "Erro DNS", tone: "offline", icone: Network },
+  SSL_ERROR: { rotulo: "Erro SSL", tone: "offline", icone: ShieldAlert },
+  SEM_CONEXAO: { rotulo: "Sem conexão", tone: "offline", icone: WifiOff },
+  API_KEY_INVALIDA: { rotulo: "API Key inválida", tone: "offline", icone: KeyRound },
+  CONTA_SUSPENSA: { rotulo: "Conta suspensa", tone: "offline", icone: Ban },
+  MODELO_REMOVIDO: { rotulo: "Modelo removido", tone: "offline", icone: XCircle },
+  AUTH_ERROR: { rotulo: "Erro de autenticação", tone: "offline", icone: ShieldAlert },
+  DESCONHECIDO: { rotulo: "Erro desconhecido", tone: "offline", icone: AlertTriangle },
 };
 
 const NAO_CONFIGURADO: StatusMeta = {
