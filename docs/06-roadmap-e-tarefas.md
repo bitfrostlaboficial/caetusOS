@@ -39,6 +39,9 @@ Prioridade baseada nos achados de [`04-problemas-e-riscos.md`](./04-problemas-e-
 | **T-012** | Endurecer storage: `Path.is_relative_to`, sanitizar `nome_arquivo`, limite de tamanho e tipos permitidos em uploads. | SEC-07/08 | S | — |
 | **T-013** | Atualizar README/`plan.md`: nome do produto, frontend (Vite+Router), variável `VITE_API_BASE_URL`, tabelas, rotas; apontar para `docs/`. | DEBT-05 | S | D-01 |
 | **T-014** | Corrigir `max_tokens` no Gemini e revisar adapters (HF imagem retorna bytes; capacidades inconsistentes; tokens/custo ausentes). Teste de contrato por adapter com `httpx.MockTransport`. | BUG-05 | M | T-040 |
+| **T-015** | **Consolidar branches:** mergear `no_lovable` em `main` (ou eleger a branch oficial), apagar branches mortas, atualizar README (que na `no_lovable` ainda cita `ai/` removida). Sem reescrever histórico. | doc 9 | S | D-11 |
+| **T-016** | **Separar Conhecimento × Resultados e filtrar o contexto:** posts gerados deixam de ser `DocumentoConhecimento` (vão para `assets`/resultados); `ContextBuilder` só injeta `.md/.txt` marcados como conhecimento e **ignora placeholders/modelos não preenchidos**; seleção por relevância em vez de "5 primeiros × 800 caracteres". | BUG-09/10, DEBT-14 | M | T-008 |
+| **T-017** | **Mapear o ecossistema** (CaetusClaude, caetusStudio, caetusVideo, caetusBot-WPP, caetus-monitor...) e decidir fronteiras/reuso (ex.: `layout-engine`, `image-generator`/Cloudflare, manifestos de capacidade). | doc 9 | M | D-11 |
 | **T-040** | **Infra de testes + CI**: pytest + fixtures (Postgres via `testcontainers` ou serviço do CI), `httpx`/`TestClient`; Vitest para o frontend; GitHub Actions: `ruff`, `pytest`, `tsc`, `eslint`, `vite build`. | DEBT-01 | M | — |
 
 **Ordem sugerida dentro da Fase 0:** T-001 (hoje, em paralelo a tudo) → T-040 → T-003 → T-004 → T-009 → T-005/T-007/T-006 → T-008 → T-010/T-011/T-012/T-014 → T-013.
@@ -118,7 +121,8 @@ Prioridade baseada nos achados de [`04-problemas-e-riscos.md`](./04-problemas-e-
 
 ## Primeiras 10 tarefas recomendadas (esta semana)
 
-1. **T-001** Rotacionar chaves (manual, você).
+1. **T-001** Rotacionar chaves (manual, você) — **repositório público: urgente, hoje**.
+   **T-015** logo em seguida: decidir/mergear a branch oficial (`no_lovable` × `main`).
 2. **T-040** Testes + CI mínimos.
 3. **T-003** Corrigir login.
 4. **T-004** Corrigir tratador de erro e persistir falhas.

@@ -10,10 +10,10 @@ Status da evidência: ✅ reproduzido em execução · 🔎 identificado por lei
 ## A. Segurança
 
 ### SEC-01 · P0 · Chaves de API reais estão no histórico do Git
-- **Evidência ✅:** o arquivo `backend/.env` foi commitado (commits `0bc7383`, `8aa1661`, `6fa4a98`) e só removido em `b569ec8` (01/07/2026). O histórico contém valores **não vazios** de:
+- **Evidência ✅:** o arquivo `backend/.env` foi commitado (commits `6fa4a98`, `8aa1661`, `0bc7383`), removido em `b569ec8` (01/07/2026), **commitado de novo com chaves reais em `c2d6cd6` (02/07/2026)** na branch `no_lovable` e removido em `36c7ca5` (04/07/2026). **O repositório `bitfrostlaboficial/caetusOS` é PÚBLICO** (confirmado pela listagem de repositórios da conta). O histórico contém valores **não vazios** de:
   `JWT_SECRET` (2 valores diferentes), `GROQ_API_KEY`, `GEMINI_API_KEY`, `OPEN_ROUTE_API_KEY` (OpenRouter), `HUGGING_FACE_API_KEY`, `FAL_AI_API_KEY`, `REPLICATE_API_KEY`.
   (Os valores **não** são reproduzidos aqui. Recuperá-los: `git log -p -- backend/.env`.)
-- **Impacto:** quem tiver acesso de leitura ao repositório (ou a qualquer clone/fork/cache — incluindo o Lovable) tem as chaves. Se o repositório for público, considere-as **comprometidas**; se for privado, ainda assim estão em qualquer cópia local.
+- **Impacto:** como o repositório é público, **qualquer pessoa** (e robôs que varrem o GitHub por chaves) pode ter obtido as chaves; considere-as **comprometidas desde a data do primeiro commit** (28/06/2026). Risco concreto: uso/abuso das cotas e cobrança em nome do dono, e forja de JWT enquanto o `JWT_SECRET` antigo existir.
 - **Correção:**
   1. **Revogar/rotacionar todas as chaves agora** nos painéis de cada provedor e gerar novo `JWT_SECRET` (isso invalida sessões). **Esta é a correção real.**
   2. **Não** reescrever o histórico: `AGENTS.md` proíbe (sincroniza com o Lovable). Reescrever só valeria como higiene *depois* da rotação e exigiria combinar com o Lovable.
@@ -32,6 +32,8 @@ Status da evidência: ✅ reproduzido em execução · 🔎 identificado por lei
 - **Correção:** validar `projeto.empresa_id == usuario.empresa_id` no Executor (ou no router) e usar `tenant_guard` de fato.
 
 ### SEC-05 · P1 · Storage sem prefixo de empresa para arquivos gerados
+> **Atualização (doc 9):** na branch `no_lovable` isto está **corrigido em parte** (arquivos em `empresas/{id}/conhecimento/` e registrados no banco), mas gerou BUG-09/BUG-10.
+
 - **Evidência ✅:** o post gerado foi gravado em `conhecimento/marketing/posts/2026/10/post_001/...` (`pipeline_post.py:232`) — **sem `empresas/{empresa_id}/`**, ao contrário de uploads (`empresas/{id}/conhecimento/...`). Duas empresas compartilham a mesma árvore e o contador `post_NNN`; qualquer endpoint futuro de download baseado em caminho vazaria dados entre empresas. Além disso o resultado **não é registrado** em `assets`/`documentos_conhecimento`.
 - **Correção:** prefixar por `empresas/{empresa_id}/projetos/{projeto_id}/...` e registrar cada arquivo gerado como `Asset(origem="GERADO")`.
 

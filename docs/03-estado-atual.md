@@ -4,7 +4,7 @@ Data: 05/10/2026. Convenção: ✅ verificado em execução · 🔎 visto no có
 
 ## 1. Resultado dos testes que rodei
 
-Ambiente: Postgres 16 local, Python 3.12, **sem chaves de IA** (provedores em modo *stub*), sem Docker.
+Ambiente: Postgres 16 local, Python 3.12, **sem chaves de IA** (provedores em modo *stub*), sem Docker. Os testes abaixo rodaram na **`main`**; **repeti os principais na `no_lovable`** (resultado no doc 9: login 500, erro de skill 500 e vazamento de telemetria **continuam**; registro, execução e storage por empresa melhoraram).
 
 | Teste | Resultado |
 |-------|-----------|

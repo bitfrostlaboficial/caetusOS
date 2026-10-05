@@ -45,6 +45,8 @@ O projeto tem **dois nomes** espalhados:
 - **Regra do repositório** (`AGENTS.md`): *não reescrever histórico publicado* (nada de force-push/rebase/amend em commits já enviados) porque o Lovable sincroniza a branch conectada. Isto tem uma consequência importante para o vazamento de chaves — ver doc 4 (SEC-01).
 - Linha do tempo (pelo `git log`): **todo o desenvolvimento aconteceu em 4 dias** (28/06 a 01/07/2026: 59 + 57 + 17 + 3 commits): arquitetura v6.1 e Sprint 0 → provedores de IA → Fases 1–6.1 de IA/observabilidade → Command Center, Missões, Relatório de Execução → "Criar Post" refinado. Depois disso, parado. Isso explica o perfil do código: muita coisa construída rápido, **sem testes** e com inconsistências entre as partes.
 
+> **Importante (doc 9):** em 05/07/2026 o autor dividiu o projeto em **caetusClaude** (semi-automático, operado por agentes) e **caetusOS** (este repo, o sistema automatizado que futuramente criará Funcionários Digitais). O restante deste documento trata do caetusOS.
+
 ## 4. A arquitetura "congelada" (v6.1) e o que ela significa hoje
 
 O documento [`.lovable/plan.md`](../.lovable/plan.md) congelou a arquitetura com princípios que **continuam válidos e valem a pena manter**:

@@ -1,7 +1,9 @@
 # Documentação do caetusOS
 
 > Levantamento feito em **05/10/2026**, retomando o projeto após ~3 meses parado
-> (último commit: 01/07/2026; 137 commits — 136 deles em apenas 4 dias, de 28/06 a 01/07/2026).
+> (`main`: último commit 01/07/2026; 137 commits — 136 em apenas 4 dias, de 28/06 a 01/07/2026. A branch **`no_lovable`** tem trabalho até **05/07/2026** — ver doc 9).
+>
+> ⚠️ Os docs 02–08 descrevem a **`main`**. As diferenças da `no_lovable` (verificadas rodando o backend dela) estão no doc 9.
 
 Esta pasta existe para que **qualquer pessoa (ou agente de IA) consiga pegar o projeto e entender:
 o que ele é, como está hoje, o que está quebrado e para onde ele precisa ir.**
@@ -18,6 +20,7 @@ o que ele é, como está hoje, o que está quebrado e para onde ele precisa ir.*
 | 6 | [`06-roadmap-e-tarefas.md`](./06-roadmap-e-tarefas.md) | Backlog priorizado (IDs, esforço, dependências) por fase. |
 | 7 | [`07-guia-de-desenvolvimento.md`](./07-guia-de-desenvolvimento.md) | Como subir, testar, adicionar uma habilidade, convenções e armadilhas. |
 | 8 | [`08-decisoes-pendentes.md`](./08-decisoes-pendentes.md) | Decisões que dependem do dono do projeto antes de seguir. |
+| 9 | [`09-branches-e-ecossistema.md`](./09-branches-e-ecossistema.md) | **Leia junto com o doc 3:** a branch mais nova (`no_lovable`), o que ela muda, e a divisão caetusClaude × caetusOS. |
 
 ## Resumo em 10 linhas
 
@@ -27,12 +30,13 @@ o que ele é, como está hoje, o que está quebrado e para onde ele precisa ir.*
 - **Maturidade:** protótipo avançado. O ciclo *registrar → conhecimento → executar → resultado* **funciona de ponta a ponta**
   no backend (testado), mas **não está pronto para usuários reais**.
 - **Bloqueios imediatos (P0):**
-  1. **Chaves de API reais estão no histórico do Git** (Groq, Gemini, OpenRouter, HuggingFace, Fal, Replicate + JWT) — precisam ser **revogadas/rotacionadas**.
+  1. **Chaves de API reais estão no histórico do Git de um repositório PÚBLICO** (Groq, Gemini, OpenRouter, HuggingFace, Fal, Replicate + JWT) — devem ser tratadas como **comprometidas e revogadas/rotacionadas já**.
   2. **Login quebrado** (`POST /v1/auth/login` → 500) — só o registro funciona.
   3. **Qualquer erro de habilidade vira 500** (bug no tratador de erro) e a execução falha não é gravada.
   4. **Vazamento entre empresas**: telemetria de IA de todas as empresas é visível a qualquer usuário; qualquer usuário altera o modo global do roteador e dispara benchmark com as chaves da plataforma.
 - **Planejado vs. feito:** o backend **passou muito do plano congelado v6.1** (roteador por catálogo/missões/pesos, health-check,
   telemetria, Command Center), mas **faltam partes básicas do Sprint 0 no frontend** (Identidade, Memória, Assets) e **não há testes nem CI**.
+- **Há duas trilhas:** este repo (**caetusOS**, SaaS) e o **caetusClaude** (versão semi-automática com agentes, separada em 05/07/2026 para o repositório `CaetusSystems/CaetusClaude`, não lido). Ver doc 9.
 - **Recomendação:** estabilizar (Fase 0) → fechar o ciclo utilizável (Fase 1) → escolher **um nicho para validar** em cima de um **núcleo geral** (ver doc 5).
 
 ## Convenção de status usada nos documentos

@@ -13,7 +13,8 @@ Cada decisão mostra **o que muda**, **opções** e **recomendação**. Marque a
 | D-07 | Hospedagem de produção e Postgres (Fly+Neon vs. VPS) | T-207 |
 | D-08 | Gerenciador de pacotes do frontend (bun vs. npm) e ferramenta de teste | T-040 |
 | D-09 | Relação com o Lovable (continuar usando para UI? quem aprova mudanças?) | CI, fluxo de branches |
-| D-10 | O repositório é público ou privado? | gravidade de SEC-01 |
+| D-10 | ~~Repositório público ou privado?~~ **Respondida: é PÚBLICO** (`bitfrostlaboficial/caetusOS`). Manter público? | SEC-01 (crítico), propriedade intelectual |
+| D-11 | Qual branch é a oficial (`main` × `no_lovable`) e qual o papel de cada repositório do ecossistema (CaetusClaude etc.) | T-015, T-017, roadmap |
 
 ---
 
@@ -53,4 +54,7 @@ Escolher **um** gerenciador (bun ou npm) e adotar **Vitest** (unit) + **Playwrig
 O repositório está conectado ao Lovable (`AGENTS.md`). Decidir: Lovable continua gerando UI? Se sim, **toda alteração deve passar por CI** antes de ser aceita (RISK-06) e a branch conectada deve ficar sempre buildável.
 
 ### D-10 · Visibilidade do repositório
-Se for **público**, trate as chaves do histórico como **comprometidas imediatamente** (T-001 é urgente). Se for privado, o risco existe do mesmo jeito (qualquer clone), mas a janela de exposição é menor.
+A listagem da conta mostra `bitfrostlaboficial/caetusOS` como **público**. Logo: chaves do histórico = **comprometidas** (T-001 urgente). Decidir também se o código (prompts, arquitetura, roteador) deve continuar público — tornar o repo privado **não** apaga o que já foi clonado, mas reduz a exposição futura.
+
+### D-11 · Branch oficial e ecossistema
+`no_lovable` (05/07) está 10 commits à frente da `main` (01/07). Recomendação: tornar `no_lovable` a base (merge em `main`). Além disso, mapear o papel de `CaetusSystems/CaetusClaude`, `caetusStudio`, `caetusVideo`, `caetusBot-WPP` e `Rick-Caetano/caetus-monitor` para evitar construir de novo o que já existe (ver doc 9 §4).
