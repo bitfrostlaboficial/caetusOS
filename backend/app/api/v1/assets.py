@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, File, Form, UploadFile
+from fastapi import APIRouter, HTTPException, Depends, File, Form, UploadFile
 from sqlalchemy.orm import Session
 
+from app.configuracao import config
 from app.api.deps import obter_db, usuario_atual
 from app.dominio.modelos.usuario import Usuario
 from app.servicos.asset_servico import AssetServico
@@ -31,7 +32,12 @@ async def upload(
     usuario: Usuario = Depends(usuario_atual),
     sessao: Session = Depends(obter_db),
 ):
-    conteudo = await arquivo.read()
+    conteudo = await arquivo.read(config.upload_max_bytes + 1)
+    if len(conteudo) > config.upload_max_bytes:
+        raise HTTPException(
+            status_code=413,
+            detail=f"arquivo acima do limite de {config.upload_max_bytes // (1024 * 1024) or 1} MB",
+        )
     a = AssetServico(sessao).upload(
         usuario.empresa_id,
         usuario.id,

@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.dominio.modelos.asset import Asset
-from app.infraestrutura.armazenamento.filesystem import obter_storage
+from app.infraestrutura.armazenamento.filesystem import nome_seguro, obter_storage
 
 
 class AssetServico:
@@ -31,7 +31,7 @@ class AssetServico:
         mime: str | None,
         projeto_id: uuid.UUID | None = None,
     ) -> Asset:
-        caminho = f"empresas/{empresa_id}/assets/{uuid.uuid4().hex}-{nome_arquivo}"
+        caminho = f"empresas/{empresa_id}/assets/{uuid.uuid4().hex}-{nome_seguro(nome_arquivo)}"
         self.storage.salvar(caminho, conteudo)
         asset = Asset(
             empresa_id=empresa_id,

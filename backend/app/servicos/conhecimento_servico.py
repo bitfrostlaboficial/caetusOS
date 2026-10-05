@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.dominio.modelos.documento_conhecimento import DocumentoConhecimento
-from app.infraestrutura.armazenamento.filesystem import obter_storage
+from app.infraestrutura.armazenamento.filesystem import nome_seguro, obter_storage
 
 
 class ConhecimentoServico:
@@ -24,7 +24,7 @@ class ConhecimentoServico:
 
     def adicionar(self, empresa_id: uuid.UUID, *, tipo: str, nome_arquivo: str, conteudo: bytes) -> DocumentoConhecimento:
         h = hashlib.sha256(conteudo).hexdigest()
-        caminho = f"empresas/{empresa_id}/conhecimento/{h}-{nome_arquivo}"
+        caminho = f"empresas/{empresa_id}/conhecimento/{h}-{nome_seguro(nome_arquivo)}"
         self.storage.salvar(caminho, conteudo)
         doc = DocumentoConhecimento(
             empresa_id=empresa_id,

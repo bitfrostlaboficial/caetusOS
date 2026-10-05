@@ -30,6 +30,8 @@ class Configuracao(BaseSettings):
     log_color: bool = True
     storage_backend: str = "filesystem"
     storage_root: str = "./storage_local"
+    # Limite de tamanho por upload (conhecimento/assets), em bytes. Padrão: 20 MB.
+    upload_max_bytes: int = 20 * 1024 * 1024
     cors_origins: str = "http://localhost:5173,http://localhost:8080"
 
     # ───────── Provedores de IA (modelos NUNCA fixos em código) ─────────
