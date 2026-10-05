@@ -41,6 +41,12 @@ class Executor:
         if especifico is None:
             raise TipoComandoNaoRegistrado(f"tipo '{comando.tipo}' não registrado")
 
+        # 2b. Habilidade inexistente é erro de endereçamento (404), não falha de execução:
+        #     detectar ANTES de montar contexto e de gravar qualquer coisa.
+        habilidade = None
+        if comando.tipo == TipoComando.SKILL:
+            habilidade = obter_habilidade(comando.alvo)  # levanta HabilidadeNaoRegistrada
+
         # 3. Garantir projeto (default = raiz).
         if comando.projeto_id is None:
             raiz = (
@@ -59,15 +65,8 @@ class Executor:
         resultado = especifico.executar(comando, contexto)
 
         # 6. Persistir execução (com prompt_template + prompt_version).
-        prompt_template = None
-        prompt_version = None
-        if comando.tipo == TipoComando.SKILL:
-            try:
-                hab = obter_habilidade(comando.alvo)
-                prompt_template = hab.prompt_template
-                prompt_version = hab.prompt_version
-            except Exception:
-                pass
+        prompt_template = habilidade.prompt_template if habilidade else None
+        prompt_version = habilidade.prompt_version if habilidade else None
 
         registro_exec = Execucao(
             id=resultado.execucao_id,

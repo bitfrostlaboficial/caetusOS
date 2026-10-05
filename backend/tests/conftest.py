@@ -107,3 +107,32 @@ def criar_conta(client):
         return Conta(client, r.json(), email, senha)
 
     return _criar
+
+
+@pytest.fixture()
+def ia_falsa(monkeypatch):
+    """Substitui `executar_missao` do pipeline de post por respostas determinísticas."""
+    import json
+
+    from app.habilidades.conteudo import pipeline_post
+    from app.ia.provedores.base import RespostaIA
+
+    chamadas: list[str] = []
+
+    def _falso(nome_missao, prompt, **kwargs):
+        chamadas.append(nome_missao)
+        if nome_missao == "criar_post":
+            texto = json.dumps(
+                {
+                    "titulo": "Dia do café",
+                    "legenda": "Legenda de teste",
+                    "hashtags": ["#cafe"],
+                    "cta": "Compre já",
+                    "prompt_visual": {"cenario": "xícara de café"},
+                }
+            )
+            return RespostaIA(texto=texto, provedor="fake", modelo="fake-1", tokens_in=10, tokens_out=20)
+        return RespostaIA(texto="sem url", provedor="fake-img", modelo="fake-img-1")
+
+    monkeypatch.setattr(pipeline_post, "executar_missao", _falso)
+    return chamadas

@@ -116,7 +116,8 @@ class ExecutorSkill(ExecutorEspecifico):
                 "skill.falhou",
                 f"Falha na fase '{fase}'",
                 nivel="erro",
-                tipo=type(exc).__name__,
+                # `tipo` é o 1º parâmetro posicional de registrar_evento — usar outro nome.
+                exc_tipo=type(exc).__name__,
                 mensagem=str(exc)[:300],
                 duracao_ms=duracao_ms,
             )

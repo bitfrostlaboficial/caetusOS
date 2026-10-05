@@ -10,6 +10,7 @@ import uuid
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
@@ -30,6 +31,10 @@ from app.infraestrutura.observabilidade.logger import log_evento
 log = logging.getLogger("caetusos.comandos")
 
 router = APIRouter(prefix="/comandos", tags=["comandos"])
+
+# Falhas por falta de provedor de IA utilizável: o pedido é válido, o serviço é que
+# não consegue atender (503) — diferente de entrada inválida (422).
+_ERROS_PROVEDOR_INDISPONIVEL = {"NenhumProvedorDisponivel", "ProvedorNaoConfigurado"}
 
 
 class ComandoEntrada(BaseModel):
@@ -204,11 +209,15 @@ def executar(
         )
         log_evento(
             log, logging.WARNING, "RESPOSTA",
-            "respondendo 422",
-            status=422, erro=codigo_erro,
+            "respondendo erro de execução",
+            status=503 if codigo_erro in _ERROS_PROVEDOR_INDISPONIVEL else 422, erro=codigo_erro,
             request_id=request_id, duracao_total_ms=duracao_ms,
         )
-        raise HTTPException(status_code=422, detail=corpo)
+        # IMPORTANTE: devolver a resposta em vez de levantar HTTPException. Levantar
+        # faria `obter_db` reverter a transação e a execução com erro nunca chegaria
+        # ao histórico.
+        status = 503 if codigo_erro in _ERROS_PROVEDOR_INDISPONIVEL else 422
+        return JSONResponse(status_code=status, content={"detail": corpo})
 
     log_evento(
         log, logging.INFO, "EXECUTOR",
