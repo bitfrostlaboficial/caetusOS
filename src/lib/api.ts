@@ -89,12 +89,27 @@ export async function apiRequest<T = unknown>(path: string, opts: RequestOptions
   if (!res.ok) {
     const detail =
       data && typeof data === "object" && "detail" in data
-        ? String((data as { detail?: unknown }).detail)
+        ? mensagemDeDetalhe((data as { detail?: unknown }).detail)
         : "";
     const message = detail || `HTTP ${res.status}`;
     throw new ApiError(res.status, data, message);
   }
   return data as T;
+}
+
+/** O backend devolve `detail` como texto, como `{erro: "..."}` ou como o corpo do resultado. */
+function mensagemDeDetalhe(detail: unknown): string {
+  if (typeof detail === "string") return detail;
+  if (detail && typeof detail === "object") {
+    const d = detail as { erro?: unknown; mensagem?: unknown };
+    if (typeof d.mensagem === "string") return d.mensagem;
+    if (typeof d.erro === "string") return d.erro;
+    if (d.erro && typeof d.erro === "object") {
+      const e = d.erro as { mensagem?: unknown };
+      if (typeof e.mensagem === "string") return e.mensagem;
+    }
+  }
+  return "";
 }
 
 function safeJson(text: string): unknown {
@@ -106,6 +121,25 @@ function safeJson(text: string): unknown {
 }
 
 // ───────── Endpoints tipados ─────────
+
+export type ProvedorIA = {
+  nome: string;
+  rotulo: string;
+  url_chave: string;
+  aviso: string;
+  campos: { nome: string; rotulo: string; segredo: boolean; obrigatorio: boolean }[];
+  capacidades: Record<string, boolean>;
+  modelo_padrao: string | null;
+  configurado: boolean;
+  ativo: boolean;
+  /** Campos já salvos, mascarados (`••••1234`) — o segredo nunca volta da API. */
+  mascara: Record<string, string>;
+  modelo_preferido: string | null;
+  testada_em: string | null;
+  status_teste: string | null;
+  mensagem_teste: string | null;
+  plataforma_disponivel: boolean;
+};
 
 export type Empresa = { id: string; nome: string; slug: string };
 export type Projeto = { id: string; nome: string; slug: string; eh_raiz: boolean };
@@ -187,6 +221,20 @@ export const api = {
       email: string;
       admin_plataforma: boolean;
     }>("/v1/auth/me"),
+  listarProvedores: () => apiRequest<ProvedorIA[]>("/v1/provedores"),
+  salvarProvedor: (
+    nome: string,
+    dados: { campos: Record<string, string>; modelo_preferido?: string | null; ativo?: boolean },
+  ) => apiRequest<ProvedorIA>(`/v1/provedores/${nome}`, { method: "PUT", body: dados }),
+  removerProvedor: (nome: string) =>
+    apiRequest<null>(`/v1/provedores/${nome}`, { method: "DELETE" }),
+  testarProvedor: (nome: string) =>
+    apiRequest<{
+      status: string;
+      mensagem: string;
+      acao: string | null;
+      latencia_ms: number | null;
+    }>(`/v1/provedores/${nome}/testar`, { method: "POST" }),
   empresaAtual: () => apiRequest<Empresa>("/v1/empresas/me"),
   listarProjetos: () => apiRequest<Projeto[]>("/v1/projetos"),
   listarConhecimento: () => apiRequest<DocumentoConhecimento[]>("/v1/conhecimento"),

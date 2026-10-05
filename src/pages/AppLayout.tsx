@@ -47,6 +47,9 @@ export default function AppLayout() {
             <NavLink to="/app/missoes" className={itemClass}>
               Missões
             </NavLink>
+            <NavLink to="/app/provedores" className={itemClass}>
+              Provedores
+            </NavLink>
             <NavLink to="/app/conhecimento" className={itemClass}>
               Conhecimento
             </NavLink>

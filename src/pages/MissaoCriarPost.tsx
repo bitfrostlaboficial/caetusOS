@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-import { api, type DocumentoConhecimento, type ResultadoExecucao } from "@/lib/api";
+import { api, ApiError, type DocumentoConhecimento, type ResultadoExecucao } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -116,7 +116,17 @@ export default function MissaoCriarPost() {
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Falha inesperada";
       setErro(msg);
-      toast.error("Falha durante a execução", { id: toastId, description: msg });
+      // 503 = nenhum provedor de IA utilizável: leva o usuário a conectar uma chave.
+      const semProvedor = err instanceof ApiError && err.status === 503;
+      toast.error(semProvedor ? "Nenhum provedor de IA conectado" : "Falha durante a execução", {
+        id: toastId,
+        description: semProvedor
+          ? "Cadastre a chave de pelo menos um provedor para gerar conteúdo."
+          : msg,
+        action: semProvedor
+          ? { label: "Conectar provedor", onClick: () => navigate("/app/provedores") }
+          : undefined,
+      });
     } finally {
       setExecutando(false);
     }
