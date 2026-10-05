@@ -26,4 +26,4 @@ Atualizado a cada iteração. Branch de trabalho: `claude/focused-hopper-kb9m2r`
 | 05/10 | T-117 | **Cloudflare Workers AI — imagem (FLUX schnell)** via `/ai/run/{modelo}` (formato validado a partir do `image-generator` do caetusClaude), retorno em data URI (JPEG/PNG detectado); entrada no catálogo (peso 90, gratuito); missão de imagem funciona com BYOK só com Cloudflare. ⚠️ não testado contra a API real | `test_openai_compat.py` (+5) |
 
 **Total:** 115 testes backend passando. **Pendente da Fase 0:** T-001 (rotacionar chaves — ação do dono), T-002 (gitleaks), T-007 (papéis), T-015 (merge `no_lovable`→`main`).
-**Próximo:** T-007 (papéis), T-015 (merge `no_lovable`→`main`), T-117, **passada de design** (nav está ficando longa) (imagem Cloudflare/FLUX), migrar Groq/OpenRouter para o adaptador genérico (opcional).
+**Próximo (depende de decisões do dono):** T-007 papéis (D-04: modelo usuário×empresa), T-015 merge `no_lovable`→`main` (ação no GitHub), passada de design (skill `frontend-design`), gitleaks no CI (T-002), primeira habilidade sem IA + manifesto de habilidades (doc 11 etapas A/B).
