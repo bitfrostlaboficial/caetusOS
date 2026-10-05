@@ -51,6 +51,7 @@ class Configuracao(BaseSettings):
     cloudflare_api_token: str = ""
     cloudflare_account_id: str = ""
     cloudflare_model: str = "@cf/meta/llama-3.3-70b-instruct-fp8-fast"  # texto (Workers AI)
+    cloudflare_image_model: str = "@cf/black-forest-labs/flux-1-schnell"  # imagem (FLUX)
 
     openrouter_api_key: str = ""
     openrouter_model: str = "deepseek/deepseek-chat-v3"

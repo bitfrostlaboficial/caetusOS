@@ -185,6 +185,12 @@ def CATALOGO_PADRAO() -> list[EntradaCatalogo]:
             lambda: config.hf_background_model, 100, CustoEstimado.FREE, _caps(image_generation=True),
         ),
 
+        # ───────── Cloudflare Workers AI — imagem FLUX (plano gratuito diário) ─────────
+        EntradaCatalogo(
+            "cloudflare", CategoriaIA.IMAGE, EspecializacaoIA.IMAGE_GENERATION,
+            lambda: config.cloudflare_image_model, 90, CustoEstimado.FREE, _caps(image_generation=True),
+        ),
+
         # ───────── Fal.ai — imagens & vídeos de alta qualidade ─────────
         EntradaCatalogo(
             "fal", CategoriaIA.IMAGE, EspecializacaoIA.IMAGE_GENERATION,

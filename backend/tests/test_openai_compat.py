@@ -133,3 +133,60 @@ def test_cloudflare_so_com_campos_obrigatorios(criar_conta):
     assert ok.status_code == 200, ok.text
     mascara = ok.json()["mascara"]
     assert mascara["account_id"] == "acc1" and mascara["api_token"].endswith("9999") and "tok-secreto" not in ok.text
+
+
+# ───────── Cloudflare: imagem (FLUX) ─────────
+JPEG = b"\xff\xd8\xff\xe0" + b"\x00" * 16
+
+
+def _img_ok(raw=JPEG):
+    import base64 as b64
+
+    return _Resp(200, {"success": True, "result": {"image": b64.b64encode(raw).decode()}})
+
+
+def test_cloudflare_imagem_usa_endpoint_run_e_devolve_data_uri(http):
+    import base64 as b64
+
+    chamadas, respostas = http
+    respostas[0] = _img_ok()
+    prov = CloudflareProvedor.com_credenciais({"api_token": "t", "account_id": "acc1"})
+    r = prov.executar("um gato astronauta", modelo="@cf/black-forest-labs/flux-1-schnell")
+    c = chamadas[0]
+    assert c["url"] == "https://api.cloudflare.com/client/v4/accounts/acc1/ai/run/@cf/black-forest-labs/flux-1-schnell"
+    assert c["json"] == {"prompt": "um gato astronauta"}
+    assert r.texto.startswith("data:image/jpeg;base64,")
+    assert b64.b64decode(r.texto.split(",", 1)[1]) == JPEG
+
+
+def test_cloudflare_imagem_png_e_detectado(http):
+    chamadas, respostas = http
+    respostas[0] = _img_ok(b"\x89PNG\r\n\x1a\n" + b"\x00" * 8)
+    prov = CloudflareProvedor.com_credenciais({"api_token": "t", "account_id": "a"})
+    assert prov.executar("x", modelo="@cf/black-forest-labs/flux-1-schnell").texto.startswith("data:image/png;base64,")
+
+
+def test_cloudflare_imagem_erro_da_api_levanta(http):
+    chamadas, respostas = http
+    respostas[0] = _Resp(200, {"success": False, "errors": [{"message": "limite diário"}]})
+    prov = CloudflareProvedor.com_credenciais({"api_token": "t", "account_id": "a"})
+    with pytest.raises(RuntimeError, match="limite diário"):
+        prov.executar("x", modelo="@cf/black-forest-labs/flux-1-schnell")
+
+
+def test_cloudflare_texto_continua_no_endpoint_openai(http):
+    chamadas, _ = http
+    CloudflareProvedor.com_credenciais({"api_token": "t", "account_id": "a"}).executar("oi")
+    assert chamadas[0]["url"].endswith("/ai/v1/chat/completions")
+
+
+def test_missao_de_imagem_usa_cloudflare_da_empresa(criar_conta, http, monkeypatch):
+    chamadas, respostas = http
+    respostas[0] = _img_ok()
+    monkeypatch.setattr(config, "ia_usar_chaves_da_plataforma", False)
+    conta = criar_conta()
+    ok = conta.put("/v1/provedores/cloudflare", json={"campos": {"api_token": "tok", "account_id": "acc9"}})
+    assert ok.status_code == 200, ok.text
+    resp = roteador.executar_missao("conteudo_imagem_post", "prompt visual", empresa_id=uuid.UUID(conta.empresa_id))
+    assert resp.provedor == "cloudflare" and resp.texto.startswith("data:image/")
+    assert "/ai/run/@cf/black-forest-labs/flux-1-schnell" in chamadas[0]["url"]
