@@ -3,6 +3,8 @@
 > Plataforma de **Funcionários Digitais** baseados em IA para empresas.
 > MVP focado em validar rapidamente o ciclo: **Login → Conhecimento → Executar habilidade → Resultado**.
 
+> 📚 **Estado atual, problemas conhecidos e roadmap:** veja [`docs/`](./docs/README.md) (levantamento de 05/10/2026). Este README ainda descreve o plano original e tem trechos desatualizados (ver `docs/03-estado-atual.md` §4).
+
 Arquitetura oficial congelada em **v6.1** — referência completa em [`.lovable/plan.md`](./.lovable/plan.md).
 
 ---
