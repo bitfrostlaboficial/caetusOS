@@ -377,7 +377,7 @@ def listar_catalogo(_: Usuario = Depends(usuario_atual)) -> list[dict[str, Any]]
 
 
 @router.get("/missoes")
-def listar_missoes_endpoint(_: Usuario = Depends(usuario_atual)) -> list[dict[str, Any]]:
+def listar_missoes_endpoint(usuario: Usuario = Depends(usuario_atual)) -> list[dict[str, Any]]:
     """Missões + candidatos calculados ao vivo (preferencial + reserva)."""
     saida: list[dict[str, Any]] = []
     for m in listar_missoes():
@@ -385,6 +385,7 @@ def listar_missoes_endpoint(_: Usuario = Depends(usuario_atual)) -> list[dict[st
             categoria=m.categoria,
             especializacao=m.especializacao,
             prefere=m.prefere,
+            empresa_id=usuario.empresa_id,  # candidatos = provedores que ESTA empresa pode usar
         )
         preferencial = cands[0] if cands else None
         reserva = cands[1] if len(cands) > 1 else None

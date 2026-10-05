@@ -12,6 +12,9 @@ from app.ia.provedores.gemini import _classificar_erro
 
 class FalProvedor(Provider):
     nome = "fal"
+    rotulo = "Fal.ai"
+    url_chave = "https://fal.ai/dashboard/keys"
+    aviso = "Geração de imagem/vídeo é cobrada por uso na sua conta Fal."
     BASE_URL = "https://fal.run"
 
     def __init__(self, api_key: str | None = None, modelo: str | None = None) -> None:

@@ -9,6 +9,9 @@ from app.ia.provedores.base import resposta_sem_chave, Capabilities, HealthStatu
 
 class GeminiProvedor(Provider):
     nome = "gemini"
+    rotulo = "Google Gemini"
+    url_chave = "https://aistudio.google.com/apikey"
+    aviso = "Confira no Google AI Studio os limites da camada gratuita e a política de uso de dados."
 
     def __init__(self, api_key: str | None = None, modelo: str | None = None) -> None:
         self.api_key = api_key if api_key is not None else config.gemini_api_key

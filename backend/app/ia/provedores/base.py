@@ -92,10 +92,30 @@ class RespostaIA:
     custo: float = 0.0
 
 
+@dataclass(frozen=True)
+class CampoCredencial:
+    """Um campo que o cliente preenche para conectar o provedor (BYOK)."""
+
+    nome: str
+    rotulo: str
+    segredo: bool = True
+    obrigatorio: bool = True
+
+
 class Provider(ABC):
     """Contrato único para todo provedor de IA."""
 
     nome: str
+    # Metadados exibidos na tela "Provedores de IA" (BYOK).
+    rotulo: str = ""
+    url_chave: str = ""  # onde o cliente cria a chave
+    aviso: str = ""  # limites/termos relevantes do plano gratuito
+    campos_credencial: tuple[CampoCredencial, ...] = (CampoCredencial("api_key", "Chave de API"),)
+
+    @classmethod
+    def com_credenciais(cls, campos: dict[str, str], modelo: str | None = None) -> "Provider":
+        """Instância configurada com as credenciais de UMA empresa (em vez do .env)."""
+        return cls(api_key=campos.get("api_key", ""), modelo=modelo)  # type: ignore[call-arg]
 
     @abstractmethod
     def configuracao(self) -> dict[str, Any]:

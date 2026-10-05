@@ -21,6 +21,9 @@ os.environ["JWT_SECRET"] = "t" * 48
 os.environ["STORAGE_ROOT"] = tempfile.mkdtemp(prefix="caetus-test-storage-")
 os.environ["IA_HEALTH_SCHEDULER_ENABLED"] = "false"
 os.environ["DEBUG"] = "false"
+from cryptography.fernet import Fernet  # noqa: E402
+
+os.environ["CREDENCIAIS_MASTER_KEY"] = Fernet.generate_key().decode()
 # Garante que testes nunca chamem provedores reais, mesmo com .env local.
 for _var in (
     "GEMINI_API_KEY", "GROQ_API_KEY", "OPENROUTER_API_KEY", "HUGGINGFACE_API_KEY",

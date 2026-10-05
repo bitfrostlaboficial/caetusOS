@@ -12,6 +12,7 @@ from __future__ import annotations
 import logging
 import time
 import uuid
+from dataclasses import dataclass
 from typing import Any
 
 from app.configuracao import config
@@ -20,7 +21,7 @@ from app.ia.categorias import (
     CategoriaIA,
     EspecializacaoIA,
 )
-from app.ia.provedores.base import Provider, RespostaIA
+from app.ia.provedores.base import Provider, ProvedorNaoConfigurado, RespostaIA
 from app.ia.provedores.fal import FalProvedor
 from app.ia.provedores.gemini import GeminiProvedor
 from app.ia.provedores.groq import GroqProvedor
@@ -80,6 +81,54 @@ def resolver_provedor(dominio: str) -> Provider:
     return por_dominio(dominio)
 
 
+# ───────── BYOK: quais provedores esta empresa pode usar? ─────────
+@dataclass
+class _Disponivel:
+    provedor: Provider
+    origem: str  # "empresa" (chave do cliente) | "plataforma" (chave do .env)
+    modelo_preferido: str | None = None
+
+
+def _resolver_provedores(empresa_id: uuid.UUID | None) -> dict[str, _Disponivel]:
+    """Mapa nome → provedor utilizável POR ESTA EMPRESA.
+
+    - credencial própria ativa → instância configurada com a chave da empresa;
+    - senão, chave da plataforma (.env) — apenas se `IA_USAR_CHAVES_DA_PLATAFORMA`
+      (ou se não há empresa: operações internas/admin da plataforma);
+    - credencial própria ilegível (chave mestra trocada) → provedor indisponível.
+    """
+    from app.infraestrutura.seguranca import cofre
+
+    proprias: dict[str, tuple[str, str | None]] = {}
+    if empresa_id is not None:
+        try:
+            from app.infraestrutura.banco.sessao import SessionLocal
+            from app.servicos.credenciais_servico import CredenciaisServico
+
+            with SessionLocal() as sessao:
+                for nome, cred in CredenciaisServico(sessao).listar(empresa_id).items():
+                    if cred.ativo:
+                        proprias[nome] = (cred.campos_cifrados, cred.modelo_preferido)
+        except Exception:  # noqa: BLE001
+            log.exception("falha ao carregar credenciais da empresa — usando só o que houver")
+
+    out: dict[str, _Disponivel] = {}
+    for nome, base in _REGISTRO.items():
+        if nome in proprias:
+            cifrado, modelo_pref = proprias[nome]
+            try:
+                campos = cofre.decifrar(cifrado)
+                out[nome] = _Disponivel(type(base).com_credenciais(campos), "empresa", modelo_pref)
+            except Exception:  # noqa: BLE001
+                log.warning("credencial de '%s' ilegível para a empresa — ignorada", nome)
+            continue
+        if empresa_id is not None and not config.ia_usar_chaves_da_plataforma:
+            continue
+        if base.configuracao().get("configurado", True) or config.ia_permitir_stub:
+            out[nome] = _Disponivel(base, "plataforma")
+    return out
+
+
 # ───────── Execução genérica (interface pública do roteador) ─────────
 def executar(
     *,
@@ -92,10 +141,20 @@ def executar(
     empresa_id: uuid.UUID | None = None,
     usuario_id: uuid.UUID | None = None,
     metadata: dict[str, Any] | None = None,
+    _disponivel: _Disponivel | None = None,
     **kwargs: Any,
 ) -> RespostaIA:
     """Ponto único de entrada (legado + atual). Telemetria automática."""
-    prov = obter(provider)
+    if _disponivel is None:
+        # Chamada direta por nome: resolve a credencial da empresa (BYOK) ou a da plataforma.
+        resolvidos = _resolver_provedores(empresa_id)
+        _disponivel = resolvidos.get(provider)
+        if _disponivel is None:
+            if provider not in _REGISTRO:
+                raise KeyError(f"Provedor '{provider}' não registrado.")
+            raise ProvedorNaoConfigurado(f"{provider}: sem credencial disponível para esta empresa")
+    prov = _disponivel.provedor
+    metadata = {**(metadata or {}), "credencial": _disponivel.origem}
     modelo_final = modelo or prov.configuracao().get("modelo")
     exec_id = gravador.iniciar(
         provider=provider, modelo=modelo_final, prompt=prompt,
@@ -185,6 +244,8 @@ def _candidatos_para(
     categoria: CategoriaIA | None,
     especializacao: EspecializacaoIA | None,
     prefere: str = "velocidade",
+    empresa_id: uuid.UUID | None = None,
+    disponiveis: dict[str, _Disponivel] | None = None,
 ) -> list[tuple[str, str, dict]]:
     """Retorna [(provider, modelo, info)] ordenados por peso desc.
 
@@ -196,18 +257,23 @@ def _candidatos_para(
     from app.ia.metricas import metricas_de
 
     entradas = CATALOGO_PADRAO()
+    if disponiveis is None:
+        disponiveis = _resolver_provedores(empresa_id)
     cands: list[tuple[int, str, str, dict]] = []
     for e in entradas:
         if categoria and e.categoria != categoria:
             continue
         if especializacao and e.especializacao != especializacao:
             continue
-        if e.provider not in _REGISTRO:
-            continue
-        # Provedor sem credencial não é candidato (a menos que stub esteja liberado p/ dev).
-        if not _REGISTRO[e.provider].configuracao().get("configurado", True) and not config.ia_permitir_stub:
+        # Só entram provedores com credencial utilizável por esta empresa (BYOK) —
+        # `_resolver_provedores` já aplicou a regra de chaves da plataforma/stub.
+        disp = disponiveis.get(e.provider)
+        if disp is None:
             continue
         modelo = e.modelo
+        # Modelo preferido do cliente vale para texto/chat (um modelo por provedor).
+        if disp.modelo_preferido and e.categoria in (CategoriaIA.CHAT, CategoriaIA.TEXT):
+            modelo = disp.modelo_preferido
         if not modelo:
             continue
 
@@ -238,6 +304,7 @@ def _candidatos_para(
             "peso_base": e.peso_default,
             "peso_final": peso,
             "custo": e.custo.value,
+            "credencial": disp.origem,
         }
         cands.append((peso, e.provider, modelo, info))
 
@@ -303,15 +370,19 @@ def executar_missao(
                 **kwargs,
             )
 
+    disponiveis = _resolver_provedores(empresa_id)
     candidatos = _candidatos_para(
         categoria=missao.categoria,
         especializacao=missao.especializacao,
         prefere=missao.prefere,
+        disponiveis=disponiveis,
     )
 
     # Relax automático: se nenhuma entrada bate na especialização, tenta só pela categoria.
     if not candidatos:
-        candidatos = _candidatos_para(categoria=missao.categoria, especializacao=None)
+        candidatos = _candidatos_para(
+            categoria=missao.categoria, especializacao=None, disponiveis=disponiveis
+        )
 
     if not candidatos:
         fallback_log.registrar(
@@ -339,7 +410,10 @@ def executar_missao(
     tentativas: list[dict] = []
 
     for idx, (prov, mod, info) in enumerate(candidatos):
-        indisp, status = _esta_indisponivel(prov, mod)
+        # A saúde medida com as chaves da PLATAFORMA não vale para a chave do cliente.
+        indisp, status = (
+            (False, None) if disponiveis[prov].origem == "empresa" else _esta_indisponivel(prov, mod)
+        )
         if indisp:
             fallback_log.registrar(
                 missao=nome_missao, categoria=missao.categoria.value,
@@ -371,7 +445,7 @@ def executar_missao(
                 provider=prov, prompt=prompt, modelo=mod, max_tokens=tokens,
                 habilidade=nome_missao, pipeline=pipeline or "missao",
                 empresa_id=empresa_id, usuario_id=usuario_id,
-                metadata=md, **kwargs,
+                metadata=md, _disponivel=disponiveis[prov], **kwargs,
             )
             if idx > 0:
                 fallback_log.registrar(
@@ -424,7 +498,11 @@ def executar_categoria(
     **kwargs: Any,
 ) -> RespostaIA:
     """Atalho quando não há missão definida — escolhe pelo catálogo direto."""
-    candidatos = _candidatos_para(categoria=categoria, especializacao=especializacao)
+    empresa_id = kwargs.get("empresa_id")
+    disponiveis = _resolver_provedores(empresa_id)
+    candidatos = _candidatos_para(
+        categoria=categoria, especializacao=especializacao, disponiveis=disponiveis
+    )
     if not candidatos:
         raise NenhumProvedorDisponivel(
             f"Sem candidatos para categoria={categoria.value} "
@@ -435,7 +513,8 @@ def executar_categoria(
         try:
             return executar(
                 provider=prov, prompt=prompt, modelo=mod,
-                max_tokens=max_tokens, pipeline="categoria", **kwargs,
+                max_tokens=max_tokens, pipeline="categoria",
+                _disponivel=disponiveis[prov], **kwargs,
             )
         except Exception as exc:  # noqa: BLE001
             ultimo_erro = exc

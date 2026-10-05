@@ -12,6 +12,9 @@ from app.ia.provedores.gemini import _classificar_erro
 
 class HuggingFaceProvedor(Provider):
     nome = "huggingface"
+    rotulo = "Hugging Face"
+    url_chave = "https://huggingface.co/settings/tokens"
+    aviso = "Use um token de acesso com permissão de inferência. Limites variam por modelo."
     BASE_URL = "https://api-inference.huggingface.co"
 
     def __init__(self, api_key: str | None = None, modelo: str | None = None) -> None:

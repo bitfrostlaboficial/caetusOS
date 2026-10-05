@@ -12,6 +12,9 @@ from app.ia.provedores.gemini import _classificar_erro
 
 class OpenRouterProvedor(Provider):
     nome = "openrouter"
+    rotulo = "OpenRouter"
+    url_chave = "https://openrouter.ai/keys"
+    aviso = "Modelos com sufixo :free têm limites; os pagos descontam do seu saldo na OpenRouter."
     BASE_URL = "https://openrouter.ai/api/v1"
 
     def __init__(self, api_key: str | None = None, modelo: str | None = None) -> None:

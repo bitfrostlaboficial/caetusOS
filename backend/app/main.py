@@ -16,6 +16,7 @@ from app.api.v1 import (
     infraestrutura,
     memoria,
     projetos,
+    provedores,
 )
 from app.configuracao import config
 from app.infraestrutura.observabilidade.logger import configurar_logging
@@ -87,5 +88,6 @@ for router in [
     historico.router,
     ia.router,
     infraestrutura.router,
+    provedores.router,
 ]:
     app.include_router(router, prefix="/v1")

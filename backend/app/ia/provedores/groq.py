@@ -14,6 +14,9 @@ log = logging.getLogger("caetusos.provider.groq")
 
 class GroqProvedor(Provider):
     nome = "groq"
+    rotulo = "Groq"
+    url_chave = "https://console.groq.com/keys"
+    aviso = "A camada gratuita tem limites de requisições por minuto e por dia."
 
     def __init__(self, api_key: str | None = None, modelo: str | None = None) -> None:
         self.api_key = api_key if api_key is not None else config.groq_api_key

@@ -78,6 +78,15 @@ class Configuracao(BaseSettings):
     # ───────── Observabilidade de IA (Fase 4) ─────────
     ia_store_prompts: bool = False  # LGPD: por padrão só SHA256 do prompt
 
+    # ───────── BYOK: chaves de IA por empresa ─────────
+    # Chave Fernet (urlsafe-base64, 32 bytes) que cifra as credenciais guardadas no banco.
+    # Gere com: python -c "from cryptography.fernet import Fernet;print(Fernet.generate_key().decode())"
+    # NÃO derive do JWT_SECRET: rotacionar o JWT não pode invalidar as chaves dos clientes.
+    credenciais_master_key: str = ""
+    # Se True, empresas SEM credencial própria podem usar as chaves da plataforma (.env).
+    # Em produção BYOK, deixe False para a plataforma não pagar a IA dos clientes.
+    ia_usar_chaves_da_plataforma: bool = True
+
     # Só para desenvolvimento/demo local: provedor sem chave devolve texto "[stub ...]"
     # em vez de falhar. NUNCA ligar em produção (mascara chave faltando como sucesso).
     ia_permitir_stub: bool = False
