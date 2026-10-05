@@ -15,20 +15,24 @@ class AuthServico:
         self.sessao = sessao
 
     def registrar(self, *, nome_empresa: str, email: str, senha: str) -> dict:
-        """Registro inicial cria empresa + projeto raiz + usuário em UMA transação."""
-        with self.sessao.begin():
-            empresa = EmpresaServico(self.sessao).criar_empresa(nome=nome_empresa)
-            if (
-                self.sessao.query(Usuario)
-                .filter(Usuario.empresa_id == empresa.id, Usuario.email == email)
-                .first()
-            ):
-                raise JaExiste("e-mail já cadastrado nesta empresa")
-            usuario = Usuario(empresa_id=empresa.id, email=email, senha_hash=senhas.gerar_hash(senha))
-            self.sessao.add(usuario)
-            self.sessao.flush()
-            access = jwt.emitir_access_token(usuario.id, empresa.id)
-            refresh_token = refresh.emitir(self.sessao, usuario.id)
+        """Registro inicial cria empresa + projeto raiz + usuário em UMA transação.
+
+        A transação é a da sessão da requisição (`obter_db` faz commit no sucesso e
+        rollback em exceção) — por isso não abrimos `session.begin()` aqui: a sessão
+        já tem transação implícita iniciada e `begin()` levantaria InvalidRequestError.
+        """
+        empresa = EmpresaServico(self.sessao).criar_empresa(nome=nome_empresa)
+        if (
+            self.sessao.query(Usuario)
+            .filter(Usuario.empresa_id == empresa.id, Usuario.email == email)
+            .first()
+        ):
+            raise JaExiste("e-mail já cadastrado nesta empresa")
+        usuario = Usuario(empresa_id=empresa.id, email=email, senha_hash=senhas.gerar_hash(senha))
+        self.sessao.add(usuario)
+        self.sessao.flush()
+        access = jwt.emitir_access_token(usuario.id, empresa.id)
+        refresh_token = refresh.emitir(self.sessao, usuario.id)
         return {
             "access_token": access,
             "refresh_token": refresh_token,
@@ -40,9 +44,8 @@ class AuthServico:
         usuario = self.sessao.query(Usuario).filter(Usuario.email == email).first()
         if not usuario or not senhas.verificar(senha, usuario.senha_hash):
             raise NaoAutenticado("credenciais inválidas")
-        with self.sessao.begin():
-            access = jwt.emitir_access_token(usuario.id, usuario.empresa_id)
-            refresh_token = refresh.emitir(self.sessao, usuario.id)
+        access = jwt.emitir_access_token(usuario.id, usuario.empresa_id)
+        refresh_token = refresh.emitir(self.sessao, usuario.id)
         return {
             "access_token": access,
             "refresh_token": refresh_token,
@@ -51,8 +54,7 @@ class AuthServico:
         }
 
     def rotacionar_refresh(self, refresh_token: str) -> dict:
-        with self.sessao.begin():
-            usuario_id, novo = refresh.rotacionar(self.sessao, refresh_token)
-            usuario = self.sessao.get(Usuario, usuario_id)
-            access = jwt.emitir_access_token(usuario.id, usuario.empresa_id)
+        usuario_id, novo = refresh.rotacionar(self.sessao, refresh_token)
+        usuario = self.sessao.get(Usuario, usuario_id)
+        access = jwt.emitir_access_token(usuario.id, usuario.empresa_id)
         return {"access_token": access, "refresh_token": novo}
