@@ -165,12 +165,16 @@ export type DocumentoConhecimento = {
 };
 export type Asset = {
   id: string;
+  nome: string;
   categoria: string;
   origem: string;
   escopo: string;
+  projeto_id: string | null;
   mime: string | null;
   tamanho: number | null;
   caminho: string;
+  metadados: Record<string, unknown>;
+  criado_em: string | null;
 };
 export type Execucao = {
   id: string;
@@ -275,7 +279,23 @@ export const api = {
   },
   removerConhecimento: (id: string) =>
     apiRequest<null>(`/v1/conhecimento/${id}`, { method: "DELETE" }),
-  listarAssets: () => apiRequest<Asset[]>("/v1/assets"),
+  listarAssets: (filtros: { origem?: string; categoria?: string } = {}) => {
+    const p = new URLSearchParams();
+    if (filtros.origem) p.set("origem", filtros.origem);
+    if (filtros.categoria) p.set("categoria", filtros.categoria);
+    const qs = p.toString();
+    return apiRequest<Asset[]>(`/v1/assets${qs ? `?${qs}` : ""}`);
+  },
+  removerAsset: (id: string) => apiRequest<null>(`/v1/assets/${id}`, { method: "DELETE" }),
+  /** O arquivo exige token: busca como blob (não dá para usar a URL direto em <img>). */
+  baixarAsset: async (id: string): Promise<Blob> => {
+    const token = auth.getAccess();
+    const res = await fetch(`${API_BASE}/v1/assets/${id}/arquivo`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.blob();
+  },
   uploadAsset: (categoria: string, arquivo: File) => {
     const fd = new FormData();
     fd.append("categoria", categoria);

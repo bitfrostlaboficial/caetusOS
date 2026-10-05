@@ -12,6 +12,7 @@ import MissaoEmBreve from "./pages/MissaoEmBreve";
 import Conhecimento from "./pages/Conhecimento";
 import Provedores from "./pages/Provedores";
 import Marca from "./pages/Marca";
+import Biblioteca from "./pages/Biblioteca";
 import Historico from "./pages/Historico";
 import InfraestruturaIA from "./pages/InfraestruturaIA";
 import InfraestruturaIAHistorico from "./pages/InfraestruturaIAHistorico";
@@ -43,6 +44,7 @@ export default function App() {
         <Route path="missoes/criar-post" element={<MissaoCriarPost />} />
         <Route path="missoes/:slug" element={<MissaoEmBreve />} />
         <Route path="marca" element={<Marca />} />
+        <Route path="biblioteca" element={<Biblioteca />} />
         <Route path="provedores" element={<Provedores />} />
         <Route path="conhecimento" element={<Conhecimento />} />
         <Route path="historico" element={<Historico />} />
