@@ -57,3 +57,12 @@ def test_historico_e_isolado_por_empresa(criar_conta, ia_falsa):
     assert _executar(a, entrada={"tema": "segredo da A"}).status_code == 200
     assert b.get("/v1/historico").json() == []
     assert len(a.get("/v1/historico").json()) == 1
+
+
+def test_habilidades_expoe_manifesto(client, criar_conta):
+    conta = criar_conta()
+    r = conta.get("/v1/habilidades")
+    assert r.status_code == 200
+    criar = next(h for h in r.json() if h["nome"] == CRIAR_POST)
+    assert criar["usa_ia"] is True and "tema" in criar["entrada_schema"]["required"]
+    assert client.get("/v1/habilidades").status_code in (401, 403)

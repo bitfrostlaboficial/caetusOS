@@ -24,6 +24,8 @@ o que ele é, como está hoje, o que está quebrado e para onde ele precisa ir.*
 | 10 | [`10-pesquisa-provedores-opencode-estatico.md`](./10-pesquisa-provedores-opencode-estatico.md) | Pesquisa: provedores do BYOK (Gemini, Groq, Mistral, OpenRouter, NVIDIA, Cloudflare), OpenCode e "sistema estático". |
 | 11 | [`11-ideias-automacao-visual.md`](./11-ideias-automacao-visual.md) | Ideias: automação visual e fácil (Receitas/Passos, com IA e sem IA), agentes, gatilhos, roteiro. |
 | 12 | [`12-progresso.md`](./12-progresso.md) | Registro do que já foi corrigido/implementado no código (atualizado a cada iteração). |
+| 13 | [`13-viabilidade-infra-gratuita.md`](./13-viabilidade-infra-gratuita.md) | Cloudflare + Neon + R2/B2: o que cabe de graça, quantos usuários, onde está o 1º custo; ordem dos provedores de imagem. |
+| 14 | [`14-mcp.md`](./14-mcp.md) | Caetus OS como servidor MCP ("traga seu agente"): o que existe, segurança, roadmap. |
 
 ## Resumo em 10 linhas
 

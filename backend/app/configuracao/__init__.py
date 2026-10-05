@@ -38,6 +38,7 @@ class Configuracao(BaseSettings):
     gemini_api_key: str = ""
     gemini_model: str = "gemini-2.5-flash"
     gemini_vision_model: str = ""  # vazio => usa gemini_model
+    gemini_image_model: str = "gemini-2.5-flash-image"  # imagem (geralmente exige cobrança ativa)
 
     groq_api_key: str = ""
     groq_model: str = "llama-3.3-70b-versatile"

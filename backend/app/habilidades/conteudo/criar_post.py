@@ -22,6 +22,22 @@ class CriarPost(Habilidade):
     prompt_template = "criar_post"
     prompt_version = 1
     missao = "criar_post"
+    titulo = "Criar post"
+    descricao = (
+        "Gera legenda, hashtags e imagem de um post para redes sociais usando a marca, o "
+        "conhecimento e a memória da empresa. O resultado vai para a Biblioteca."
+    )
+    usa_ia = True
+    entrada_schema = {
+        "type": "object",
+        "properties": {
+            "tema": {"type": "string", "description": "Assunto do post (obrigatório)."},
+            "rede": {"type": "string", "description": "instagram, x, threads, linkedin... (padrão: instagram)."},
+            "objetivo": {"type": "string", "description": "engajamento, venda, informação... (padrão: engajamento)."},
+            "descricao_imagem": {"type": "string", "description": "Direção visual opcional para a imagem."},
+        },
+        "required": ["tema"],
+    }
 
     def executar(self, entrada: dict, contexto: Contexto) -> dict:
         log_evento(log, logging.INFO, "SKILL", "validando entrada", fase="validacao")

@@ -49,6 +49,51 @@ def test_gemini_sem_metadata_de_uso_nao_quebra(monkeypatch):
     assert (r.tokens_in, r.tokens_out) == (0, 0)
 
 
+# ───────── Gemini: imagem via inline_data ─────────
+def test_gemini_imagem_vira_data_uri(monkeypatch):
+    from google import genai
+
+    capturado = {}
+
+    class _Modelos:
+        def generate_content(self, *, model, contents, config=None):
+            capturado.update(model=model, config=config)
+            parte = types.SimpleNamespace(inline_data=types.SimpleNamespace(data=PNG, mime_type="image/png"))
+            return types.SimpleNamespace(
+                candidates=[types.SimpleNamespace(content=types.SimpleNamespace(parts=[parte]))],
+                usage_metadata=None,
+            )
+
+    monkeypatch.setattr(genai, "Client", lambda api_key: types.SimpleNamespace(models=_Modelos()))
+    r = GeminiProvedor(api_key="k").executar("um gato", modelo="gemini-2.5-flash-image")
+    assert r.texto == "data:image/png;base64," + base64.b64encode(PNG).decode()
+    assert list(capturado["config"].response_modalities) == ["IMAGE"]
+
+
+def test_gemini_imagem_sem_parte_de_imagem_falha_claro(monkeypatch):
+    from google import genai
+
+    class _Modelos:
+        def generate_content(self, **kw):
+            return types.SimpleNamespace(candidates=[], usage_metadata=None)
+
+    monkeypatch.setattr(genai, "Client", lambda api_key: types.SimpleNamespace(models=_Modelos()))
+    with pytest.raises(RuntimeError, match="sem imagem"):
+        GeminiProvedor(api_key="k").executar("x", modelo="gemini-2.5-flash-image")
+
+
+def test_gemini_vem_antes_da_cloudflare_para_imagem():
+    from app.ia.catalogo import CATALOGO_PADRAO
+    from app.ia.categorias import CategoriaIA, EspecializacaoIA
+
+    pesos = {
+        e.provider: e.peso
+        for e in CATALOGO_PADRAO()
+        if e.categoria == CategoriaIA.IMAGE and e.especializacao == EspecializacaoIA.IMAGE_GENERATION
+    }
+    assert pesos["gemini"] > pesos["fal"] > pesos["huggingface"] > pesos["cloudflare"]
+
+
 # ───────── Hugging Face: imagem volta como bytes ─────────
 class _RespBytes:
     status_code = 200

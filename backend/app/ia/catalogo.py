@@ -185,10 +185,16 @@ def CATALOGO_PADRAO() -> list[EntradaCatalogo]:
             lambda: config.hf_background_model, 100, CustoEstimado.FREE, _caps(image_generation=True),
         ),
 
-        # ───────── Cloudflare Workers AI — imagem FLUX (plano gratuito diário) ─────────
+        # ───────── Gemini — imagem (melhor qualidade que o FLUX schnell; costuma exigir cobrança) ─────────
+        EntradaCatalogo(
+            "gemini", CategoriaIA.IMAGE, EspecializacaoIA.IMAGE_GENERATION,
+            lambda: config.gemini_image_model, 110, CustoEstimado.MEDIUM, _caps(image_generation=True),
+        ),
+
+        # ───────── Cloudflare Workers AI — imagem FLUX (grátis, mas qualidade inferior: último recurso) ─────────
         EntradaCatalogo(
             "cloudflare", CategoriaIA.IMAGE, EspecializacaoIA.IMAGE_GENERATION,
-            lambda: config.cloudflare_image_model, 90, CustoEstimado.FREE, _caps(image_generation=True),
+            lambda: config.cloudflare_image_model, 40, CustoEstimado.FREE, _caps(image_generation=True),
         ),
 
         # ───────── Fal.ai — imagens & vídeos de alta qualidade ─────────

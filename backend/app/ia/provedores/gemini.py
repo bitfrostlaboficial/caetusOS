@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import time
 from typing import Any
 
@@ -7,11 +8,20 @@ from app.configuracao import config
 from app.ia.provedores.base import resposta_sem_chave, Capabilities, HealthStatus, Provider, RespostaIA
 
 
+def _eh_modelo_de_imagem(modelo: str | None) -> bool:
+    return bool(modelo) and ("image" in modelo or modelo.startswith("imagen"))  # type: ignore[union-attr]
+
+
 class GeminiProvedor(Provider):
     nome = "gemini"
     rotulo = "Google Gemini"
     url_chave = "https://aistudio.google.com/apikey"
-    aviso = "Confira no Google AI Studio os limites da camada gratuita e a política de uso de dados."
+    aviso = (
+        "Os limites do Google valem por PROJETO do Google Cloud, não por chave — várias chaves no mesmo "
+        "projeto dividem a mesma cota. Imagem costuma exigir chave com cobrança ativa; confira no AI Studio. "
+        "Dica: use um projeto separado só para imagens para isolar custo e cota (não crie projetos para "
+        "burlar limites: os termos do Google proíbem)."
+    )
 
     def __init__(self, api_key: str | None = None, modelo: str | None = None) -> None:
         self.api_key = api_key if api_key is not None else config.gemini_api_key
@@ -26,7 +36,7 @@ class GeminiProvedor(Provider):
         }
 
     def capabilities(self) -> Capabilities:
-        return Capabilities(chat=True, vision=True, ocr=True)
+        return Capabilities(chat=True, vision=True, ocr=True, image_generation=True)
 
     def listar_modelos(self) -> list[str]:
         # MVP: sem chamada remota; lista os mais comuns.
@@ -53,6 +63,8 @@ class GeminiProvedor(Provider):
         from google.genai import types  # type: ignore
 
         cliente = genai.Client(api_key=self.api_key)
+        if _eh_modelo_de_imagem(modelo_final):
+            return self._gerar_imagem(cliente, types, prompt, modelo_final)
         resp = cliente.models.generate_content(
             model=modelo_final,
             contents=prompt,
@@ -66,6 +78,32 @@ class GeminiProvedor(Provider):
             tokens_in=int(getattr(uso, "prompt_token_count", 0) or 0),
             tokens_out=int(getattr(uso, "candidates_token_count", 0) or 0),
         )
+
+    def _gerar_imagem(self, cliente: Any, types: Any, prompt: str, modelo: str) -> RespostaIA:
+        """Modelos *-image do Gemini devolvem a imagem em `inline_data`; viramos data URI."""
+        resp = cliente.models.generate_content(
+            model=modelo,
+            contents=prompt,
+            config=types.GenerateContentConfig(response_modalities=["IMAGE"]),
+        )
+        for cand in getattr(resp, "candidates", None) or []:
+            for parte in getattr(getattr(cand, "content", None), "parts", None) or []:
+                dados = getattr(parte, "inline_data", None)
+                if dados is not None and getattr(dados, "data", None):
+                    bruto = dados.data
+                    if isinstance(bruto, str):
+                        b64 = bruto
+                    else:
+                        b64 = base64.b64encode(bruto).decode("ascii")
+                    mime = getattr(dados, "mime_type", None) or "image/png"
+                    uso = getattr(resp, "usage_metadata", None)
+                    return RespostaIA(
+                        texto=f"data:{mime};base64,{b64}",
+                        provedor=self.nome,
+                        modelo=modelo,
+                        tokens_in=int(getattr(uso, "prompt_token_count", 0) or 0),
+                    )
+        raise RuntimeError("gemini: resposta sem imagem (modelo recusou ou não suporta imagem)")
 
     # ───────── Compat. com habilidades antigas ─────────
     def gerar_texto(self, prompt: str, *, max_tokens: int = 1024) -> RespostaIA:

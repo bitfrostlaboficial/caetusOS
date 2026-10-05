@@ -21,5 +21,9 @@ def listar() -> list[str]:
     return sorted(_REGISTRO.keys())
 
 
+def manifestos() -> list[dict]:
+    return [_REGISTRO[n].manifesto() for n in listar()]
+
+
 # Registro explícito (sem autodiscovery, conforme §4).
 registrar(CriarPost())
