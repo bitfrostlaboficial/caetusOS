@@ -82,6 +82,14 @@ class Configuracao(BaseSettings):
     # em vez de falhar. NUNCA ligar em produção (mascara chave faltando como sucesso).
     ia_permitir_stub: bool = False
 
+    # Operadores da plataforma (e-mails, separados por vírgula): únicos autorizados a
+    # ver/alterar estado GLOBAL (saúde dos provedores, modo do roteador, benchmark...).
+    platform_admin_emails: str = ""
+
+    @property
+    def platform_admin_list(self) -> list[str]:
+        return [e.strip().lower() for e in self.platform_admin_emails.split(",") if e.strip()]
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]

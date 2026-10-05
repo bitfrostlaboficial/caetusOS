@@ -2,7 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
 
-from app.api.deps import obter_db
+from app.api.deps import obter_db, usuario_atual
+from app.configuracao import config
+from app.dominio.modelos.usuario import Usuario
 from app.dominio.erros import JaExiste, NaoAutenticado
 from app.servicos.auth_servico import AuthServico
 
@@ -48,3 +50,14 @@ def refresh(dados: RefreshEntrada, sessao: Session = Depends(obter_db)):
         return AuthServico(sessao).rotacionar_refresh(dados.refresh_token)
     except ValueError as exc:
         raise HTTPException(status_code=401, detail=str(exc))
+
+
+@router.get("/me")
+def eu(usuario: Usuario = Depends(usuario_atual)):
+    """Quem sou eu — usado pelo frontend para decidir o que exibir."""
+    return {
+        "usuario_id": str(usuario.id),
+        "empresa_id": str(usuario.empresa_id),
+        "email": usuario.email,
+        "admin_plataforma": usuario.email.lower() in config.platform_admin_list,
+    }

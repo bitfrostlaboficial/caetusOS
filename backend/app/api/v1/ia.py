@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from app.api.deps import usuario_atual
+from app.api.deps import exigir_admin_plataforma, usuario_atual
 from app.dominio.modelos.usuario import Usuario
 from app.ia import roteador
 from app.ia.health import checar_todos, checar_um
@@ -21,22 +21,22 @@ def _serializar(p) -> dict:
 
 
 @router.get("")
-def listar(_: Usuario = Depends(usuario_atual)) -> list[dict]:
+def listar(_: Usuario = Depends(exigir_admin_plataforma)) -> list[dict]:
     return [_serializar(p) for p in roteador.listar()]
 
 
 @router.get("/health")
-def health(_: Usuario = Depends(usuario_atual)) -> list[dict]:
+def health(_: Usuario = Depends(exigir_admin_plataforma)) -> list[dict]:
     return [s.to_dict() for s in checar_todos()]
 
 
 @router.post("/health/check")
-def health_check_manual(_: Usuario = Depends(usuario_atual)) -> list[dict]:
+def health_check_manual(_: Usuario = Depends(exigir_admin_plataforma)) -> list[dict]:
     return [s.to_dict() for s in checar_todos()]
 
 
 @router.get("/{nome}")
-def detalhar(nome: str, _: Usuario = Depends(usuario_atual)) -> dict:
+def detalhar(nome: str, _: Usuario = Depends(exigir_admin_plataforma)) -> dict:
     try:
         p = roteador.obter(nome)
     except KeyError as exc:

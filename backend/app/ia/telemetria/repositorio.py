@@ -68,25 +68,27 @@ def listar_eventos(sessao: Session, execucao_id: uuid.UUID) -> list[IAExecucaoEv
 
 
 # ───────── Métricas agregadas ─────────
-def metricas_globais(sessao: Session) -> dict[str, Any]:
+def metricas_globais(sessao: Session, empresa_id: uuid.UUID | None = None) -> dict[str, Any]:
     agora = datetime.now(timezone.utc)
     inicio_dia = agora.replace(hour=0, minute=0, second=0, microsecond=0)
+    # Escopo por empresa (None = visão da plataforma).
+    esc = (IAExecucao.empresa_id == empresa_id) if empresa_id else True
 
     total_hoje = sessao.execute(
-        select(func.count(IAExecucao.id)).where(IAExecucao.created_at >= inicio_dia)
+        select(func.count(IAExecucao.id)).where(IAExecucao.created_at >= inicio_dia, esc)
     ).scalar_one()
     sucessos_hoje = sessao.execute(
         select(func.count(IAExecucao.id)).where(
-            IAExecucao.created_at >= inicio_dia, IAExecucao.status == "sucesso"
+            IAExecucao.created_at >= inicio_dia, IAExecucao.status == "sucesso", esc
         )
     ).scalar_one()
     falhas_hoje = sessao.execute(
         select(func.count(IAExecucao.id)).where(
-            IAExecucao.created_at >= inicio_dia, IAExecucao.status != "sucesso"
+            IAExecucao.created_at >= inicio_dia, IAExecucao.status != "sucesso", esc
         )
     ).scalar_one()
     tempo_medio = sessao.execute(
-        select(func.avg(IAExecucao.duracao_ms)).where(IAExecucao.created_at >= inicio_dia)
+        select(func.avg(IAExecucao.duracao_ms)).where(IAExecucao.created_at >= inicio_dia, esc)
     ).scalar_one()
     custo_hoje = sessao.execute(
         select(func.coalesce(func.sum(IAExecucao.custo_estimado), 0.0)).where(
@@ -96,19 +98,20 @@ def metricas_globais(sessao: Session) -> dict[str, Any]:
 
     provider_top = sessao.execute(
         select(IAExecucao.provider, func.count(IAExecucao.id).label("c"))
-        .where(IAExecucao.created_at >= inicio_dia)
+        .where(IAExecucao.created_at >= inicio_dia, esc)
         .group_by(IAExecucao.provider)
         .order_by(func.count(IAExecucao.id).desc())
         .limit(1)
     ).first()
     modelo_top = sessao.execute(
         select(IAExecucao.modelo, func.count(IAExecucao.id).label("c"))
-        .where(IAExecucao.created_at >= inicio_dia, IAExecucao.modelo.isnot(None))
+        .where(IAExecucao.created_at >= inicio_dia, IAExecucao.modelo.isnot(None), esc)
         .group_by(IAExecucao.modelo)
         .order_by(func.count(IAExecucao.id).desc())
         .limit(1)
     ).first()
-    empresa_top = sessao.execute(
+    # Nunca expor ranking de OUTRAS empresas: só a visão da plataforma tem esse campo.
+    empresa_top = None if empresa_id else sessao.execute(
         select(IAExecucao.empresa_id, func.count(IAExecucao.id).label("c"))
         .where(IAExecucao.created_at >= inicio_dia, IAExecucao.empresa_id.isnot(None))
         .group_by(IAExecucao.empresa_id)
@@ -127,7 +130,7 @@ def metricas_globais(sessao: Session) -> dict[str, Any]:
                 case((IAExecucao.status != "sucesso", 1), else_=0)
             ).label("erros"),
         )
-        .where(IAExecucao.created_at >= desde_24h)
+        .where(IAExecucao.created_at >= desde_24h, esc)
         .group_by("hora")
         .order_by("hora")
     ).all()
@@ -156,7 +159,7 @@ def metricas_globais(sessao: Session) -> dict[str, Any]:
     }
 
 
-def ranking_provedores(sessao: Session) -> list[dict[str, Any]]:
+def ranking_provedores(sessao: Session, empresa_id: uuid.UUID | None = None) -> list[dict[str, Any]]:
     rows = sessao.execute(
         select(
             IAExecucao.provider,
@@ -167,7 +170,9 @@ def ranking_provedores(sessao: Session) -> list[dict[str, Any]]:
             func.sum(
                 case((IAExecucao.status == "sucesso", 1), else_=0)
             ).label("sucessos"),
-        ).group_by(IAExecucao.provider)
+        )
+        .where(IAExecucao.empresa_id == empresa_id if empresa_id else True)
+        .group_by(IAExecucao.provider)
     ).all()
     out: list[dict[str, Any]] = []
     for r in rows:
@@ -185,7 +190,7 @@ def ranking_provedores(sessao: Session) -> list[dict[str, Any]]:
     return out
 
 
-def metricas_por_modelo(sessao: Session) -> list[dict[str, Any]]:
+def metricas_por_modelo(sessao: Session, empresa_id: uuid.UUID | None = None) -> list[dict[str, Any]]:
     rows = sessao.execute(
         select(
             IAExecucao.provider,
@@ -197,7 +202,7 @@ def metricas_por_modelo(sessao: Session) -> list[dict[str, Any]]:
             func.coalesce(func.sum(IAExecucao.custo_estimado), 0).label("custo"),
             func.max(IAExecucao.created_at).label("ultima"),
         )
-        .where(IAExecucao.modelo.isnot(None))
+        .where(IAExecucao.modelo.isnot(None), IAExecucao.empresa_id == empresa_id if empresa_id else True)
         .group_by(IAExecucao.provider, IAExecucao.modelo)
         .order_by(func.count(IAExecucao.id).desc())
     ).all()

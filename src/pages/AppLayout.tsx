@@ -1,11 +1,22 @@
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Brand } from "@/components/Brand";
-import { auth } from "@/lib/api";
+import { useEffect, useState } from "react";
+import { api, auth } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 export default function AppLayout() {
   const navigate = useNavigate();
+  // Infraestrutura/Benchmark operam sobre as chaves e o estado GLOBAL da plataforma:
+  // só aparecem (e só respondem no backend) para operadores da plataforma.
+  const [adminPlataforma, setAdminPlataforma] = useState(false);
+
+  useEffect(() => {
+    api
+      .eu()
+      .then((u) => setAdminPlataforma(u.admin_plataforma))
+      .catch(() => setAdminPlataforma(false));
+  }, []);
 
   function sair() {
     auth.clear();
@@ -42,12 +53,16 @@ export default function AppLayout() {
             <NavLink to="/app/infraestrutura/execucoes" className={itemClass}>
               Execuções
             </NavLink>
-            <NavLink to="/app/infraestrutura/ia" className={itemClass}>
-              Infraestrutura
-            </NavLink>
-            <NavLink to="/app/infraestrutura/benchmark" className={itemClass}>
-              Benchmark
-            </NavLink>
+            {adminPlataforma && (
+              <>
+                <NavLink to="/app/infraestrutura/ia" className={itemClass}>
+                  Infraestrutura
+                </NavLink>
+                <NavLink to="/app/infraestrutura/benchmark" className={itemClass}>
+                  Benchmark
+                </NavLink>
+              </>
+            )}
             <NavLink to="/app/historico" className={itemClass}>
               Histórico
             </NavLink>

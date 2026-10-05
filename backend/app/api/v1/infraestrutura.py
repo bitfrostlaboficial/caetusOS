@@ -7,7 +7,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from app.api.deps import obter_db, usuario_atual
+from app.api.deps import exigir_admin_plataforma, obter_db, usuario_atual
 from app.dominio.modelos.ia_health import IAProviderHealth, IAProviderHealthHistory
 from app.dominio.modelos.usuario import Usuario
 from app.ia import roteador
@@ -66,7 +66,7 @@ def _serializar_historico(h: IAProviderHealthHistory) -> dict[str, Any]:
 # ───────── GET / — dashboard agregado ─────────
 @router.get("")
 def overview(
-    _: Usuario = Depends(usuario_atual),
+    _: Usuario = Depends(exigir_admin_plataforma),
     sessao: Session = Depends(obter_db),
 ) -> dict[str, Any]:
     estados = {e.provider: e for e in repositorio.listar_estado_atual(sessao)}
@@ -107,7 +107,7 @@ def historico(
     desde: datetime | None = Query(default=None),
     ate: datetime | None = Query(default=None),
     limite: int = Query(default=200, ge=1, le=2000),
-    _: Usuario = Depends(usuario_atual),
+    _: Usuario = Depends(exigir_admin_plataforma),
     sessao: Session = Depends(obter_db),
 ) -> list[dict[str, Any]]:
     items = repositorio.listar_historico(
@@ -119,7 +119,7 @@ def historico(
 # ───────── POST /check — executa imediatamente ─────────
 @router.post("/check")
 async def executar_agora(
-    _: Usuario = Depends(usuario_atual),
+    _: Usuario = Depends(exigir_admin_plataforma),
     sessao: Session = Depends(obter_db),
 ) -> list[dict[str, Any]]:
     return await service.executar_e_persistir(sessao)
@@ -185,11 +185,12 @@ def listar_execucoes(
     busca: str | None = None,
     limite: int = Query(default=50, ge=1, le=500),
     offset: int = Query(default=0, ge=0),
-    _: Usuario = Depends(usuario_atual),
+    usuario: Usuario = Depends(usuario_atual),
     sessao: Session = Depends(obter_db),
 ) -> list[dict[str, Any]]:
     itens = repo_exec.listar_execucoes(
         sessao,
+        empresa_id=usuario.empresa_id,
         provider=provider,
         modelo=modelo,
         habilidade=habilidade,
@@ -206,11 +207,12 @@ def listar_execucoes(
 @router.get("/executions/{execucao_id}")
 def detalhar_execucao(
     execucao_id: _uuid.UUID,
-    _: Usuario = Depends(usuario_atual),
+    usuario: Usuario = Depends(usuario_atual),
     sessao: Session = Depends(obter_db),
 ) -> dict[str, Any]:
     exec_ = repo_exec.buscar_execucao(sessao, execucao_id)
-    if exec_ is None:
+    # 404 (e não 403) para não revelar a existência de execuções de outras empresas.
+    if exec_ is None or exec_.empresa_id != usuario.empresa_id:
         raise HTTPException(status_code=404, detail="execução não encontrada")
     eventos = repo_exec.listar_eventos(sessao, execucao_id)
     return {
@@ -221,18 +223,18 @@ def detalhar_execucao(
 
 @router.get("/metrics")
 def metricas(
-    _: Usuario = Depends(usuario_atual),
+    usuario: Usuario = Depends(usuario_atual),
     sessao: Session = Depends(obter_db),
 ) -> dict[str, Any]:
-    return repo_exec.metricas_globais(sessao)
+    return repo_exec.metricas_globais(sessao, empresa_id=usuario.empresa_id)
 
 
 @router.get("/providers/ranking")
 def ranking(
-    _: Usuario = Depends(usuario_atual),
+    usuario: Usuario = Depends(usuario_atual),
     sessao: Session = Depends(obter_db),
 ) -> dict[str, Any]:
-    rank = repo_exec.ranking_provedores(sessao)
+    rank = repo_exec.ranking_provedores(sessao, empresa_id=usuario.empresa_id)
 
     def _safe_min(items, key):
         v = [i for i in items if i["execucoes"] > 0]
@@ -253,10 +255,10 @@ def ranking(
 
 @router.get("/models")
 def listar_modelos_stats(
-    _: Usuario = Depends(usuario_atual),
+    usuario: Usuario = Depends(usuario_atual),
     sessao: Session = Depends(obter_db),
 ) -> list[dict[str, Any]]:
-    return repo_exec.metricas_por_modelo(sessao)
+    return repo_exec.metricas_por_modelo(sessao, empresa_id=usuario.empresa_id)
 
 
 # ───────── POST /benchmark ─────────
@@ -269,7 +271,7 @@ class BenchmarkRequest(BaseModel):
 @router.post("/benchmark")
 async def benchmark(
     req: BenchmarkRequest,
-    usuario: Usuario = Depends(usuario_atual),
+    usuario: Usuario = Depends(exigir_admin_plataforma),
 ) -> dict[str, Any]:
     """Executa o mesmo prompt em N provedores em paralelo. Cada execução
     passa pelo roteador, então a telemetria é gravada normalmente.
@@ -407,7 +409,7 @@ def listar_missoes_endpoint(_: Usuario = Depends(usuario_atual)) -> list[dict[st
 
 
 @router.get("/metricas")
-def metricas_em_memoria(_: Usuario = Depends(usuario_atual)) -> list[dict[str, Any]]:
+def metricas_em_memoria(_: Usuario = Depends(exigir_admin_plataforma)) -> list[dict[str, Any]]:
     """Métricas in-memory por (provider, modelo)."""
     return _metricas_mod.snapshot()
 
@@ -415,13 +417,13 @@ def metricas_em_memoria(_: Usuario = Depends(usuario_atual)) -> list[dict[str, A
 @router.get("/fallbacks")
 def fallbacks_endpoint(
     limite: int = Query(default=100, ge=1, le=200),
-    _: Usuario = Depends(usuario_atual),
+    _: Usuario = Depends(exigir_admin_plataforma),
 ) -> list[dict[str, Any]]:
     return fallback_log.listar(limite=limite)
 
 
 @router.get("/perfis")
-def perfis_endpoint(_: Usuario = Depends(usuario_atual)) -> dict[str, Any]:
+def perfis_endpoint(_: Usuario = Depends(exigir_admin_plataforma)) -> dict[str, Any]:
     return {
         "disponiveis": _perfis.perfis_disponiveis(),
         "ativo": _perfis.carregar().get("nome"),
@@ -437,7 +439,7 @@ class ModoRequest(BaseModel):
 
 @router.post("/modo")
 def definir_modo_endpoint(
-    req: ModoRequest, _: Usuario = Depends(usuario_atual),
+    req: ModoRequest, _: Usuario = Depends(exigir_admin_plataforma),
 ) -> dict[str, Any]:
     """Alterna modo Automático/Manual e (em manual) define overrides por missão.
 
@@ -462,7 +464,7 @@ def definir_modo_endpoint(
 
 
 @router.get("/categorias")
-def categorias_endpoint(_: Usuario = Depends(usuario_atual)) -> dict[str, list[str]]:
+def categorias_endpoint(_: Usuario = Depends(usuario_atual)) -> dict[str, Any]:
     """Lista enums disponíveis — útil para o frontend popular selects."""
     return {
         "categorias": [c.value for c in CategoriaIA],

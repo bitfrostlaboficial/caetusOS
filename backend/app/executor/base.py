@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from sqlalchemy.orm import Session
 
-from app.dominio.erros import SchemaVersionNaoSuportado, TipoComandoNaoRegistrado
+from app.dominio.erros import NaoEncontrado, SchemaVersionNaoSuportado, TipoComandoNaoRegistrado
 from app.dominio.modelos.execucao import Execucao
 from app.dominio.modelos.projeto import Projeto
 from app.executor.comando import SCHEMA_VERSION_ATUAL, Comando
@@ -47,7 +47,12 @@ class Executor:
         if comando.tipo == TipoComando.SKILL:
             habilidade = obter_habilidade(comando.alvo)  # levanta HabilidadeNaoRegistrada
 
-        # 3. Garantir projeto (default = raiz).
+        # 3. Garantir projeto (default = raiz). Um projeto informado pelo cliente precisa
+        #    pertencer à empresa do comando (404 para não revelar projetos alheios).
+        if comando.projeto_id is not None:
+            projeto = self.sessao.get(Projeto, comando.projeto_id)
+            if projeto is None or projeto.empresa_id != comando.empresa_id:
+                raise NaoEncontrado("projeto não encontrado")
         if comando.projeto_id is None:
             raiz = (
                 self.sessao.query(Projeto)

@@ -177,6 +177,13 @@ export const api = {
     apiRequest<{ access_token: string; refresh_token: string }>("/v1/auth/login", {
       body: { email, senha },
     }),
+  eu: () =>
+    apiRequest<{
+      usuario_id: string;
+      empresa_id: string;
+      email: string;
+      admin_plataforma: boolean;
+    }>("/v1/auth/me"),
   empresaAtual: () => apiRequest<Empresa>("/v1/empresas/me"),
   listarProjetos: () => apiRequest<Projeto[]>("/v1/projetos"),
   listarConhecimento: () => apiRequest<DocumentoConhecimento[]>("/v1/conhecimento"),

@@ -44,3 +44,13 @@ def usuario_atual(
     if usuario is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="usuário não encontrado")
     return usuario
+
+
+def exigir_admin_plataforma(usuario: Usuario = Depends(usuario_atual)) -> Usuario:
+    """Operações globais (estado dos provedores, modo do roteador, benchmark com as
+    chaves da plataforma) só para operadores listados em PLATFORM_ADMIN_EMAILS."""
+    from app.configuracao import config
+
+    if usuario.email.lower() not in config.platform_admin_list:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="acesso restrito à administração da plataforma")
+    return usuario

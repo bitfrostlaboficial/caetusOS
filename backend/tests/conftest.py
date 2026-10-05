@@ -136,3 +136,40 @@ def ia_falsa(monkeypatch):
 
     monkeypatch.setattr(pipeline_post, "executar_missao", _falso)
     return chamadas
+
+
+@pytest.fixture()
+def admin_plataforma(monkeypatch, criar_conta):
+    """Conta cujo e-mail está em PLATFORM_ADMIN_EMAILS."""
+    from app.configuracao import config
+
+    monkeypatch.setattr(config, "platform_admin_emails", "admin@caetus.com")
+    return criar_conta("Caetus", "admin@caetus.com")
+
+
+@pytest.fixture()
+def inserir_exec_ia():
+    """Insere uma linha de telemetria de IA para uma empresa (sem chamar provedor)."""
+    import uuid
+    from datetime import datetime, timezone
+
+    from app.dominio.modelos.ia_execucao import IAExecucao
+    from app.infraestrutura.banco.sessao import SessionLocal
+
+    def _inserir(empresa_id: str, provider: str = "groq", status: str = "sucesso") -> str:
+        with SessionLocal() as s:
+            ex = IAExecucao(
+                id=uuid.uuid4(),
+                empresa_id=uuid.UUID(empresa_id),
+                provider=provider,
+                modelo="m1",
+                habilidade="criar_post",
+                inicio_execucao=datetime.now(timezone.utc),
+                status=status,
+                metadata_json={},
+            )
+            s.add(ex)
+            s.commit()
+            return str(ex.id)
+
+    return _inserir

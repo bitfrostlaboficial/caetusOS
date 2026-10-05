@@ -18,6 +18,7 @@ from app.api.deps import obter_db, usuario_atual
 from app.configuracao import config
 from app.dominio.erros import (
     HabilidadeNaoRegistrada,
+    NaoEncontrado,
     SchemaVersionNaoSuportado,
     TipoComandoNaoRegistrado,
 )
@@ -117,7 +118,7 @@ def executar(
         resultado = executor.executar(comando)
     except SchemaVersionNaoSuportado as exc:
         raise HTTPException(status_code=400, detail={"erro": str(exc), "request_id": request_id})
-    except (HabilidadeNaoRegistrada, TipoComandoNaoRegistrado) as exc:
+    except (HabilidadeNaoRegistrada, TipoComandoNaoRegistrado, NaoEncontrado) as exc:
         raise HTTPException(status_code=404, detail={"erro": str(exc), "request_id": request_id})
     except HTTPException:
         raise
