@@ -37,7 +37,8 @@ o que ele é, como está hoje, o que está quebrado e para onde ele precisa ir.*
 - **Planejado vs. feito:** o backend **passou muito do plano congelado v6.1** (roteador por catálogo/missões/pesos, health-check,
   telemetria, Command Center), mas **faltam partes básicas do Sprint 0 no frontend** (Identidade, Memória, Assets) e **não há testes nem CI**.
 - **Há duas trilhas:** este repo (**caetusOS**, SaaS) e o **caetusClaude** (versão semi-automática com agentes, separada em 05/07/2026 para o repositório `CaetusSystems/CaetusClaude`, não lido). Ver doc 9.
-- **Recomendação:** estabilizar (Fase 0) → fechar o ciclo utilizável (Fase 1) → escolher **um nicho para validar** em cima de um **núcleo geral** (ver doc 5).
+- **Decisões do dono (05/10/2026):** nome **Caetus OS**; **sem nicho por ora** (nicho será uma camada visual depois); **BYOK** — cada cliente cadastra as próprias chaves de IA (assinatura com IA incluída só no futuro); **publicação em redes sociais fica para depois**; branch oficial **`no_lovable`**; repositório deve ficar **privado** (ação no GitHub).
+- **Recomendação:** estabilizar (Fase 0) → fechar o ciclo utilizável **com BYOK** (Fase 1) → só então pensar em nicho/publicação/cobrança (ver docs 5, 6 e 8).
 
 ## Convenção de status usada nos documentos
 

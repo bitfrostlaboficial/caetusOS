@@ -1,20 +1,31 @@
-# 08 — Decisões pendentes (dependem do dono do projeto)
+# 08 — Decisões (tomadas e pendentes)
+
+## ✅ Decididas em 05/10/2026 (resposta do dono do projeto)
+
+| ID | Decisão | Consequência |
+|----|---------|--------------|
+| D-01 | **Nome oficial: Caetus OS.** "Empresa IA" deixa de existir. | T-013 passa a ser **renomear tudo** (README, `plan.md`, `pyproject`, `fly.toml`, nomes de banco/usuário, chaves do `localStorage`, títulos). |
+| D-02/D-03 | **Sem nicho por enquanto.** Primeiro fazer o **sistema funcionar**; um nicho vem depois como **camada por cima** (principalmente visual: templates, textos, onboarding). | Prioridade total para o núcleo (Fases 0–1). O "pacote de nicho" (T-402) fica para depois e deve ser só configuração/visual. |
+| D-05 | **BYOK (traga sua própria chave) como modelo inicial:** cada cliente cria conta nos provedores (Gemini, Groq, OpenRouter, HuggingFace, Fal...), cadastra as próprias chaves no Caetus OS e usa tudo por conta própria — o sistema **não custa IA para a plataforma**. **Assinatura com créditos/IA incluída** fica para o futuro. | T-204 (BYOK) **sobe para a Fase 1** e vira requisito de lançamento; cotas/cobrança (T-203, T-211) ficam para depois. |
+| D-06 | **Publicação em redes sociais só depois.** Cada cliente precisaria criar o próprio app (Meta etc.); é um tema à parte. No início: **gerar → revisar → baixar/copiar**. | T-109, T-303, T-304 saem do caminho crítico (Fase 3+). |
+| D-11 (parte) | **Branch oficial: `no_lovable`.** | T-015: tornar `no_lovable` a base (merge em `main`/trocar branch padrão). |
+| D-10 (parte) | Repositório **deveria ser privado.** | Ver nota abaixo: a visibilidade é alterada nas configurações do GitHub (não tenho ferramenta para isso); **não resolve as chaves vazadas**. |
+
+> **Visibilidade do repositório:** em *GitHub → `bitfrostlaboficial/caetusOS` → Settings → General → Danger Zone → Change repository visibility → Make private*. Tornar privado **reduz a exposição futura**, mas **não apaga** o que já foi clonado/indexado: as chaves que estiveram no histórico continuam tendo de ser **revogadas** (T-001). Atenção: se o Lovable ou outra integração usa o repositório, confirme que o acesso continua depois da mudança.
+
+## ⏳ Ainda pendentes
 
 Cada decisão mostra **o que muda**, **opções** e **recomendação**. Marque a escolhida (ou me diga) e movemos para o roadmap.
 
 | ID | Decisão | Bloqueia |
 |----|---------|----------|
-| D-01 | Nome oficial do produto | T-013, branding, domínio |
-| D-02 | Caminho de produto: geral, nicho ou núcleo+pacote | Fase 1 em diante |
-| D-03 | Qual nicho/público para validar primeiro | T-105, T-113, T-401 |
 | D-04 | Modelo de usuário/empresa (1 usuário = 1 empresa vs. usuário global com várias) | T-003 (parcial), T-007, T-201 |
-| D-05 | Estratégia de IA: chaves da plataforma, BYOK ou ambos; uso de free tiers em produção | T-204, T-203, modelo de preço |
-| D-06 | Escopo da publicação em redes (copiar/baixar vs. publicar manual vs. automática) | T-109, T-303, T-304 |
+| D-12 | Detalhes do BYOK: cifragem das chaves (chave-mestra no servidor), quais provedores no lançamento, se haverá "teste de chave" ao salvar e se o cliente escolhe a ordem/prioridade dos provedores | T-204 |
 | D-07 | Hospedagem de produção e Postgres (Fly+Neon vs. VPS) | T-207 |
 | D-08 | Gerenciador de pacotes do frontend (bun vs. npm) e ferramenta de teste | T-040 |
 | D-09 | Relação com o Lovable (continuar usando para UI? quem aprova mudanças?) | CI, fluxo de branches |
-| D-10 | ~~Repositório público ou privado?~~ **Respondida: é PÚBLICO** (`bitfrostlaboficial/caetusOS`). Manter público? | SEC-01 (crítico), propriedade intelectual |
-| D-11 | Qual branch é a oficial (`main` × `no_lovable`) e qual o papel de cada repositório do ecossistema (CaetusClaude etc.) | T-015, T-017, roadmap |
+| D-10 | Tornar o repositório privado (ação sua no GitHub) e **rotacionar as chaves** | SEC-01 |
+| D-11 | Papel de cada repositório do ecossistema (CaetusClaude, caetusStudio, caetusVideo, caetusBot-WPP, caetus-monitor) e o que reaproveitar | T-017, roadmap |
 
 ---
 

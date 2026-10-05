@@ -37,7 +37,7 @@ O projeto tem **dois nomes** espalhados:
 | `README.md`, `.lovable/plan.md`, `pyproject.toml` (`empresa-ia-backend`), `fly.toml` (`app = "empresa-ia"`), banco/usuário (`empresa_ia`), chaves do `localStorage` (`empresaia.*`) | **Empresa IA** |
 | `package.json` (`tanstack_start_ts`) | nome padrão do template Lovable |
 
-→ Decisão pendente: ver [`08-decisoes-pendentes.md`](./08-decisoes-pendentes.md) (D-01). **Nestes documentos usamos "caetusOS".**
+→ **Decidido em 05/10/2026: o nome oficial é Caetus OS; "Empresa IA" deixa de existir** (tarefa de renomeação: T-013). Nestes documentos aparece "caetusOS" (grafia usada hoje no código e na UI).
 
 ## 3. Origem e forma de trabalho
 

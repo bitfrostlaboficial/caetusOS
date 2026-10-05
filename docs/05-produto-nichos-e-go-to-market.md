@@ -1,6 +1,8 @@
 # 05 — Produto: geral vs. nichos, e como começar a usar
 
-> Este documento é **recomendação para discussão**, não decisão tomada. As decisões estão em [`08-decisoes-pendentes.md`](./08-decisoes-pendentes.md).
+> **Atualização (05/10/2026):** o dono do projeto decidiu **não escolher nicho agora** — primeiro fazer o sistema funcionar; o nicho virá depois como **camada por cima, principalmente visual**. Modelo inicial: **BYOK** (cada cliente traz suas chaves de IA); assinatura com IA incluída só no futuro; **publicação em redes sociais fica para depois**. Isso equivale ao *núcleo geral* do Caminho C **sem** escolher o pacote de nicho ainda. O restante abaixo permanece como referência para quando chegar a hora do nicho.
+>
+> Documento original: **recomendação para discussão**. As decisões estão em [`08-decisoes-pendentes.md`](./08-decisoes-pendentes.md).
 > Não inclui dados de mercado levantados (não pesquisei concorrentes/preços); apenas raciocínio a partir do que o código já faz.
 
 ## 1. A pergunta
@@ -50,6 +52,14 @@ O que **não** existe e muda o plano conforme o caminho: agendamento, fluxos, in
 > **Variação possível de nicho** (a escolher com o dono do projeto): agências/freelancers de social media (cliente = quem atende várias marcas → o modelo `empresa → projeto` já favorece "uma conta, várias marcas"); restaurantes/varejo local; clínicas/estética; e-commerce (ficha de produto/marketplace — missões já listadas no catálogo). O critério de escolha deve ser **acesso real a 5–10 pessoas desse nicho** para testar, não o tamanho teórico do mercado.
 
 Nota técnica a favor das **agências**: o modelo atual já tem `projetos` (hoje só o raiz). Ativar múltiplos projetos na UI seria o equivalente a "múltiplas marcas por conta".
+
+## 4b. Modelo de uso decidido: BYOK primeiro
+
+- **Cada cliente cria suas contas** nos provedores (Gemini, Groq, OpenRouter, HuggingFace, Fal...) e **cadastra as chaves no Caetus OS**; o roteador junta todas e escolhe/faz fallback entre elas. O cliente paga (ou usa o free tier) **diretamente no provedor**; a plataforma não tem custo de IA.
+- **Vantagens:** zero risco de custo/abuso de IA para a plataforma; acesso gratuito para começar; transparência (o cliente vê o que gasta); mitiga RISK-01 (dependência de free tier da plataforma).
+- **Atritos a tratar:** onboarding (criar várias contas é trabalhoso → tela guiada com passo-a-passo e "testar chave", T-115); segurança das chaves (cifradas, nunca devolvidas, nunca em log — T-114); qualidade varia por provedor/modelo escolhido pelo cliente (mostrar recomendações, T-111).
+- **Futuro pago:** plano de assinatura com **IA incluída/créditos** (a plataforma usa as próprias chaves e cobra) — exige cotas e medição de custo por empresa (T-203/T-110/T-211). Por isso o desenho do BYOK deve **já separar** "credencial da empresa" de "credencial da plataforma".
+- **Publicação em redes:** adiada. Cada cliente teria de criar um app (ex.: Meta) e conectar; avaliar só depois (D-06).
 
 ## 5. "Colocar para funcionar" — plano de uso em 3 degraus
 
