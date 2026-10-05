@@ -14,6 +14,8 @@ def carregar_conhecimento(sessao: Session, empresa_id: uuid.UUID) -> list[dict]:
     ).all()
     resultado: list[dict] = []
     for d in docs:
+        if not d.is_indexable:
+            continue
         try:
             texto = storage.ler(d.caminho_storage).decode("utf-8", errors="replace")
         except Exception:

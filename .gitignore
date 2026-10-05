@@ -31,5 +31,14 @@ dist-ssr
 *.sln
 *.sw?
 
-# variavel de ambiente
+# Base de conhecimento local das empresas (dados privados, nunca versionados)
+/empresas/
+backend/storage_local/
+
+# Segredos locais (nunca versionados)
 .env
+backend/.env
+!backend/.env.example
+
+# Perfis de agente traduzidos (gerados por caetus/scripts/apply_profile.py)
+/caetus/.generated/

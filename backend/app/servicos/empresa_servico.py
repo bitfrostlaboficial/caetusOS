@@ -30,6 +30,11 @@ class EmpresaServico:
         projeto_raiz = Projeto(empresa_id=empresa.id, nome="Principal", slug="principal", eh_raiz=True)
         self.sessao.add(projeto_raiz)
         self.sessao.flush()
+
+        # Inicializa a base de conhecimento padrao da empresa
+        from app.servicos.conhecimento_servico import ConhecimentoServico
+        ConhecimentoServico(self.sessao).inicializar_padrao(empresa.id)
+
         return empresa
 
     def projeto_raiz(self, empresa_id: uuid.UUID) -> Projeto:

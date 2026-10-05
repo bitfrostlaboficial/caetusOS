@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, Response
 from sqlalchemy.orm import Session
 
 from app.api.deps import obter_db, usuario_atual
@@ -13,10 +13,7 @@ router = APIRouter(prefix="/conhecimento", tags=["conhecimento"])
 
 
 def _serializar(d: DocumentoConhecimento) -> dict:
-    nome = d.caminho_storage.split("/")[-1]
-    # remove o prefixo de hash usado em ConhecimentoServico.adicionar
-    if "-" in nome:
-        nome = nome.split("-", 1)[1]
+    nome = d.nome
     tamanho = None
     try:
         storage = obter_storage()
@@ -33,6 +30,7 @@ def _serializar(d: DocumentoConhecimento) -> dict:
         "atualizado_em": d.atualizado_em.isoformat() if d.atualizado_em else None,
         "caminho": d.caminho_storage,
         "tamanho": tamanho,
+        "is_template": d.is_template,
     }
 
 
@@ -76,6 +74,45 @@ def conteudo(
     except UnicodeDecodeError:
         texto = bruto.decode("utf-8", errors="replace")
     return {"id": str(doc.id), "conteudo": texto, "tamanho": len(bruto)}
+
+
+@router.get("/{documento_id}/raw")
+def obter_raw(
+    documento_id: uuid.UUID,
+    usuario: Usuario = Depends(usuario_atual),
+    sessao: Session = Depends(obter_db),
+):
+    doc = sessao.get(DocumentoConhecimento, documento_id)
+    if not doc or doc.empresa_id != usuario.empresa_id:
+        raise HTTPException(status_code=404, detail="documento não encontrado")
+    try:
+        bruto = obter_storage().ler(doc.caminho_storage)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="arquivo ausente no storage")
+    
+    # Determinar content type com base na extensao do arquivo
+    nome_arquivo = doc.caminho_storage.split("/")[-1]
+    extensao = nome_arquivo.split(".")[-1].lower() if "." in nome_arquivo else ""
+    
+    mime_types = {
+        "png": "image/png",
+        "jpg": "image/jpeg",
+        "jpeg": "image/jpeg",
+        "gif": "image/gif",
+        "webp": "image/webp",
+        "svg": "image/svg+xml",
+        "pdf": "application/pdf",
+        "csv": "text/csv",
+        "xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "json": "application/json",
+        "txt": "text/plain",
+        "md": "text/markdown",
+    }
+    
+    media_type = mime_types.get(extensao, "application/octet-stream")
+    
+    return Response(content=bruto, media_type=media_type)
 
 
 @router.delete("/{documento_id}", status_code=204)
