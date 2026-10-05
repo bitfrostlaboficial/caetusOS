@@ -1,7 +1,7 @@
 [project]
-name = "empresa-ia-backend"
+name = "caetus-os-backend"
 version = "0.1.0"
-description = "Empresa IA - Backend (Sprint 0, arquitetura v6.1 congelada)"
+description = "Caetus OS - Backend (FastAPI)"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.115",

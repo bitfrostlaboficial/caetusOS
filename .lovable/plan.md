@@ -1,3 +1,5 @@
+> ⚠️ **Documento histórico (v6.1, 28/06/2026).** O produto agora se chama **Caetus OS**; o estado atual está em [`docs/`](../docs/README.md). Os princípios (Executor único, Contexto pronto, StorageBackend...) continuam valendo; a estrutura de pastas e o escopo da Sprint 0 foram superados.
+
 # Arquitetura Congelada — Empresa IA (v6.1 — OFICIAL)
 
 Versão oficial e **definitivamente congelada**. Incorpora os 4 refinamentos da v6 + os 2 ajustes finais de redação. A partir daqui, foco exclusivo na Sprint 0.

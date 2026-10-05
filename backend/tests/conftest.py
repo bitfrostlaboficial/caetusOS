@@ -12,7 +12,7 @@ import pytest
 
 _TEST_URL = os.environ.get(
     "TEST_DATABASE_URL",
-    "postgresql+psycopg://empresa_ia:empresa_ia@localhost:5432/caetus_test",
+    "postgresql+psycopg://caetus:caetus@localhost:5432/caetus_test",
 )
 
 # Precisa vir ANTES de importar `app` (a configuração é lida na importação).

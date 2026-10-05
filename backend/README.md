@@ -1,4 +1,4 @@
-# Empresa IA — Backend (Sprint 0)
+# Caetus OS — Backend
 
 Arquitetura **v6.1 congelada**. Veja `.lovable/plan.md` para a referência oficial.
 

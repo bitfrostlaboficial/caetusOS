@@ -1,5 +1,5 @@
 # Fly.io — mesma imagem Docker, apenas configuração de infraestrutura difere (§2).
-app = "empresa-ia"
+app = "caetus-os"
 primary_region = "gru"
 
 [build]

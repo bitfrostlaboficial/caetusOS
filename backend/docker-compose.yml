@@ -2,9 +2,9 @@ services:
   db:
     image: postgres:16
     environment:
-      POSTGRES_USER: empresa_ia
-      POSTGRES_PASSWORD: empresa_ia
-      POSTGRES_DB: empresa_ia
+      POSTGRES_USER: caetus
+      POSTGRES_PASSWORD: caetus
+      POSTGRES_DB: caetus
     ports:
       - "5432:5432"
     volumes:
@@ -17,12 +17,12 @@ services:
     env_file:
       - .env
     environment:
-      DATABASE_URL: postgresql+psycopg://empresa_ia:empresa_ia@db:5432/empresa_ia
+      DATABASE_URL: postgresql+psycopg://caetus:caetus@db:5432/caetus
       STORAGE_BACKEND: filesystem
       STORAGE_ROOT: /data/storage
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GROQ_API_KEY: ${GROQ_API_KEY:-}
-      CORS_ORIGINS: "http://localhost:5173,http://localhost:8080,http://172.22.217.149:8080"
+      CORS_ORIGINS: "http://localhost:5173,http://localhost:8080"
     ports:
       - "8000:8000"
     volumes:

@@ -1,5 +1,5 @@
 /**
- * Cliente HTTP da API Empresa IA.
+ * Cliente HTTP da API do Caetus OS.
  *
  * Mantém token em localStorage. Único ponto que conhece a URL do backend
  * (definida em `VITE_API_BASE_URL`, default `/api`).
@@ -10,8 +10,8 @@ const API_BASE =
     (import.meta as { env?: Record<string, string | undefined> }).env?.VITE_API_BASE_URL) ||
   "http://localhost:8000";
 
-const ACCESS_KEY = "empresaia.access_token";
-const REFRESH_KEY = "empresaia.refresh_token";
+const ACCESS_KEY = "caetusos.access_token";
+const REFRESH_KEY = "caetusos.refresh_token";
 
 export const auth = {
   getAccess: () => (typeof localStorage !== "undefined" ? localStorage.getItem(ACCESS_KEY) : null),

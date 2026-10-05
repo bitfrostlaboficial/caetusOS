@@ -18,7 +18,7 @@ class DiagnosticoJWTSecret(NamedTuple):
 class Configuracao(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
-    database_url: str = "postgresql+psycopg://empresa_ia:empresa_ia@localhost:5432/empresa_ia"
+    database_url: str = "postgresql+psycopg://caetus:caetus@localhost:5432/caetus"
     jwt_secret: str = "dev-secret"
     jwt_access_ttl_min: int = 30
     jwt_refresh_ttl_days: int = 14

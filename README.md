@@ -1,9 +1,9 @@
-# Empresa IA
+# Caetus OS
 
 > Plataforma de **Funcionários Digitais** baseados em IA para empresas.
 > MVP focado em validar rapidamente o ciclo: **Login → Conhecimento → Executar habilidade → Resultado**.
 
-> 📚 **Estado atual, problemas conhecidos e roadmap:** veja [`docs/`](./docs/README.md) (levantamento de 05/10/2026). Este README ainda descreve o plano original e tem trechos desatualizados (ver `docs/03-estado-atual.md` §4).
+> 📚 **Estado atual, problemas conhecidos e roadmap:** veja [`docs/`](./docs/README.md) (levantamento de 05/10/2026). Nome oficial: **Caetus OS**. Modelo inicial: **BYOK** (cada empresa cadastra as próprias chaves de IA em *Provedores*).
 
 Arquitetura oficial congelada em **v6.1** — referência completa em [`.lovable/plan.md`](./.lovable/plan.md).
 
@@ -11,7 +11,7 @@ Arquitetura oficial congelada em **v6.1** — referência completa em [`.lovable
 
 ## 📐 Visão Geral
 
-**Empresa IA** é um sistema multi-tenant onde cada empresa cadastra sua identidade, base de conhecimento e memória, e então executa **Comandos** (ex.: "criar post para Instagram") através de um **Executor** central que orquestra IA, contexto e auditoria.
+**Caetus OS** é um sistema multi-tenant onde cada empresa cadastra sua identidade, base de conhecimento e memória, e então executa **Comandos** (ex.: "criar post para Instagram") através de um **Executor** central que orquestra IA, contexto e auditoria.
 
 ### Princípios invioláveis
 
@@ -65,7 +65,7 @@ Agente (Claude, Codex...)
 
 | Camada    | Tecnologia                                            |
 | --------- | ----------------------------------------------------- |
-| Frontend  | React + TypeScript + TanStack Start (Lovable)         |
+| Frontend  | React 19 + TypeScript + Vite + React Router (SPA)     |
 | Backend   | Python 3.12 + FastAPI                                 |
 | Banco     | PostgreSQL 16                                         |
 | Storage   | Filesystem (MVP) → S3/MinIO (futuro)                  |
@@ -97,18 +97,16 @@ Agente (Claude, Codex...)
 │   ├── alembic.ini
 │   └── pyproject.toml
 │
-├── src/                      # Frontend (TanStack Start)
-│   ├── routes/               # Rotas file-based
-│   │   ├── __root.tsx
-│   │   ├── index.tsx         # Landing
-│   │   ├── login.tsx
-│   │   ├── app.tsx           # Layout autenticado
-│   │   ├── app.index.tsx     # Dashboard / Criar post
-│   │   ├── app.conhecimento.tsx
-│   │   └── app.historico.tsx
-│   ├── lib/api.ts            # Cliente HTTP
-│   └── styles.css
+├── src/                      # Frontend (SPA Vite + React Router)
+│   ├── App.tsx               # Rotas
+│   ├── pages/                # Landing, Login, Command Center, Missões, Provedores,
+│   │                         #   Conhecimento, Histórico, Infraestrutura (admin)...
+│   ├── components/           # UI (shadcn) + componentes de domínio
+│   └── lib/api.ts            # Cliente HTTP (único ponto que conhece a API)
 │
+├── docs/                     # Estado atual, problemas, roadmap, pesquisa (leia primeiro)
+├── .github/workflows/ci.yml  # CI: pytest + tsc + eslint + build
+
 └── .lovable/plan.md          # Arquitetura oficial (v6.1)
 ```
 
@@ -132,7 +130,7 @@ docker compose up --build
 
 - API: <http://localhost:8000>
 - Docs OpenAPI: <http://localhost:8000/docs>
-- Postgres: `localhost:5432` (user/pass: `empresa_ia`)
+- Postgres: `localhost:5432` (user/pass: `caetus`)
 
 Aplicar migrações (primeira vez):
 
@@ -155,7 +153,7 @@ bun run dev
 ```
 
 - UI: <http://localhost:8080>
-- O frontend já está configurado para apontar para `http://localhost:8000` (variável `VITE_API_URL`).
+- O frontend já está configurado para apontar para `http://localhost:8000` (variável `VITE_API_BASE_URL`).
 
 ---
 
@@ -171,7 +169,10 @@ bun run dev
 | `JWT_REFRESH_TTL_DAYS`  | Tempo de vida do refresh token (dias)              | `14`                             |
 | `STORAGE_BACKEND`       | Backend de storage (`filesystem` no MVP)           | `filesystem`                     |
 | `STORAGE_ROOT`          | Raiz do filesystem storage                         | `./storage_local`                |
-| `GEMINI_API_KEY`        | Chave Google Gemini                                | (vazio)                          |
+| `CREDENCIAIS_MASTER_KEY`| Chave Fernet que cifra as chaves de IA dos clientes (BYOK) | (obrigatória p/ BYOK)    |
+| `IA_USAR_CHAVES_DA_PLATAFORMA` | Empresas sem chave própria usam as chaves abaixo? | `true`                    |
+| `PLATFORM_ADMIN_EMAILS` | Operadores da plataforma (e-mails, csv)            | (vazio)                          |
+| `GEMINI_API_KEY`        | Chave Google Gemini (da plataforma, opcional)      | (vazio)                          |
 | `GROQ_API_KEY`          | Chave Groq                                         | (vazio)                          |
 | `CORS_ORIGINS`          | Origens permitidas (csv)                           | `localhost:5173,localhost:8080`  |
 
@@ -179,7 +180,7 @@ bun run dev
 
 | Variável        | Descrição                       | Default                  |
 | --------------- | ------------------------------- | ------------------------ |
-| `VITE_API_URL`  | URL base da API backend         | `http://localhost:8000`  |
+| `VITE_API_BASE_URL` | URL base da API backend         | `http://localhost:8000`  |
 
 ---
 
@@ -239,9 +240,10 @@ Origem (Web/API/CLI)
 
 ---
 
-## 🗄️ Modelo de Dados (8 tabelas)
+## 🗄️ Modelo de Dados
 
-`empresas`, `projetos`, `usuarios`, `refresh_tokens`, `identidade_empresa`, `documentos_conhecimento`, `memoria_itens`, `assets`, `execucoes`.
+Negócio: `empresas`, `projetos`, `usuarios`, `refresh_tokens`, `identidade_empresa`, `documentos_conhecimento`, `memoria_itens`, `assets`, `execucoes`, `provedor_credenciais` (BYOK, cifradas).
+Telemetria/saúde de IA: `ia_execucoes`, `ia_execucao_eventos` e tabelas de saúde dos provedores.
 
 Cada empresa tem um **projeto raiz** criado na mesma transação (`EmpresaServico.criar_empresa`). `empresa_id` é injetado por middleware em toda request autenticada.
 
@@ -314,7 +316,7 @@ Mesma imagem Docker. Use `docker-compose.yml` adaptado com Caddy/Traefik na fren
 - **Arquitetura completa:** [`.lovable/plan.md`](./.lovable/plan.md)
 - **Backend específico:** [`backend/README.md`](./backend/README.md)
 - **Templates (reserva):** [`backend/app/templates/README.md`](./backend/app/templates/README.md)
-- **Rotas frontend:** [`src/routes/README.md`](./src/routes/README.md)
+- **Documentação do projeto (estado, roadmap, pesquisa):** [`docs/`](./docs/README.md)
 
 ---
 
