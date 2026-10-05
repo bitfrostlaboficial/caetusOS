@@ -21,6 +21,9 @@ o que ele é, como está hoje, o que está quebrado e para onde ele precisa ir.*
 | 7 | [`07-guia-de-desenvolvimento.md`](./07-guia-de-desenvolvimento.md) | Como subir, testar, adicionar uma habilidade, convenções e armadilhas. |
 | 8 | [`08-decisoes-pendentes.md`](./08-decisoes-pendentes.md) | Decisões que dependem do dono do projeto antes de seguir. |
 | 9 | [`09-branches-e-ecossistema.md`](./09-branches-e-ecossistema.md) | **Leia junto com o doc 3:** a branch mais nova (`no_lovable`), o que ela muda, e a divisão caetusClaude × caetusOS. |
+| 10 | [`10-pesquisa-provedores-opencode-estatico.md`](./10-pesquisa-provedores-opencode-estatico.md) | Pesquisa: provedores do BYOK (Gemini, Groq, Mistral, OpenRouter, NVIDIA, Cloudflare), OpenCode e "sistema estático". |
+| 11 | [`11-ideias-automacao-visual.md`](./11-ideias-automacao-visual.md) | Ideias: automação visual e fácil (Receitas/Passos, com IA e sem IA), agentes, gatilhos, roteiro. |
+| 12 | [`12-progresso.md`](./12-progresso.md) | Registro do que já foi corrigido/implementado no código (atualizado a cada iteração). |
 
 ## Resumo em 10 linhas
 
