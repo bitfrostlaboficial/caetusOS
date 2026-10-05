@@ -26,6 +26,9 @@ o que ele é, como está hoje, o que está quebrado e para onde ele precisa ir.*
 | 12 | [`12-progresso.md`](./12-progresso.md) | Registro do que já foi corrigido/implementado no código (atualizado a cada iteração). |
 | 13 | [`13-viabilidade-infra-gratuita.md`](./13-viabilidade-infra-gratuita.md) | Cloudflare + Neon + R2/B2: o que cabe de graça, quantos usuários, onde está o 1º custo; ordem dos provedores de imagem. |
 | 14 | [`14-mcp.md`](./14-mcp.md) | Caetus OS como servidor MCP ("traga seu agente"): o que existe, segurança, roadmap. |
+| 15 | [`15-distribuicao-e-hospedagem.md`](./15-distribuicao-e-hospedagem.md) | Modos (nuvem/local/auto-hospedado), Fly.io + Cloudflare, conectores (WhatsApp), MCP seguro. |
+| 16 | [`16-catalogo-de-servicos-e-automacoes.md`](./16-catalogo-de-servicos-e-automacoes.md) | Catálogo vivo de serviços/automações (existentes e futuros) e pacotes. |
+| 17 | [`17-omniroute.md`](./17-omniroute.md) | OmniRoute: o que é e como integrar sem perder o BYOK por empresa. |
 
 ## Resumo em 10 linhas
 

@@ -124,6 +124,49 @@ Prioridade baseada nos achados de [`04-problemas-e-riscos.md`](./04-problemas-e-
 
 ---
 
+## Atualização 05/10/2026 (2) — Próximos passos consolidados
+
+**Já feito (doc 12):** Fase 0 completa (exceto T-001/T-002/T-007/T-015), BYOK, 9 provedores, Biblioteca, painel, imagem Gemini, manifesto de habilidades, MCP local.
+**Referências:** infra em [13](./13-viabilidade-infra-gratuita.md) e [15](./15-distribuicao-e-hospedagem.md); catálogo em [16](./16-catalogo-de-servicos-e-automacoes.md); MCP em [14](./14-mcp.md); OmniRoute em [17](./17-omniroute.md).
+
+### Ordem recomendada (próximas ~6 iterações)
+| # | Tarefa | Por quê agora |
+|---|--------|---------------|
+| 1 | **T-226** Agendador (cron) + gatilho por webhook, **sem IA** | Destrava tudo que é recorrente; funciona sem chaves de IA |
+| 2 | **T-223** Manifesto de **Pacote/Receita** + **P-02** lista de pacotes instaláveis | Base do "distribuidor de serviços" |
+| 3 | **T-213** Chaves de API da empresa (escopos, expiração, rate limit) | Pré-requisito de conectores e MCP remoto |
+| 4 | **T-221** Modo local (`CAETUS_MODO`, `docker compose up` em um comando, auto-login, 127.0.0.1) | Valida o interesse em rodar local sem custo de infra |
+| 5 | **T-205 + T-215** Storage S3 (R2/B2) + WebP + cota por empresa | 1º limite de custo (doc 13) |
+| 6 | **T-229** Deploy no **Fly.io** (API 256/512 MB, volume, secrets) + frontend no Cloudflare Pages | Primeiro ambiente online |
+| 7 | **T-214** MCP remoto (Worker) + OAuth | "Traga seu agente" (Claude/ChatGPT/Codex) |
+| 8 | Conteúdo barato: **S-10** calendário, **S-14** responder avaliações, **S-11** variações | Valor imediato com o que já existe |
+| 9 | **T-230** Busca no conhecimento (RAG) → **T-224** conector WhatsApp **oficial** → **S-20** atendente | Maior valor percebido; maior risco |
+| 10 | **T-227** Provedor OmniRoute (PoC, só local/admin, anti-SSRF) | Opcional; ver doc 17 |
+
+### Tarefas novas (IDs)
+| ID | Tarefa | Esf. | Dep. |
+|----|--------|------|------|
+| T-213 | Chaves de API da empresa (criar/listar/revogar; escopos; expiração; rate limit) | M | — |
+| T-214 | MCP remoto HTTP (Worker) com chave/OAuth | M | T-213 |
+| T-215 | Cota de armazenamento por empresa + conversão WebP + retenção | M | T-205 |
+| T-216 | Health agendado só em horário de uso (não manter o Neon acordado) | S | — |
+| T-217 | Medir consumo real (RAM com SDKs, carga) e custo/uso por empresa | M | — |
+| T-218 | Ferramentas MCP geradas a partir do manifesto | S | — |
+| T-219 | MCP devolve imagem/links assinados | S | T-205 |
+| T-220 | Prompts e recursos MCP (receitas prontas, `caetus://conhecimento/{id}`) | S | T-223 |
+| T-221 | Modo local: flag `CAETUS_MODO`, compose em 1 comando, token em arquivo | M | — |
+| T-222 | (avaliar) persistência local sem Postgres (SQLite/embutido) | L | T-221 |
+| T-223 | Manifesto de Pacote/Receita (YAML) + validação | M | manifesto de habilidades ✅ |
+| T-224 | Conector WhatsApp **API oficial** (webhooks, templates) como serviço separado | L | T-213, T-226 |
+| T-225 | (opcional) Conector Baileys, desligado por padrão, com aviso de risco | M | D-14 |
+| T-226 | Agendador (cron) + gatilho por webhook (sem IA) + fila simples | M | — |
+| T-227 | Provedor OmniRoute (OpenAI-compat, `base_url` só local/admin, anti-SSRF) + PoC | S | — |
+| T-229 | Deploy Fly.io + Cloudflare Pages + R2 (D-07) | M | T-205 |
+| T-230 | Busca no conhecimento (RAG/pgvector ou FTS) | L | — |
+| T-231 | Conector Google (Sheets/Drive/Calendar) via OAuth | L | T-213 |
+
+---
+
 ## Primeiras 10 tarefas recomendadas (esta semana)
 
 1. **T-001** Rotacionar chaves (manual, você) — **repositório público: urgente, hoje**.

@@ -13,6 +13,14 @@
 
 > **Visibilidade do repositório:** em *GitHub → `bitfrostlaboficial/caetusOS` → Settings → General → Danger Zone → Change repository visibility → Make private*. Tornar privado **reduz a exposição futura**, mas **não apaga** o que já foi clonado/indexado: as chaves que estiveram no histórico continuam tendo de ser **revogadas** (T-001). Atenção: se o Lovable ou outra integração usa o repositório, confirme que o acesso continua depois da mudança.
 
+## ✅ Decididas/esclarecidas em 05/10/2026 (2)
+
+| ID | Decisão | Consequência |
+|----|---------|--------------|
+| D-16 | **"Groq" (com Q)** é o provedor de IA do BYOK — não é o "Grok" da xAI. | Sem mudança no código (o adaptador `groq` já existe). |
+| D-07 (parcial) | Hospedagem: **Fly.io** para API e conectores (máquinas pequenas); **Cloudflare** para o que cabe (Pages, R2, Worker de borda, MCP remoto); **Neon** no banco. | T-229; ver doc 15. |
+| D-04 (adiada) | Modelo usuário×empresa **depende do modelo de negócio** → adiar; entra por migração aditiva. | T-007 (papéis) fica atrás; nada de agora depende disso. |
+
 ## ⏳ Ainda pendentes
 
 Cada decisão mostra **o que muda**, **opções** e **recomendação**. Marque a escolhida (ou me diga) e movemos para o roadmap.
@@ -25,6 +33,9 @@ Cada decisão mostra **o que muda**, **opções** e **recomendação**. Marque a
 | D-08 | Gerenciador de pacotes do frontend (bun vs. npm) e ferramenta de teste | T-040 |
 | D-09 | Relação com o Lovable (continuar usando para UI? quem aprova mudanças?) | CI, fluxo de branches |
 | D-10 | Tornar o repositório privado (ação sua no GitHub) e **rotacionar as chaves** | SEC-01 |
+| D-13 | Modos de distribuição (nuvem / local / auto-hospedado): confirmar "um só código + flag `CAETUS_MODO`" e começar por local via docker compose | T-221, T-222 |
+| D-14 | WhatsApp: API oficial como padrão; Baileys só opcional com aviso de banimento? | T-224, T-225 |
+| D-15 | OmniRoute como provedor opcional (e não substituto do roteador) | T-227 |
 | D-11 | Papel de cada repositório do ecossistema (CaetusClaude, caetusStudio, caetusVideo, caetusBot-WPP, caetus-monitor) e o que reaproveitar | T-017, roadmap |
 
 ---
