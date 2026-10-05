@@ -25,7 +25,10 @@ from app.ia.provedores.base import Provider, ProvedorNaoConfigurado, RespostaIA
 from app.ia.provedores.fal import FalProvedor
 from app.ia.provedores.gemini import GeminiProvedor
 from app.ia.provedores.groq import GroqProvedor
+from app.ia.provedores.cloudflare import CloudflareProvedor
 from app.ia.provedores.huggingface import HuggingFaceProvedor
+from app.ia.provedores.mistral import MistralProvedor
+from app.ia.provedores.nvidia import NvidiaProvedor
 from app.ia.provedores.openrouter import OpenRouterProvedor
 from app.ia.telemetria import gravador
 from app.infraestrutura.observabilidade.logger import log_evento
@@ -58,6 +61,9 @@ for _p in (
     OpenRouterProvedor(),
     HuggingFaceProvedor(),
     FalProvedor(),
+    MistralProvedor(),
+    NvidiaProvedor(),
+    CloudflareProvedor(),
 ):
     registrar(_p)
 

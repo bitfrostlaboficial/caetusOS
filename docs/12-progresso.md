@@ -14,6 +14,7 @@ Atualizado a cada iteração. Branch de trabalho: `claude/focused-hopper-kb9m2r`
 | 05/10 | T-016 (parcial) | Contexto só recebe **conhecimento real**: sem binários, sem modelos não preenchidos, sem posts gerados; blocos de exemplo removidos | `test_contexto_conhecimento.py` (5) |
 
 | 05/10 | T-114 (núcleo) | **BYOK**: cofre Fernet (`CREDENCIAIS_MASTER_KEY`), tabela `provedor_credenciais` (migração 0004), `CredenciaisServico`, endpoints `GET/PUT/DELETE /v1/provedores`, `POST /v1/provedores/{nome}/testar`; roteador resolve **a chave da empresa** (ou da plataforma se `IA_USAR_CHAVES_DA_PLATAFORMA`); modelo preferido; segredo nunca retorna (só máscara) | `test_byok.py` (17) |
+| 05/10 | T-116 + T-117 (texto) | **Adaptador genérico OpenAI-compatível** (`openai_compat.py`) + provedores **Mistral, NVIDIA NIM e Cloudflare Workers AI (texto)**, catálogo/URLs/`.env.example`; Cloudflare com 2 campos (`api_token`, `account_id`). Pendente: imagem FLUX (Cloudflare) | `test_openai_compat.py` (12) |
 
-**Total:** 66 testes backend passando. **Pendente da Fase 0:** T-001 (rotacionar chaves — ação do dono), T-002, T-007 (papéis), T-008 (resultados como assets), T-012, T-013 (renomear p/ Caetus OS), T-014, T-015 (merge `no_lovable`→`main`).
-**Próximo:** T-115 (tela "Provedores de IA" no frontend), T-116 (adaptador OpenAI-compatível: Mistral, NVIDIA, Cloudflare), T-117.
+**Total:** 78 testes backend passando. **Pendente da Fase 0:** T-001 (rotacionar chaves — ação do dono), T-002, T-007 (papéis), T-008 (resultados como assets), T-012, T-013 (renomear p/ Caetus OS), T-014, T-015 (merge `no_lovable`→`main`).
+**Próximo:** T-115 (tela "Provedores de IA" no frontend), T-117 (imagem Cloudflare/FLUX), migrar Groq/OpenRouter para o adaptador genérico (opcional).

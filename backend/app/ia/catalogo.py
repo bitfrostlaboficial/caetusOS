@@ -107,6 +107,44 @@ def CATALOGO_PADRAO() -> list[EntradaCatalogo]:
             lambda: config.gemini_model, 70, CustoEstimado.LOW, _caps(ocr=True, vision=True),
         ),
 
+        # ───────── Mistral — chat/texto (API OpenAI-compatível) ─────────
+        EntradaCatalogo(
+            "mistral", CategoriaIA.CHAT, EspecializacaoIA.CHAT_FAST,
+            lambda: config.mistral_model, 75, CustoEstimado.LOW, _caps(chat=True),
+        ),
+        EntradaCatalogo(
+            "mistral", CategoriaIA.CHAT, EspecializacaoIA.CHAT_REASONING,
+            lambda: config.mistral_model, 75, CustoEstimado.LOW, _caps(chat=True),
+        ),
+        EntradaCatalogo(
+            "mistral", CategoriaIA.TEXT, EspecializacaoIA.TEXT_GENERAL,
+            lambda: config.mistral_model, 75, CustoEstimado.LOW, _caps(chat=True),
+        ),
+
+        # ───────── NVIDIA NIM — modelos abertos (chave gratuita de desenvolvedor) ─────────
+        EntradaCatalogo(
+            "nvidia", CategoriaIA.CHAT, EspecializacaoIA.CHAT_FAST,
+            lambda: config.nvidia_model, 60, CustoEstimado.FREE, _caps(chat=True),
+        ),
+        EntradaCatalogo(
+            "nvidia", CategoriaIA.CHAT, EspecializacaoIA.CHAT_REASONING,
+            lambda: config.nvidia_model, 70, CustoEstimado.FREE, _caps(chat=True),
+        ),
+        EntradaCatalogo(
+            "nvidia", CategoriaIA.TEXT, EspecializacaoIA.TEXT_GENERAL,
+            lambda: config.nvidia_model, 60, CustoEstimado.FREE, _caps(chat=True),
+        ),
+
+        # ───────── Cloudflare Workers AI — texto (10k neurons/dia grátis) ─────────
+        EntradaCatalogo(
+            "cloudflare", CategoriaIA.CHAT, EspecializacaoIA.CHAT_FAST,
+            lambda: config.cloudflare_model, 65, CustoEstimado.FREE, _caps(chat=True),
+        ),
+        EntradaCatalogo(
+            "cloudflare", CategoriaIA.TEXT, EspecializacaoIA.TEXT_GENERAL,
+            lambda: config.cloudflare_model, 55, CustoEstimado.FREE, _caps(chat=True),
+        ),
+
         # ───────── OpenRouter — fallback universal ─────────
         EntradaCatalogo(
             "openrouter", CategoriaIA.CHAT, EspecializacaoIA.CHAT_FAST,

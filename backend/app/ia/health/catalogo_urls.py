@@ -53,6 +53,23 @@ CATALOGO: dict[str, ProviderURLs] = {
         "billing_url": "https://fal.ai/dashboard/billing",
         "status_page": "https://status.fal.ai/",
     },
+    "mistral": {
+        "documentation_url": "https://docs.mistral.ai/",
+        "dashboard_url": "https://console.mistral.ai/",
+        "api_key_url": "https://console.mistral.ai/api-keys",
+        "billing_url": "https://console.mistral.ai/billing",
+    },
+    "nvidia": {
+        "documentation_url": "https://docs.api.nvidia.com/nim/",
+        "dashboard_url": "https://build.nvidia.com/",
+        "api_key_url": "https://build.nvidia.com/settings/api-keys",
+    },
+    "cloudflare": {
+        "documentation_url": "https://developers.cloudflare.com/workers-ai/",
+        "dashboard_url": "https://dash.cloudflare.com/",
+        "api_key_url": "https://dash.cloudflare.com/profile/api-tokens",
+        "billing_url": "https://dash.cloudflare.com/?to=/:account/billing",
+    },
 }
 
 

@@ -40,6 +40,16 @@ class Configuracao(BaseSettings):
     groq_api_key: str = ""
     groq_model: str = "llama-3.3-70b-versatile"
 
+    mistral_api_key: str = ""
+    mistral_model: str = "mistral-small-latest"
+
+    nvidia_api_key: str = ""
+    nvidia_model: str = "meta/llama-3.3-70b-instruct"
+
+    cloudflare_api_token: str = ""
+    cloudflare_account_id: str = ""
+    cloudflare_model: str = "@cf/meta/llama-3.3-70b-instruct-fp8-fast"  # texto (Workers AI)
+
     openrouter_api_key: str = ""
     openrouter_model: str = "deepseek/deepseek-chat-v3"
     openrouter_vision_model: str = ""
