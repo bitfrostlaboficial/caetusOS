@@ -27,6 +27,28 @@ class Contexto:
     historico_recente: list[dict] = field(default_factory=list)
     extras: dict[str, Any] = field(default_factory=dict)
     eventos: list[EventoExecucao] = field(default_factory=list)
+    # Arquivos que a habilidade gravou no storage e quer registrar como Assets (origem GERADO).
+    # A habilidade NÃO toca no banco: o Executor cria os Assets na mesma transação da Execucao.
+    assets_gerados: list[dict[str, Any]] = field(default_factory=list)
+
+    def registrar_asset(
+        self,
+        categoria: str,
+        caminho_storage: str,
+        *,
+        mime: str | None = None,
+        tamanho: int | None = None,
+        **metadados: Any,
+    ) -> None:
+        self.assets_gerados.append(
+            {
+                "categoria": categoria,
+                "caminho_storage": caminho_storage,
+                "mime": mime,
+                "tamanho": tamanho,
+                "metadados": metadados,
+            }
+        )
 
     def registrar_evento(
         self,

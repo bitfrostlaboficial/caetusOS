@@ -3,16 +3,18 @@ from __future__ import annotations
 from sqlalchemy.orm import Session
 
 from app.dominio.erros import NaoEncontrado, SchemaVersionNaoSuportado, TipoComandoNaoRegistrado
+from app.dominio.modelos.asset import Asset
 from app.dominio.modelos.execucao import Execucao
 from app.dominio.modelos.projeto import Projeto
 from app.executor.comando import SCHEMA_VERSION_ATUAL, Comando
 from app.executor.executores.base import ExecutorEspecifico
 from app.executor.executores.skill import ExecutorSkill
-from app.executor.resultado import ResultadoExecucao
+from app.executor.resultado import AssetRef, ResultadoExecucao
 from app.executor.tipos import TipoComando
 from app.eventos.publisher import NoOpPublisher, Publisher
 from app.habilidades.registro import obter as obter_habilidade
 from app.ia.context_builder.builder import ContextBuilder
+from app.infraestrutura.armazenamento.filesystem import obter_storage
 
 
 class Executor:
@@ -69,6 +71,13 @@ class Executor:
         # 5. Delegar execução.
         resultado = especifico.executar(comando, contexto)
 
+        # 5b. Arquivos gerados pela habilidade viram Assets (origem GERADO) na MESMA transação
+        #     da execução; se a execução falhou, não deixa arquivos órfãos no storage.
+        if resultado.sucesso:
+            resultado.arquivos = self._registrar_assets(comando, contexto)
+        else:
+            self._descartar_arquivos(contexto)
+
         # 6. Persistir execução (com prompt_template + prompt_version).
         prompt_template = habilidade.prompt_template if habilidade else None
         prompt_version = habilidade.prompt_version if habilidade else None
@@ -109,3 +118,41 @@ class Executor:
             },
         )
         return resultado
+
+    def _registrar_assets(self, comando: Comando, contexto) -> list[AssetRef]:
+        refs: list[AssetRef] = []
+        for item in contexto.assets_gerados:
+            asset = Asset(
+                empresa_id=comando.empresa_id,
+                projeto_id=comando.projeto_id,
+                categoria=item["categoria"],
+                origem="GERADO",
+                escopo="projeto",
+                caminho_storage=item["caminho_storage"],
+                mime=item.get("mime"),
+                tamanho=item.get("tamanho"),
+                metadados_jsonb=item.get("metadados") or {},
+                criado_por=comando.usuario_id,
+            )
+            self.sessao.add(asset)
+            self.sessao.flush()
+            refs.append(
+                AssetRef(
+                    id=asset.id,
+                    categoria=asset.categoria,
+                    caminho_storage=asset.caminho_storage,
+                    mime=asset.mime,
+                )
+            )
+        return refs
+
+    @staticmethod
+    def _descartar_arquivos(contexto) -> None:
+        if not contexto.assets_gerados:
+            return
+        storage = obter_storage()
+        for item in contexto.assets_gerados:
+            try:
+                storage.remover(item["caminho_storage"])
+            except Exception:  # noqa: BLE001
+                pass

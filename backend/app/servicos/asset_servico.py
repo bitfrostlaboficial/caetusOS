@@ -14,10 +14,26 @@ class AssetServico:
         self.sessao = sessao
         self.storage = obter_storage()
 
-    def listar(self, empresa_id: uuid.UUID, projeto_id: uuid.UUID | None = None) -> list[Asset]:
+    def obter(self, empresa_id: uuid.UUID, asset_id: uuid.UUID) -> Asset | None:
+        """Asset da empresa ou None (nunca revela a existência de assets de outra empresa)."""
+        asset = self.sessao.get(Asset, asset_id)
+        return asset if asset and asset.empresa_id == empresa_id else None
+
+    def listar(
+        self,
+        empresa_id: uuid.UUID,
+        projeto_id: uuid.UUID | None = None,
+        *,
+        origem: str | None = None,
+        categoria: str | None = None,
+    ) -> list[Asset]:
         stmt = select(Asset).where(Asset.empresa_id == empresa_id)
         if projeto_id is not None:
             stmt = stmt.where(Asset.projeto_id == projeto_id)
+        if origem:
+            stmt = stmt.where(Asset.origem == origem.upper())
+        if categoria:
+            stmt = stmt.where(Asset.categoria == categoria.upper())
         return list(self.sessao.scalars(stmt.order_by(Asset.criado_em.desc())))
 
     def upload(
@@ -48,8 +64,10 @@ class AssetServico:
         self.sessao.flush()
         return asset
 
-    def remover(self, empresa_id: uuid.UUID, asset_id: uuid.UUID) -> None:
-        asset = self.sessao.get(Asset, asset_id)
-        if asset and asset.empresa_id == empresa_id:
-            self.storage.remover(asset.caminho_storage)
-            self.sessao.delete(asset)
+    def remover(self, empresa_id: uuid.UUID, asset_id: uuid.UUID) -> bool:
+        asset = self.obter(empresa_id, asset_id)
+        if asset is None:
+            return False
+        self.storage.remover(asset.caminho_storage)
+        self.sessao.delete(asset)
+        return True

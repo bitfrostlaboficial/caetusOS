@@ -160,7 +160,7 @@ def executar(
         "dados": resultado.dados,
         "mensagens": resultado.mensagens,
         "arquivos": [
-            {"id": str(a.id), "categoria": a.categoria, "caminho": a.caminho_storage}
+            {"id": str(a.id), "categoria": a.categoria, "caminho": a.caminho_storage, "mime": a.mime}
             for a in resultado.arquivos
         ],
         "metricas": {
