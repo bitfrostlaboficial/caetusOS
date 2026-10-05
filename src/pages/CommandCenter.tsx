@@ -22,8 +22,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { api, type Empresa, type Execucao, type IaMetrics, type IaOverview } from "@/lib/api";
-import { FUNCIONARIOS_DIGITAIS, MISSAO_NOVA, MISSOES, type Missao } from "@/lib/missoes";
+import {
+  api,
+  type Empresa,
+  type Execucao,
+  type IaMetrics,
+  type Identidade,
+  type ProvedorIA,
+} from "@/lib/api";
+import { MISSOES, type Missao } from "@/lib/missoes";
 
 const EXEMPLOS = [
   "Criar campanha de Dia dos Pais",
@@ -47,7 +54,8 @@ export default function CommandCenter() {
   const navigate = useNavigate();
   const [empresa, setEmpresa] = useState<Empresa | null>(null);
   const [metrics, setMetrics] = useState<IaMetrics | null>(null);
-  const [overview, setOverview] = useState<IaOverview | null>(null);
+  const [provedores, setProvedores] = useState<ProvedorIA[] | null>(null);
+  const [identidade, setIdentidade] = useState<Identidade | null>(null);
   const [historico, setHistorico] = useState<Execucao[] | null>(null);
   const [busca, setBusca] = useState("");
   const [focado, setFocado] = useState(false);
@@ -63,9 +71,13 @@ export default function CommandCenter() {
       .then(setMetrics)
       .catch(() => setMetrics(null));
     api
-      .infraIaOverview()
-      .then(setOverview)
-      .catch(() => setOverview(null));
+      .listarProvedores()
+      .then(setProvedores)
+      .catch(() => setProvedores([]));
+    api
+      .obterIdentidade()
+      .then(setIdentidade)
+      .catch(() => setIdentidade(null));
     api
       .historico(8)
       .then(setHistorico)
@@ -96,8 +108,9 @@ export default function CommandCenter() {
 
   const missoesFiltradas = useMemo(() => {
     const q = busca.trim().toLowerCase();
-    if (!q) return MISSOES;
-    return MISSOES.filter(
+    const disponiveis = MISSOES.filter((m) => m.status === "disponivel");
+    if (!q) return disponiveis;
+    return disponiveis.filter(
       (m) =>
         m.nome.toLowerCase().includes(q) ||
         m.descricao.toLowerCase().includes(q) ||
@@ -114,8 +127,31 @@ export default function CommandCenter() {
     }
   }
 
-  const providersOnline = overview?.resumo.ativos ?? 0;
-  const providersTotal = overview?.resumo.total ?? 0;
+  const conectados = provedores?.filter((p) => p.configurado && p.ativo) ?? [];
+  const marcaPreenchida =
+    !!identidade &&
+    (!!identidade.tom_de_voz?.trim() || Object.keys(identidade.cores ?? {}).length > 0);
+  const passos = [
+    {
+      feito: conectados.length > 0,
+      titulo: "Conecte um provedor de IA",
+      detalhe: "Cadastre sua chave (Gemini e Groq têm plano gratuito).",
+      rota: "/app/provedores",
+    },
+    {
+      feito: marcaPreenchida,
+      titulo: "Conte como é a sua marca",
+      detalhe: "Tom de voz e cores — a IA passa a falar como você.",
+      rota: "/app/marca",
+    },
+    {
+      feito: (historico ?? []).some((e) => e.status.toLowerCase() === "sucesso"),
+      titulo: "Gere o primeiro post",
+      detalhe: "Missões → Criar post.",
+      rota: "/app/missoes/criar-post",
+    },
+  ];
+  const mostrarPassos = provedores !== null && historico !== null && passos.some((p) => !p.feito);
 
   return (
     <div className="space-y-12">
@@ -162,6 +198,50 @@ export default function CommandCenter() {
           ) : null}
         </div>
       </section>
+
+      {mostrarPassos && (
+        <section className="rounded-2xl border border-primary/25 bg-primary/[0.04] p-5">
+          <h2 className="font-display text-lg">Primeiros passos</h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Três passos e o Caetus OS já trabalha com a cara da sua empresa.
+          </p>
+          <ol className="mt-4 grid gap-3 md:grid-cols-3">
+            {passos.map((p, i) => (
+              <li key={p.titulo}>
+                <Link
+                  to={p.rota}
+                  className={cn(
+                    "flex h-full gap-3 rounded-xl border p-3 transition-colors hover:border-primary/50",
+                    p.feito ? "border-primary/30 bg-primary/5" : "border-border/60 bg-card/50",
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full font-mono text-[11px]",
+                      p.feito
+                        ? "bg-primary text-primary-foreground"
+                        : "border border-border text-muted-foreground",
+                    )}
+                  >
+                    {p.feito ? "✓" : i + 1}
+                  </span>
+                  <span className="min-w-0">
+                    <span
+                      className={cn(
+                        "block text-sm font-medium",
+                        p.feito && "text-muted-foreground line-through",
+                      )}
+                    >
+                      {p.titulo}
+                    </span>
+                    <span className="block text-xs text-muted-foreground">{p.detalhe}</span>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
 
       {/* Hero — barra de comando */}
       <section className="relative">
@@ -252,20 +332,13 @@ export default function CommandCenter() {
           {missoesFiltradas.map((m) => (
             <CardMissao key={m.slug} missao={m} />
           ))}
-          <CardMissao missao={MISSAO_NOVA} destacar />
         </div>
       </section>
 
       {/* Painel de Status */}
       <section>
         <h2 className="mb-4 font-display text-xl">Status da plataforma</h2>
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-7">
-          <Kpi
-            icone={Cpu}
-            label="Funcionários"
-            valor={FUNCIONARIOS_DIGITAIS.length}
-            hint="digitais ativos"
-          />
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
           <Kpi
             icone={Zap}
             label="Hoje"
@@ -286,16 +359,10 @@ export default function CommandCenter() {
           />
           <Kpi
             icone={Wifi}
-            label="Providers"
-            valor={`${providersOnline}/${providersTotal}`}
-            hint="online"
-            tone={providersOnline === providersTotal && providersTotal > 0 ? "positivo" : "neutro"}
-          />
-          <Kpi
-            icone={Layers}
-            label="Fallbacks"
-            valor={overview?.resumo.warnings ?? 0}
-            hint="hoje"
+            label="Provedores"
+            valor={provedores === null ? "—" : conectados.length}
+            hint="conectados"
+            tone={conectados.length > 0 ? "positivo" : "neutro"}
           />
           <Kpi
             icone={CircuitBoard}
@@ -339,12 +406,12 @@ export default function CommandCenter() {
                     <span
                       className={cn(
                         "inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full font-mono text-[11px]",
-                        e.status === "SUCESSO"
+                        e.status.toLowerCase() === "sucesso"
                           ? "bg-primary/15 text-primary"
                           : "bg-destructive/15 text-destructive",
                       )}
                     >
-                      {e.status === "SUCESSO" ? "✓" : "✕"}
+                      {e.status.toLowerCase() === "sucesso" ? "✓" : "✕"}
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm">
@@ -367,38 +434,44 @@ export default function CommandCenter() {
         <Card className="border-border/60 bg-card/60">
           <CardContent className="p-5">
             <div className="mb-4 flex items-baseline justify-between">
-              <h3 className="font-display text-base">Funcionários digitais</h3>
+              <h3 className="font-display text-base">Provedores de IA</h3>
               <Link
-                to="/app/infraestrutura/ia"
+                to="/app/provedores"
                 className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground hover:text-primary"
               >
-                Infra →
+                Gerenciar →
               </Link>
             </div>
-            <ul className="space-y-3">
-              {FUNCIONARIOS_DIGITAIS.map((f) => (
-                <li key={f.nome} className="flex items-start gap-3">
-                  <span
-                    className={cn(
-                      "mt-1.5 inline-block h-2 w-2 rounded-full",
-                      f.status === "online" &&
-                        "bg-primary shadow-[0_0_8px_oklch(0.85_0.21_135_/_0.6)]",
-                      f.status === "aguardando" && "bg-amber-400",
-                      f.status === "offline" && "bg-muted-foreground/40",
-                    )}
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium">{f.nome}</p>
-                    <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                      {f.provider} · {f.modelo}
-                    </p>
-                  </div>
-                  <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                    {f.status}
-                  </span>
-                </li>
-              ))}
-            </ul>
+            {provedores === null ? (
+              <Skeleton className="h-20 w-full" />
+            ) : conectados.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Nenhum provedor conectado.{" "}
+                <Link
+                  to="/app/provedores"
+                  className="text-primary underline-offset-2 hover:underline"
+                >
+                  Conectar agora
+                </Link>
+              </p>
+            ) : (
+              <ul className="space-y-3">
+                {conectados.map((p) => (
+                  <li key={p.nome} className="flex items-start gap-3">
+                    <span className="mt-1.5 inline-block h-2 w-2 rounded-full bg-primary shadow-[0_0_8px_oklch(0.85_0.21_135_/_0.6)]" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium">{p.rotulo}</p>
+                      <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                        {p.modelo_preferido ?? p.modelo_padrao ?? "modelo padrão"}
+                      </p>
+                    </div>
+                    <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                      {p.status_teste === "ok" ? "testado ✓" : "não testado"}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </CardContent>
         </Card>
       </section>

@@ -133,18 +133,3 @@ export function obterMissao(slug: string): Missao | undefined {
   if (slug === MISSAO_NOVA.slug) return MISSAO_NOVA;
   return MISSOES.find((m) => m.slug === slug);
 }
-
-export type FuncionarioDigital = {
-  nome: string;
-  status: "online" | "aguardando" | "offline";
-  provider: string;
-  modelo: string;
-};
-
-/** Resumo dos funcionários digitais (mock visual — não altera infra). */
-export const FUNCIONARIOS_DIGITAIS: FuncionarioDigital[] = [
-  { nome: "Marketing", status: "online", provider: "Groq", modelo: "llama-3.3-70b" },
-  { nome: "Atendimento", status: "online", provider: "Gemini", modelo: "gemini-2.0-flash" },
-  { nome: "Designer", status: "aguardando", provider: "Fal", modelo: "flux-schnell" },
-  { nome: "OCR", status: "online", provider: "Hugging Face", modelo: "trocr-base" },
-];
