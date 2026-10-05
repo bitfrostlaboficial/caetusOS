@@ -188,6 +188,14 @@ def executar(
             output_tokens=resposta.tokens_out or None,
             modelo_real=resposta.modelo,
         )
+        # Custo estimado (tabela interna) — antes ficava sempre 0.0 em RespostaIA.custo.
+        if not resposta.custo:
+            from app.ia.telemetria.custos import estimar as _estimar_custo
+
+            resposta.custo = _estimar_custo(
+                provider, resposta.modelo or modelo_final,
+                tokens_in=resposta.tokens_in, tokens_out=resposta.tokens_out,
+            )
         # Métricas in-memory (Fase 5.1)
         from app.ia import metricas as _metricas
         _metricas.registrar_sucesso(provider, resposta.modelo or modelo_final or "", latencia_ms)

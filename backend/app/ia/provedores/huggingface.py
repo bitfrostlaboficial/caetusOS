@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import time
 from typing import Any
 
@@ -59,6 +60,12 @@ class HuggingFaceProvedor(Provider):
             timeout=120,
         )
         r.raise_for_status()
+        tipo = (r.headers.get("content-type") or "").split(";")[0].strip().lower()
+        if tipo.startswith("image/"):
+            # Modelos de imagem devolvem os BYTES (não JSON): entregamos como data URI,
+            # que o pipeline de imagem sabe decodificar.
+            b64 = base64.b64encode(r.content).decode()
+            return RespostaIA(texto=f"data:{tipo};base64,{b64}", provedor=self.nome, modelo=modelo_final)
         data = r.json()
         if isinstance(data, list) and data and isinstance(data[0], dict):
             texto = data[0].get("generated_text", str(data))

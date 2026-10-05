@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import json
 import re
 import time
@@ -184,6 +185,20 @@ class GeradorImagemPost:
             pipeline="conteudo.criar_post",
             metadata={"etapa": "imagem"},
         )
+        data_uri = _decodificar_data_uri(resposta.texto)
+        if data_uri is not None:
+            # O provedor devolveu os bytes da imagem (ex.: Hugging Face). Sem URL pública.
+            bruto, mime = data_uri
+            return ImagemPost(
+                conteudo=bruto,
+                mime=mime,
+                extensao=_extensao_por_mime(mime),
+                url_origem=None,
+                provider=resposta.provedor,
+                modelo=resposta.modelo,
+                metadata={"origem": "bytes", "bytes": len(bruto)},
+                latencia_ms=int((time.perf_counter() - inicio) * 1000),
+            )
         url = _extrair_url(resposta.texto)
         metadata: dict[str, Any] = {
             "resposta_bruta": resposta.texto,
@@ -609,6 +624,16 @@ def _normalizar_hashtags(valor: Any) -> list[str]:
             tag = f"#{tag}"
         normalizadas.append(tag)
     return normalizadas[:12]
+
+
+def _decodificar_data_uri(texto: str) -> tuple[bytes, str] | None:
+    m = re.match(r"^data:(image/[\w.+-]+);base64,(.+)$", (texto or "").strip(), re.S)
+    if not m:
+        return None
+    try:
+        return base64.b64decode(m.group(2), validate=False), m.group(1).lower()
+    except Exception:  # noqa: BLE001
+        return None
 
 
 def _extrair_url(texto: str) -> str | None:

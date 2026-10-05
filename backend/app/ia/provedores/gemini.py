@@ -50,9 +50,22 @@ class GeminiProvedor(Provider):
             return resposta_sem_chave(self.nome, "GEMINI_API_KEY", prompt, modelo_final)
         from google import genai  # type: ignore
 
+        from google.genai import types  # type: ignore
+
         cliente = genai.Client(api_key=self.api_key)
-        resp = cliente.models.generate_content(model=modelo_final, contents=prompt)
-        return RespostaIA(texto=(resp.text or "").strip(), provedor=self.nome, modelo=modelo_final)
+        resp = cliente.models.generate_content(
+            model=modelo_final,
+            contents=prompt,
+            config=types.GenerateContentConfig(max_output_tokens=max_tokens),
+        )
+        uso = getattr(resp, "usage_metadata", None)
+        return RespostaIA(
+            texto=(resp.text or "").strip(),
+            provedor=self.nome,
+            modelo=modelo_final,
+            tokens_in=int(getattr(uso, "prompt_token_count", 0) or 0),
+            tokens_out=int(getattr(uso, "candidates_token_count", 0) or 0),
+        )
 
     # ───────── Compat. com habilidades antigas ─────────
     def gerar_texto(self, prompt: str, *, max_tokens: int = 1024) -> RespostaIA:
