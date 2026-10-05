@@ -78,6 +78,10 @@ class Configuracao(BaseSettings):
     # ───────── Observabilidade de IA (Fase 4) ─────────
     ia_store_prompts: bool = False  # LGPD: por padrão só SHA256 do prompt
 
+    # Só para desenvolvimento/demo local: provedor sem chave devolve texto "[stub ...]"
+    # em vez de falhar. NUNCA ligar em produção (mascara chave faltando como sucesso).
+    ia_permitir_stub: bool = False
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]

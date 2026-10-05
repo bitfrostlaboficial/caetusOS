@@ -5,7 +5,7 @@ import time
 from typing import Any
 
 from app.configuracao import config
-from app.ia.provedores.base import Capabilities, HealthStatus, Provider, RespostaIA
+from app.ia.provedores.base import resposta_sem_chave, Capabilities, HealthStatus, Provider, RespostaIA
 from app.ia.provedores.gemini import _classificar_erro
 from app.infraestrutura.observabilidade.logger import log_evento
 
@@ -48,14 +48,7 @@ class GroqProvedor(Provider):
     ) -> RespostaIA:
         modelo_final = modelo or self.modelo_padrao
         if not self.api_key:
-            log_evento(log, logging.WARNING, "PROVIDER",
-                       "groq sem API key — retornando stub",
-                       provider=self.nome, modelo=modelo_final)
-            return RespostaIA(
-                texto=f"[stub groq sem GROQ_API_KEY]\n\n{prompt[:400]}",
-                provedor=self.nome,
-                modelo=modelo_final,
-            )
+            return resposta_sem_chave(self.nome, "GROQ_API_KEY", prompt, modelo_final)
         from groq import Groq  # type: ignore
 
         log_evento(

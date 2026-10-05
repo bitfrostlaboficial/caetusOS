@@ -6,7 +6,7 @@ from typing import Any
 import httpx
 
 from app.configuracao import config
-from app.ia.provedores.base import Capabilities, HealthStatus, Provider, RespostaIA
+from app.ia.provedores.base import resposta_sem_chave, Capabilities, HealthStatus, Provider, RespostaIA
 from app.ia.provedores.gemini import _classificar_erro
 
 
@@ -53,10 +53,7 @@ class OpenRouterProvedor(Provider):
     ) -> RespostaIA:
         modelo_final = modelo or self.modelo_padrao
         if not self.api_key:
-            return RespostaIA(
-                texto=f"[stub openrouter sem OPENROUTER_API_KEY]\n\n{prompt[:400]}",
-                provedor=self.nome, modelo=modelo_final,
-            )
+            return resposta_sem_chave(self.nome, "OPENROUTER_API_KEY", prompt, modelo_final)
         r = httpx.post(
             f"{self.BASE_URL}/chat/completions",
             headers={"Authorization": f"Bearer {self.api_key}"},

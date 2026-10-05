@@ -4,7 +4,7 @@ import time
 from typing import Any
 
 from app.configuracao import config
-from app.ia.provedores.base import Capabilities, HealthStatus, Provider, RespostaIA
+from app.ia.provedores.base import resposta_sem_chave, Capabilities, HealthStatus, Provider, RespostaIA
 
 
 class GeminiProvedor(Provider):
@@ -44,11 +44,7 @@ class GeminiProvedor(Provider):
     ) -> RespostaIA:
         modelo_final = modelo or self.modelo_padrao
         if not self.api_key:
-            return RespostaIA(
-                texto=f"[stub gemini sem GEMINI_API_KEY]\n\n{prompt[:400]}",
-                provedor=self.nome,
-                modelo=modelo_final,
-            )
+            return resposta_sem_chave(self.nome, "GEMINI_API_KEY", prompt, modelo_final)
         from google import genai  # type: ignore
 
         cliente = genai.Client(api_key=self.api_key)

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import base64
 import json
 import re
 import time
@@ -16,16 +15,11 @@ from app.ia.prompts._runtime import (
     construir_environment,
     normalizar_para_template,
 )
-from app.ia.roteador import executar_missao
+from app.ia.roteador import NenhumProvedorDisponivel, executar_missao
 from app.infraestrutura.armazenamento.filesystem import obter_storage
 
 _PROMPTS_DIR = Path(__file__).resolve().parent.parent.parent / "ia" / "prompts"
 _jinja = construir_environment(_PROMPTS_DIR)
-
-_PLACEHOLDER_PNG = base64.b64decode(
-    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgG"
-    "MmH57XAAAAABJRU5ErkJggg=="
-)
 
 
 @dataclass
@@ -69,7 +63,7 @@ class ImagemPost:
 @dataclass
 class PersistenciaPost:
     base: str
-    imagem: str
+    imagem: str | None
     legenda: str
     prompt_imagem: str
     metadata: str
@@ -173,8 +167,13 @@ class GeradorTextoPost:
         return conteudo
 
 
+class ImagemIndisponivel(RuntimeError):
+    """Não foi possível obter uma imagem (sem provedor, resposta sem URL, download falhou)."""
+
+
 class GeradorImagemPost:
     def gerar(self, prompt_visual: str, contexto: Contexto) -> ImagemPost:
+        """Gera a imagem ou levanta `ImagemIndisponivel` — nunca devolve imagem falsa."""
         inicio = time.perf_counter()
         resposta = executar_missao(
             "conteudo_imagem_post",
@@ -190,20 +189,16 @@ class GeradorImagemPost:
             "resposta_bruta": resposta.texto,
             "url_origem": url,
         }
-        conteudo = _PLACEHOLDER_PNG
-        mime = "image/png"
-        extensao = "png"
-        if url:
-            try:
-                r = httpx.get(url, timeout=120)
-                r.raise_for_status()
-                conteudo = r.content
-                mime = r.headers.get("content-type", "image/png").split(";")[0]
-                extensao = _extensao_por_mime(mime)
-            except Exception as exc:  # noqa: BLE001
-                metadata["download_erro"] = str(exc)[:300]
-        else:
-            metadata["placeholder"] = True
+        if not url:
+            raise ImagemIndisponivel("o provedor não devolveu uma URL de imagem")
+        try:
+            r = httpx.get(url, timeout=120)
+            r.raise_for_status()
+        except Exception as exc:  # noqa: BLE001
+            raise ImagemIndisponivel(f"falha ao baixar a imagem gerada: {str(exc)[:200]}") from exc
+        conteudo = r.content
+        mime = r.headers.get("content-type", "image/png").split(";")[0]
+        extensao = _extensao_por_mime(mime)
 
         return ImagemPost(
             conteudo=conteudo,
@@ -225,7 +220,7 @@ class PersistenciaPostConhecimento:
         self,
         entrada: EntradaPost,
         conteudo: ConteudoPost,
-        imagem: ImagemPost,
+        imagem: ImagemPost | None,
         metadata: dict[str, Any],
         contexto: Contexto,
     ) -> PersistenciaPost:
@@ -238,13 +233,17 @@ class PersistenciaPostConhecimento:
 
         if empresa_id:
             # Hash dos conteudos para caminhos unicos padrão da plataforma
-            hash_img = hashlib.sha256(imagem.conteudo).hexdigest()
+            hash_img = hashlib.sha256(imagem.conteudo).hexdigest() if imagem else None
             hash_leg = hashlib.sha256(conteudo.legenda.encode("utf-8")).hexdigest()
             hash_prompt = hashlib.sha256(conteudo.prompt_visual_texto.encode("utf-8")).hexdigest()
 
             # Nomeação amigável e timestamped para organizar no Explorer da Base de Conhecimento
             ts = agora.strftime("%Y%m%d_%H%M%S")
-            caminho_imagem = f"empresas/{empresa_id}/conhecimento/{hash_img}-post_{ts}_imagem.{imagem.extensao}"
+            caminho_imagem = (
+                f"empresas/{empresa_id}/conhecimento/{hash_img}-post_{ts}_imagem.{imagem.extensao}"
+                if imagem
+                else None
+            )
             caminho_legenda = f"empresas/{empresa_id}/conhecimento/{hash_leg}-post_{ts}_legenda.md"
             caminho_prompt = f"empresas/{empresa_id}/conhecimento/{hash_prompt}-post_{ts}_prompt.txt"
 
@@ -256,8 +255,8 @@ class PersistenciaPostConhecimento:
                 "missao": "conteudo.criar_post",
                 "provider_texto": conteudo.provider,
                 "modelo_texto": conteudo.modelo,
-                "provider_imagem": imagem.provider,
-                "modelo_imagem": imagem.modelo,
+                "provider_imagem": imagem.provider if imagem else None,
+                "modelo_imagem": imagem.modelo if imagem else None,
                 "legenda": conteudo.legenda,
                 "hashtags": conteudo.hashtags,
                 "cta": conteudo.cta,
@@ -279,7 +278,8 @@ class PersistenciaPostConhecimento:
             metadata_completo["arquivos"]["metadata"] = caminho_metadata
 
             # Salvar fisicamente no Storage
-            self.storage.salvar(caminho_imagem, imagem.conteudo)
+            if imagem:
+                self.storage.salvar(caminho_imagem, imagem.conteudo)
             self.storage.salvar(caminho_legenda, conteudo.legenda.encode("utf-8"))
             self.storage.salvar(caminho_prompt, conteudo.prompt_visual_texto.encode("utf-8"))
             self.storage.salvar(caminho_metadata, meta_bytes)
@@ -300,15 +300,17 @@ class PersistenciaPostConhecimento:
                     )
                     db_sessao.add(doc_leg)
 
-                    # Registrar imagem
-                    doc_img = DocumentoConhecimento(
-                        empresa_id=empresa_id,
-                        tipo="marketing",
-                        caminho_storage=caminho_imagem,
-                        hash=hash_img,
-                        versao=1,
-                    )
-                    db_sessao.add(doc_img)
+                    # Registrar imagem (quando houve)
+                    if imagem:
+                        db_sessao.add(
+                            DocumentoConhecimento(
+                                empresa_id=empresa_id,
+                                tipo="marketing",
+                                caminho_storage=caminho_imagem,
+                                hash=hash_img,
+                                versao=1,
+                            )
+                        )
 
                     # Registrar prompt
                     doc_prompt = DocumentoConhecimento(
@@ -339,7 +341,7 @@ class PersistenciaPostConhecimento:
         else:
             base_mes = f"conhecimento/marketing/posts/{agora:%Y}/{agora:%m}"
             base = self._proximo_diretorio(base_mes)
-            caminho_imagem = f"{base}/imagem.{imagem.extensao}"
+            caminho_imagem = f"{base}/imagem.{imagem.extensao}" if imagem else None
             caminho_legenda = f"{base}/legenda.md"
             caminho_prompt = f"{base}/prompt_imagem.md"
             caminho_metadata = f"{base}/metadata.json"
@@ -358,7 +360,8 @@ class PersistenciaPostConhecimento:
                 },
             }
 
-            self.storage.salvar(caminho_imagem, imagem.conteudo)
+            if imagem:
+                self.storage.salvar(caminho_imagem, imagem.conteudo)
             self.storage.salvar(caminho_legenda, conteudo.legenda.encode("utf-8"))
             self.storage.salvar(caminho_prompt, conteudo.prompt_visual_texto.encode("utf-8"))
             self.storage.salvar(
@@ -388,10 +391,16 @@ class PublicadorPost:
         self,
         entrada: EntradaPost,
         conteudo: ConteudoPost,
-        imagem: ImagemPost,
+        imagem: ImagemPost | None,
     ) -> PublicacaoPost:
         if not entrada.publicar_automaticamente:
             return PublicacaoPost(rede=entrada.rede, status="nao_solicitado")
+        if imagem is None:
+            return PublicacaoPost(
+                rede=entrada.rede,
+                status="sem_imagem",
+                detalhes={"motivo": "Não há imagem gerada para publicar."},
+            )
         if entrada.rede.lower() != "instagram":
             return PublicacaoPost(
                 rede=entrada.rede,
@@ -523,17 +532,28 @@ class PipelineCriarPost:
             provedor=conteudo.provider,
             modelo=conteudo.modelo,
         )
-        imagem = self.imagem.gerar(conteudo.prompt_visual_texto, contexto)
-        contexto.registrar_evento(
-            "ia.imagem",
-            "Imagem gerada",
-            nivel="sucesso",
-            provedor=imagem.provider,
-            modelo=imagem.modelo,
-            url_origem=imagem.url_origem,
-            placeholder=imagem.metadata.get("placeholder", False),
-        )
-        conteudo = self.texto.ajustar_legenda(conteudo, imagem, contexto)
+        imagem: ImagemPost | None
+        try:
+            imagem = self.imagem.gerar(conteudo.prompt_visual_texto, contexto)
+            contexto.registrar_evento(
+                "ia.imagem",
+                "Imagem gerada",
+                nivel="sucesso",
+                provedor=imagem.provider,
+                modelo=imagem.modelo,
+                url_origem=imagem.url_origem,
+            )
+        except (ImagemIndisponivel, NenhumProvedorDisponivel) as exc:
+            # O texto já foi gerado: entregamos o post sem imagem, com aviso claro.
+            imagem = None
+            contexto.registrar_evento(
+                "ia.imagem",
+                "Imagem não gerada — post entregue só com texto",
+                nivel="aviso",
+                motivo=str(exc)[:300],
+            )
+        if imagem is not None:
+            conteudo = self.texto.ajustar_legenda(conteudo, imagem, contexto)
         publicacao = self.publicador.publicar(entrada, conteudo, imagem)
         contexto.registrar_evento(
             "publicacao.status",
@@ -545,10 +565,10 @@ class PipelineCriarPost:
 
         metadata = {
             "provider_texto": conteudo.provider,
-            "provider_imagem": imagem.provider,
+            "provider_imagem": imagem.provider if imagem else None,
             "modelos": {
                 "texto": conteudo.modelo,
-                "imagem": imagem.modelo,
+                "imagem": imagem.modelo if imagem else None,
             },
             "tokens": {
                 "texto_in": conteudo.tokens_in,
@@ -557,7 +577,7 @@ class PipelineCriarPost:
             "custo": {
                 "texto": conteudo.custo,
             },
-            "imagem": imagem.metadata,
+            "imagem": imagem.metadata if imagem else None,
             "publicacao": publicacao.__dict__,
         }
         persistencia = self.persistencia.salvar(entrada, conteudo, imagem, metadata, contexto)
@@ -576,13 +596,17 @@ class PipelineCriarPost:
             "cta": conteudo.cta,
             "prompt_utilizado": conteudo.prompt_visual_texto,
             "prompt_imagem": conteudo.prompt_visual,
-            "imagem_gerada": {
-                "caminho": persistencia.imagem,
-                "mime": imagem.mime,
-                "url_origem": imagem.url_origem,
-                "metadata": imagem.metadata,
-            },
-            "imagem_url": imagem.url_origem,
+            "imagem_gerada": (
+                {
+                    "caminho": persistencia.imagem,
+                    "mime": imagem.mime,
+                    "url_origem": imagem.url_origem,
+                    "metadata": imagem.metadata,
+                }
+                if imagem
+                else None
+            ),
+            "imagem_url": imagem.url_origem if imagem else None,
             "caminho_salvo": persistencia.base,
             "arquivos_salvos": persistencia.__dict__,
             "status_publicacao": publicacao.status,
@@ -590,7 +614,9 @@ class PipelineCriarPost:
             "links": publicacao.links,
             "providers_utilizados": {
                 "texto": {"provider": conteudo.provider, "modelo": conteudo.modelo},
-                "imagem": {"provider": imagem.provider, "modelo": imagem.modelo},
+                "imagem": (
+                    {"provider": imagem.provider, "modelo": imagem.modelo} if imagem else None
+                ),
             },
             "tempo_execucao_ms": tempo_execucao_ms,
             "_metricas": {

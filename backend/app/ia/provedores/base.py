@@ -61,6 +61,27 @@ class HealthStatus:
         }
 
 
+class ProvedorNaoConfigurado(RuntimeError):
+    """O provedor não tem credencial — o roteador deve pular para o próximo candidato."""
+
+
+def resposta_sem_chave(nome: str, variavel: str, prompt: str, modelo: str | None) -> "RespostaIA":
+    """Comportamento de um provedor sem chave.
+
+    Por padrão levanta `ProvedorNaoConfigurado` (nunca finge sucesso). Com
+    `IA_PERMITIR_STUB=true` devolve um texto marcado `[stub ...]` para dev local.
+    """
+    from app.configuracao import config
+
+    if not config.ia_permitir_stub:
+        raise ProvedorNaoConfigurado(f"{nome}: {variavel} não configurada")
+    return RespostaIA(
+        texto=f"[stub {nome} sem {variavel}]\n\n{prompt[:400]}",
+        provedor=nome,
+        modelo=modelo,
+    )
+
+
 @dataclass
 class RespostaIA:
     texto: str

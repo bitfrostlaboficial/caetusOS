@@ -14,6 +14,7 @@ import time
 import uuid
 from typing import Any
 
+from app.configuracao import config
 from app.ia.categorias import (
     ESPECIALIZACAO_DA_CATEGORIA,
     CategoriaIA,
@@ -202,6 +203,9 @@ def _candidatos_para(
         if especializacao and e.especializacao != especializacao:
             continue
         if e.provider not in _REGISTRO:
+            continue
+        # Provedor sem credencial não é candidato (a menos que stub esteja liberado p/ dev).
+        if not _REGISTRO[e.provider].configuracao().get("configurado", True) and not config.ia_permitir_stub:
             continue
         modelo = e.modelo
         if not modelo:
