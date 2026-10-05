@@ -141,6 +141,15 @@ export type ProvedorIA = {
   plataforma_disponivel: boolean;
 };
 
+export type Identidade = {
+  cores: Record<string, string>;
+  fontes: Record<string, string>;
+  tom_de_voz: string | null;
+  logo_caminho: string | null;
+  manual_caminho: string | null;
+};
+export type MemoriaItem = { id: string; tipo: string; conteudo: string; peso: number };
+
 export type Empresa = { id: string; nome: string; slug: string };
 export type Projeto = { id: string; nome: string; slug: string; eh_raiz: boolean };
 export type DocumentoConhecimento = {
@@ -221,6 +230,14 @@ export const api = {
       email: string;
       admin_plataforma: boolean;
     }>("/v1/auth/me"),
+  obterIdentidade: () => apiRequest<Identidade>("/v1/identidade"),
+  salvarIdentidade: (dados: Partial<Pick<Identidade, "cores" | "fontes" | "tom_de_voz">>) =>
+    apiRequest<{ ok: boolean }>("/v1/identidade", { method: "PUT", body: dados }),
+  listarMemoria: () => apiRequest<MemoriaItem[]>("/v1/memoria"),
+  criarMemoria: (dados: { tipo: string; conteudo: string; peso: number }) =>
+    apiRequest<{ id: string }>("/v1/memoria", { body: dados }),
+  removerMemoria: (id: string) =>
+    apiRequest<{ ok: boolean }>(`/v1/memoria/${id}`, { method: "DELETE" }),
   listarProvedores: () => apiRequest<ProvedorIA[]>("/v1/provedores"),
   salvarProvedor: (
     nome: string,
