@@ -1,0 +1,55 @@
+name: HyperFrames · Átomo 3D Cinemático
+on:
+  push:
+    branches: [hyperframes-atom-proof-20261030]
+    paths:
+      - ".github/workflows/atom-3d.yml"
+      - "hyperframes-atom-3d/**"
+permissions:
+  contents: read
+jobs:
+  render-atom:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 28
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+      - name: Install Three.js and GSAP in cloud
+        run: |
+          npm install --prefix hyperframes-atom-3d/.deps --no-save three@0.153.0 gsap@3.14.2
+          mkdir -p hyperframes-atom-3d/assets
+          cp hyperframes-atom-3d/.deps/node_modules/three/build/three.min.js hyperframes-atom-3d/assets/three.min.js
+          cp hyperframes-atom-3d/.deps/node_modules/gsap/dist/gsap.min.js hyperframes-atom-3d/assets/gsap.min.js
+      - name: Prepare browser
+        working-directory: hyperframes-atom-3d
+        run: npx --yes hyperframes@0.7.94 browser
+      - name: Render 3D with HyperFrames
+        working-directory: hyperframes-atom-3d
+        run: |
+          set -o pipefail
+          npx --yes hyperframes@0.7.94 render --quality draft --workers 1 --output "$GITHUB_WORKSPACE/atom-3d.mp4" 2>&1 | tee "$GITHUB_WORKSPACE/atom-render.log"
+      - name: Verify video and create previews
+        run: |
+          ffprobe -v error -show_entries stream=width,height,r_frame_rate,codec_name -show_entries format=duration,size -of json atom-3d.mp4 > atom-info.json
+          ffmpeg -y -ss 2.5 -i atom-3d.mp4 -frames:v 1 -update 1 atom-preview.jpg
+          ffmpeg -y -ss 5.5 -i atom-3d.mp4 -frames:v 1 -update 1 atom-preview-late.jpg
+          test -s atom-3d.mp4 && test -s atom-preview.jpg
+      - name: Save video and source diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hyperframes-atom-3d-proof
+          path: |
+            atom-3d.mp4
+            atom-preview.jpg
+            atom-preview-late.jpg
+            atom-info.json
+            atom-render.log
+          if-no-files-found: warn
+          retention-days: 7
