@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=1080,height=1920"/>
+<title>Átomo — Prova real 3D | HyperFrames + Three.js</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;padding:0;width:1080px;height:1920px;overflow:hidden;background:#07121D;color:#E4F4F3}
+body{font-family:Arial,Helvetica,sans-serif;-webkit-font-smoothing:antialiased}
+#film{width:1080px;height:1920px;overflow:hidden;position:relative;background:radial-gradient(ellipse at 55% 44%,#112C35,#07121D 76%)}
+#stage{width:1080px;height:1920px;position:absolute;inset:0;z-index:1;display:block}
+.grain{position:absolute;inset:0;z-index:2;pointer-events:none;opacity:.20;background:radial-gradient(circle at 48% 48%,transparent 22%,rgba(3,7,14,.7) 100%)}
+.top{position:absolute;left:89px;right:89px;top:110px;z-index:4;pointer-events:none}
+.topline{display:flex;align-items:center;gap:19px;font-size:18px;letter-spacing:5px;font-weight:700;color:#8CE2D9}
+.dot{width:9px;height:9px;border-radius:50%;background:#3BD1C3;box-shadow:0 0 17px #28D6CB}
+.hero{margin-top:41px;font-size:104px;letter-spacing:-5px;font-weight:500;line-height:.99}
+.hero strong{font-weight:700;color:#D8FFFB}
+.subtitle{margin-top:25px;color:#B0CDD3;font-size:25px;letter-spacing:1.3px;line-height:1.48}
+.bottom{position:absolute;bottom:112px;left:89px;right:89px;z-index:4;pointer-events:none}
+.rule{height:1px;background:linear-gradient(90deg,rgba(84,206,194,.85),rgba(84,206,194,.1));margin-bottom:27px}
+.metalabel{display:flex;justify-content:space-between;align-items:center;gap:20px;color:#ADD6D1;font-size:18px;letter-spacing:3px;font-weight:600}
+.metalabel b{font-weight:700;color:#EBF7F3}
+.micro{font-size:15px;letter-spacing:1.7px;color:#789FA4;margin-top:18px}
+#flash{position:absolute;inset:0;pointer-events:none;z-index:3;background:#B8FBF4;opacity:0}
+</style>
+</head>
+<body>
+<div id="film" data-composition-id="atom-study" data-start="0" data-duration="8" data-width="1080" data-height="1920">
+<canvas id="stage" width="1080" height="1920"></canvas>
+<div class="grain"></div>
+<div class="top">
+<div class="topline"><span class="dot"></span> ESTUDO DE MOVIMENTO / 01</div>
+<div class="hero">O universo<br><strong>em órbita.</strong></div>
+<div class="subtitle">Um átomo. Três dimensões.<br>Movimento real no espaço.</div>
+</div>
+<div class="bottom">
+<div class="rule"></div>
+<div class="metalabel"><b>HYPERFRAMES × THREE.JS</b><span>WEBGL • 3D</span></div>
+<div class="micro">MODELO VISUAL ESTILIZADO · DEMONSTRAÇÃO DE RENDER</div>
+</div>
+<div id="flash"></div>
+</div>
+<script src="assets/three.min.js"></script>
+<script src="assets/gsap.min.js"></script>
+<script>
+(function(){
+'use strict';
+if(!window.THREE||!window.gsap)throw new Error('Requires local Three.js and GSAP assets');
+const T=window.THREE;
+const canvas=document.querySelector('#stage');
+const renderer=new T.WebGLRenderer({canvas:canvas,antialias:true,preserveDrawingBuffer:true,alpha:false,powerPreference:'high-performance'});
+renderer.setSize(1080,1920,false);renderer.setPixelRatio(1);
+renderer.setClearColor(0x07121D,1);
+renderer.outputColorSpace=T.SRGBColorSpace;
+renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.28;
+const scene=new T.Scene();scene.background=new T.Color(0x07121D);
+scene.fog=new T.FogExp2(0x07121D,.023);
+const camera=new T.PerspectiveCamera(40,1080/1920,.1,90);
+const target=new T.Vector3(0,-.23,0);
+const ambient=new T.HemisphereLight(0x99F1E5,0x0D2335,2.35);scene.add(ambient);
+const key=new T.DirectionalLight(0xEFF8EA,4.3);key.position.set(-4.2,5.5,7.7);scene.add(key);
+const goldKey=new T.PointLight(0xFFC17F,72,18);goldKey.position.set(3,1,4);scene.add(goldKey);
+const cyanRim=new T.PointLight(0x29CFC4,63,17);cyanRim.position.set(-3.1,-2.8,-4.2);scene.add(cyanRim);
+const lowFill=new T.PointLight(0xD2E6F8,17,14);lowFill.position.set(2,-4,0);scene.add(lowFill);
+const atom=new T.Group();atom.position.set(0,-.25,0);scene.add(atom);
+const core=new T.Group();atom.add(core);
+const gold=new T.MeshPhysicalMaterial({color:0xE9B981,metalness:.69,roughness:.18,clearcoat:.64,clearcoatRoughness:.19});
+const copper=new T.MeshPhysicalMaterial({color:0xB96B56,metalness:.55,roughness:.26,clearcoat:.44});
+const ice=new T.MeshPhysicalMaterial({color:0xD0E6E6,metalness:.6,roughness:.19,clearcoat:.48});
+const jade=new T.MeshPhysicalMaterial({color:0x36C7B7,metalness:.65,roughness:.16,clearcoat:.86});
+const nucgeo=new T.SphereGeometry(.325,28,20);
+const rad=1.0;
+const nucs=[
+[0,0,0],[.59,.22,.26],[-.62,.11,-.18],[.12,.59,-.37],[-.1,-.65,.24],
+[.34,-.31,-.61],[-.3,.25,.64],[.71,-.43,.28],[-.72,-.34,-.23],
+[.13,-.09,.82],[.18,.72,.42],[-.44,.70,-.10],[.55,.54,-.40],
+[-.53,-.62,.31],[.54,-.53,-.38],[-.24,-.2,-.79],[.4,.1,.8],[-.55,.06,-.66],
+[.07,.4,-.84],[0,-.7,-.48]
+];
+nucs.forEach((p,i)=>{let obj=new T.Mesh(nucgeo,[gold,ice,copper][i%3]);obj.position.set(...p);obj.scale.setScalar(.92+(i%4)*.034);core.add(obj)});
+// Subtle warm core bloom, radial texture generated at render time; no external media.
+const haloCanvas=document.createElement('canvas');haloCanvas.width=256;haloCanvas.height=256;
+const ctx=haloCanvas.getContext('2d');const grad=ctx.createRadialGradient(128,128,3,128,128,128);
+grad.addColorStop(0,'rgba(226,245,235,.62)');grad.addColorStop(.16,'rgba(224,183,117,.24)');grad.addColorStop(.49,'rgba(68,207,185,.065)');grad.addColorStop(1,'rgba(68,207,185,0)');
+ctx.fillStyle=grad;ctx.fillRect(0,0,256,256);
+const texture=new T.CanvasTexture(haloCanvas);
+const halo=new T.Sprite(new T.SpriteMaterial({map:texture,transparent:true,blending:T.AdditiveBlending,depthWrite:false,opacity:.9}));halo.scale.set(7.1,7.1,1);core.add(halo);
+const ringGroup=new T.Group();atom.add(ringGroup);
+const ringDefs=[
+ {tilt:[.16,.12,.17],r:3.18,h:.75,period:3.6,color:0x32E7CE,offset:.4},
+ {tilt:[1.07,.37,-.43],r:3.18,h:.75,period:4.2,color:0xF2C083,offset:2.2},
+ {tilt:[-.65,1.12,.34],r:3.18,h:.75,period:3.15,color:0xC4E7F2,offset:4.1}
+];
+const electrons=[];
+function circleTube(radius,thick,mat,arcStart=0,arcLen=Math.PI*2){
+const pts=[];for(let j=0;j<=160;j++){const a=arcStart+arcLen*j/160;pts.push(new T.Vector3(Math.cos(a)*radius,Math.sin(a)*radius,0))}
+const path=new T.CatmullRomCurve3(pts,false);return new T.Mesh(new T.TubeGeometry(path,160,thick,7,false),mat)
+}
+ringDefs.forEach((d,i)=>{
+ const plane=new T.Group();plane.rotation.set(...d.tilt);ringGroup.add(plane);
+ const ringMat=new T.MeshBasicMaterial({color:d.color,transparent:true,opacity:.29,depthWrite:false,blending:T.AdditiveBlending});
+ plane.add(circleTube(d.r,.018,ringMat));
+ const shineMat=new T.MeshBasicMaterial({color:d.color,transparent:true,opacity:.10,depthWrite:false,blending:T.AdditiveBlending});
+ plane.add(circleTube(d.r,.067,shineMat));
+ const orbit=new T.Group();plane.add(orbit);
+ // Trail follows the electron because it belongs to same rotating pivot.
+ const trailMat=new T.MeshBasicMaterial({color:d.color,transparent:true,opacity:.17,depthWrite:false,blending:T.AdditiveBlending});
+ orbit.add(circleTube(d.r,.083,trailMat,-.46,.43));
+ const electron=new T.Mesh(new T.SphereGeometry(.185,28,20),new T.MeshBasicMaterial({color:d.color}));
+ electron.position.set(d.r,0,0);orbit.add(electron);
+ const haloElectron=new T.Sprite(new T.SpriteMaterial({map:texture,transparent:true,depthWrite:false,blending:T.AdditiveBlending,opacity:.78,color:d.color}));
+ haloElectron.position.set(d.r,0,0);haloElectron.scale.set(1.12,1.12,1);orbit.add(haloElectron);
+ electrons.push({orbit,d,plane});
+});
+// Deterministic deep-field dust particles: seeded trigonometry, no random/time clock.
+const count=420,positions=new Float32Array(count*3),cs=new Float32Array(count*3);
+for(let i=0;i<count;i++){
+ const seed=i*2.399963229728653;
+ const rr=7.5+8.5*((i*37%181)/181);
+ positions[i*3]=Math.cos(seed)*rr;positions[i*3+1]=Math.sin(seed*.82)*rr*.85;positions[i*3+2]=-3.5-((i*29)%110)/11;
+ const light=.32+.55*((i*53%101)/101);cs[i*3]=light*.62;cs[i*3+1]=light*.96;cs[i*3+2]=light*.94;
+}
+const dustGeo=new T.BufferGeometry();dustGeo.setAttribute('position',new T.BufferAttribute(positions,3));dustGeo.setAttribute('color',new T.BufferAttribute(cs,3));
+const dust=new T.Points(dustGeo,new T.PointsMaterial({size:.026,vertexColors:true,transparent:true,opacity:.58,depthWrite:false}));scene.add(dust);
+function seek(t){
+ const p=Math.max(0,Math.min(1,t/8));const a=p*Math.PI*2;
+ atom.rotation.y=.18+.45*p;atom.rotation.x=.035+.07*Math.sin(p*Math.PI*2);
+ core.rotation.set(.16*p,.43*p,-.07*p);ringGroup.rotation.y=.23*p;
+ electrons.forEach(({orbit,d},i)=>orbit.rotation.z=d.offset+a*(8/d.period));
+ const cameraAngle=-.13+.38*p;
+ const dist=14.3-.85*Math.sin(p*Math.PI);
+ camera.position.set(Math.sin(cameraAngle)*dist,1.32+.5*Math.sin(p*Math.PI*2),Math.cos(cameraAngle)*dist);
+ camera.lookAt(target);
+ halo.material.opacity=.72+.14*Math.sin(a);
+ dust.rotation.y=.026*p;
+ renderer.render(scene,camera);
+}
+seek(0);
+const state={time:0};const tl=gsap.timeline({paused:true});
+tl.to(state,{time:8,duration:8,ease:'none',onUpdate:()=>seek(state.time)},0);
+tl.from('.top',{y:34,opacity:0,duration:1.0,ease:'power2.out'},.15);
+tl.from('.bottom',{y:29,opacity:0,duration:.85,ease:'power2.out'},.7);
+window.__timelines=window.__timelines||{};window.__timelines['atom-study']=tl;
+window.__renderAtomAt=seek;
+window.__atomInfo={rendererType:'WebGLRenderer',geometry:'nucleons + orbital meshes + particles',canvas};
+})();
+</script>
+</body>
+</html>
