@@ -1,0 +1,50 @@
+name: Capturas reais dos modelos HyperFrames
+on:
+  push:
+    branches: [hyperframes-model-previews-20261030]
+    paths: [.github/workflows/hyperframes-refs.yml]
+permissions:
+  contents: read
+jobs:
+  screenshots:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Install ffmpeg
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+      - name: Download public original video examples and extract real frames
+        shell: bash
+        run: |
+          mkdir -p frames
+          cat > videos.tsv <<'EOF'
+          reception https://static.heygen.ai/hyperframes-oss/desktop/viral-clone/remix-elevenlabs-reception-result.mp4
+          harvey https://static.heygen.ai/hyperframes-oss/desktop/viral-clone/remix-harvey-result.mp4
+          authorize https://static.heygen.ai/hyperframes-oss/desktop/viral-clone/remix-authorize-once-result.mp4
+          EOF
+          while read -r name url; do
+            echo "::group::$name"
+            if curl --fail --location --retry 2 --connect-timeout 12 --max-time 180 -A 'Mozilla/5.0' --output "$name.mp4" "$url"; then
+              ffprobe -v error -show_entries format=duration,size -of default=noprint_wrappers=1 "$name.mp4" > "frames/$name-metadata.txt" || true
+              duration=$(ffprobe -v error -show_entries format=duration -of default=nokey=1:noprint_wrappers=1 "$name.mp4" || echo 0)
+              for portion in 0.15 0.52 0.82; do
+                stamp=$(awk -v d="$duration" -v p="$portion" 'BEGIN {printf "%.3f", d*p}')
+                num=$(echo "$portion" | tr -d '.')
+                ffmpeg -hide_banner -loglevel error -y -ss "$stamp" -i "$name.mp4" -frames:v 1 -update 1 -vf 'scale=1280:-2' "frames/$name-$num.png" || true
+              done
+              echo "$name ok $duration" | tee -a status.txt
+            else
+              echo "$name failed" | tee -a status.txt
+            fi
+            echo "::endgroup::"
+          done < videos.tsv
+          ls -lah frames/
+      - name: Upload real reference video stills
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: real-hyperframes-reference-stills
+          path: |
+            frames/
+            status.txt
+          retention-days: 7
+          if-no-files-found: warn
